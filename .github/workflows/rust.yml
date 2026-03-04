@@ -18,7 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.12'
 
@@ -26,7 +26,7 @@ jobs:
       with:
         ruby-version: '3.1'
 
-    - uses: actions/download-artifact@v5
+    - uses: actions/download-artifact@v8
       id: download-php
       continue-on-error: true
       with:
@@ -43,7 +43,7 @@ jobs:
           ./spc download php-src --with-php=8.3 --for-extensions="phar,posix,readline"
           ./spc build phar,posix,readline --build-embed
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       if: steps.build-php.outcome == 'success'
       with:
         name: php-binary
