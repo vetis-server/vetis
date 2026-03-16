@@ -9,8 +9,11 @@ use crate::server::virtual_host::path::interface::python::wsgi::WsgiWorker;
 #[cfg(feature = "python")]
 use pyo3::Python;
 
-// #[cfg(feature = "php")]
-// use crate::server::virtual_host::path::interface::php::PhpWorker;
+#[cfg(feature = "sapi")]
+use crate::server::virtual_host::path::interface::php::sapi::SapiWorker;
+
+#[cfg(feature = "fcgi")]
+use crate::server::virtual_host::path::interface::php::fcgi::FcgiWorker;
 
 #[cfg(feature = "ruby")]
 use crate::server::virtual_host::path::interface::ruby::RubyWorker;
@@ -26,6 +29,8 @@ use crate::{
 
 // #[cfg(feature = "php")]
 // pub mod php;
+#[cfg(feature = "php")]
+pub mod php;
 #[cfg(feature = "python")]
 pub mod python;
 #[cfg(feature = "ruby")]
@@ -48,6 +53,10 @@ pub enum Interface {
     Wsgi(WsgiWorker),
     #[cfg(all(feature = "rsgi", feature = "python"))]
     Rsgi(RsgiWorker),
+    #[cfg(all(feature = "sapi", feature = "php"))]
+    Sapi(SapiWorker),
+    #[cfg(all(feature = "fcgi", feature = "php"))]
+    Fcgi(FcgiWorker),
     #[cfg(all(feature = "rsgi", feature = "ruby"))]
     Ruby(RubyWorker),
 }
@@ -80,6 +89,10 @@ impl InterfaceWorker for Interface {
             Interface::Wsgi(handler) => handler.handle(request, uri),
             #[cfg(all(feature = "python", feature = "rsgi"))]
             Interface::Rsgi(handler) => handler.handle(request, uri),
+            #[cfg(all(feature = "php", feature = "sapi"))]
+            Interface::Sapi(handler) => handler.handle(request, uri),
+            #[cfg(all(feature = "php", feature = "fcgi"))]
+            Interface::Fcgi(handler) => handler.handle(request, uri),
             #[cfg(all(feature = "ruby", feature = "rsgi"))]
             Interface::Ruby(handler) => handler.handle(request, uri),
             _ => {
@@ -140,6 +153,18 @@ impl InterfacePath {
             InterfaceType::Rsgi => Interface::Rsgi(RsgiWorker::new(directory, target)),
             #[cfg(all(feature = "ruby", feature = "ruby"))]
             InterfaceType::Ruby => Interface::Ruby(RubyWorker::new(directory, target)),
+            #[cfg(all(feature = "php", feature = "sapi"))]
+            InterfaceType::Sapi => Interface::Sapi(SapiWorker::new(directory, target)),
+            #[cfg(all(feature = "php", feature = "fcgi"))]
+            InterfaceType::Fcgi => {
+                let worker = FcgiWorker::new(directory, target);
+                match worker {
+                    Ok(worker) => Interface::Fcgi(worker),
+                    Err(e) => {
+                        panic!("Could not initialize fcgi worker: {}", e);
+                    }
+                }
+            }
             _ => {
                 panic!("Unsupported interface type");
             }
@@ -214,6 +239,14 @@ impl Path for InterfacePath {
                     .handle(request.clone(), uri),
                 #[cfg(all(feature = "ruby", feature = "ruby"))]
                 InterfaceType::Ruby => self
+                    .interface
+                    .handle(request.clone(), uri),
+                #[cfg(all(feature = "php", feature = "sapi"))]
+                InterfaceType::Sapi => self
+                    .interface
+                    .handle(request.clone(), uri),
+                #[cfg(all(feature = "php", feature = "fcgi"))]
+                InterfaceType::Fcgi => self
                     .interface
                     .handle(request.clone(), uri),
                 _ => {

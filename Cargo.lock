@@ -1145,6 +1145,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "fastcgi-client"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4761c80488a12bd18edac49cf5bcdcc524a90c689f11c2a2abaebb6fc677e644"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4178,6 +4193,7 @@ dependencies = [
  "crossfire",
  "deboa",
  "env_logger",
+ "fastcgi-client",
  "futures-lite",
  "futures-rustls",
  "futures-util",

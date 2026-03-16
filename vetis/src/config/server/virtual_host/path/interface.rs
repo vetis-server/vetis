@@ -7,10 +7,11 @@ use std::{collections::HashMap, path::Path};
 #[derive(Clone, Deserialize)]
 #[non_exhaustive]
 pub enum InterfaceType {
-    Php,
     Asgi,
     Wsgi,
     Rsgi,
+    Sapi,
+    Fcgi,
     Ruby,
 }
 
@@ -124,7 +125,10 @@ impl InterfacePathConfigBuilder {
                         }
                     }
                 }
-                InterfaceType::Php => {
+                InterfaceType::Sapi => {
+                    // For PHP interface type, target is not used
+                }
+                InterfaceType::Fcgi => {
                     // For PHP interface type, target is not used
                 }
                 InterfaceType::Ruby => {
