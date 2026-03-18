@@ -236,7 +236,7 @@ impl StaticPath {
                     let max_file_size = if let Some(cache) = self.config.cache() {
                         cache.max_file_size() as u64
                     } else {
-                        1024 * 1024 // 1MB default
+                        1024 * 1024 * 10 // 10MB default
                     };
 
                     let static_file = if metadata.size() < max_file_size {
