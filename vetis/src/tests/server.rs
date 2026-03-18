@@ -128,7 +128,9 @@ mod server_tests {
             )
             .build();
 
-        let request = request::get("https://ip6-localhost:8081/hello")?
+        let host = if cfg!(windows) { "localhost" } else { "ip6-localhost" };
+
+        let request = request::get(format!("https://{}:8081/hello", host))?
             .send_with(&client)
             .await?;
 
