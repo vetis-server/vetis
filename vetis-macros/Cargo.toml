@@ -19,6 +19,7 @@ tokio-rt = [
   "deboa/tokio-rust-tls",
   "vetis/tokio-rt",
   "vetis/tokio-rust-tls",
+  "vetis/http1",
   "vetis-core/tokio-rt",
   "dep:tokio",
 ]
@@ -27,6 +28,7 @@ smol-rt = [
   "deboa/smol-rust-tls",
   "vetis/smol-rt",
   "vetis/smol-rust-tls",
+  "vetis/http1",
   "vetis-core/smol-rt",
   "dep:smol",
   "dep:smol-macros",
