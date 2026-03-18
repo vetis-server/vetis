@@ -54,10 +54,18 @@ mod server_tests {
             .security(security_config)
             .build()?;
 
+        #[cfg(unix)]
         let ip6_security_config = SecurityConfig::builder()
             .ca_cert_from_bytes(CA_CERT.to_vec())
             .cert_from_bytes(IP6_SERVER_CERT.to_vec())
             .key_from_bytes(IP6_SERVER_KEY.to_vec())
+            .build()?;
+
+        #[cfg(windows)]
+        let ip6_security_config = SecurityConfig::builder()
+            .ca_cert_from_bytes(CA_CERT.to_vec())
+            .cert_from_bytes(SERVER_CERT.to_vec())
+            .key_from_bytes(SERVER_KEY.to_vec())
             .build()?;
 
         let ip6_localhost_config = VirtualHostConfig::builder()
