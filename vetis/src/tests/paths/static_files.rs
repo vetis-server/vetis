@@ -130,10 +130,18 @@ async fn do_index() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(request.status(), http::StatusCode::OK);
 
-    assert_eq!(request
+    let expected = if cfg!(windows) {
+        "<html>\r\n<head>\r\n  <title>\r\n    Tested!\r\n  </title>\r\n</head>\r\n<body>\r\n  <p>\r\n    Tested!\r\n  </p>\r\n</body>\r\n</html>"
+    } else {
+        "<html>\n<head>\n  <title>\n    Tested!\n  </title>\n</head>\n<body>\n  <p>\n    Tested!\n  </p>\n</body>\n</html>"
+    };
+
+    assert_eq!(
+        request
             .text()
             .await?,
-            "<html>\n<head>\n  <title>\n    Tested!\n  </title>\n</head>\n<body>\n  <p>\n    Tested!\n  </p>\n</body>\n</html>");
+        expected
+    );
 
     server
         .stop()
