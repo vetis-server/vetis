@@ -17,9 +17,13 @@ use crate::{
     VetisFile,
 };
 use http::{HeaderMap, HeaderValue};
-use std::{
-    future::Future, os::unix::fs::MetadataExt, path::PathBuf, pin::Pin, sync::Arc, time::Duration,
-};
+use std::{future::Future, path::PathBuf, pin::Pin, sync::Arc, time::Duration};
+
+#[cfg(unix)]
+use std::os::unix::fs::MetadataExt;
+
+#[cfg(windows)]
+use std::os::windows::fs::MetadataExt;
 
 #[cfg(feature = "auth")]
 use crate::server::virtual_host::path::auth::Auth;
