@@ -22,6 +22,8 @@ mod server_tests {
     };
 
     async fn do_multiple_interfaces() -> Result<(), Box<dyn Error>> {
+        let host = if cfg!(windows) { "localhost" } else { "ip6-localhost" };
+
         let ipv4 = ListenerConfig::builder()
             .port(8080)
             .protocol(default_protocol())
@@ -59,7 +61,7 @@ mod server_tests {
             .build()?;
 
         let ip6_localhost_config = VirtualHostConfig::builder()
-            .hostname("ip6-localhost")
+            .hostname(host)
             .port(8081)
             .root_directory("src/tests")
             .security(ip6_security_config)
@@ -127,8 +129,6 @@ mod server_tests {
                     .unwrap(),
             )
             .build();
-
-        let host = if cfg!(windows) { "localhost" } else { "ip6-localhost" };
 
         let request = request::get(format!("https://{}:8081/hello", host))?
             .send_with(&client)
