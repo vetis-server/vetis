@@ -289,23 +289,16 @@ jobs:
           cat "$GITHUB_OUTPUT"
       - name: Maybe install SSL packages
         run: sudo apt-get update --yes && sudo apt-get install --yes pkg-config openssl libssl-dev
-        if: matrix.platform.features == 'native-tls'
+        if: matrix.platform.features == 'tokio-native-tls'
       - name: Build binary
-        uses: houseabsolute/actions-rust-cross@v1
-        with:
-          command: "build"
-          target: ${{ matrix.platform.target }}
-          toolchain: ${{ matrix.toolchain }}
-          args:
-            "--locked --release --features \"${{ steps.set-features-flag-value.outputs.features }}\" --no-default-features"
-          strip: true
-          cross-version: ${{ matrix.platform.cross-version }}
+        run: |
+          cd vetis
+          cargo build --locked --release --features "${{ steps.set-features-flag-value.outputs.features }}" --no-default-features
+          strip target/release/vetis
+          cd ..
       - name: Run tests
-        uses: houseabsolute/actions-rust-cross@v1
-        with:
-          command: "test"
-          target: ${{ matrix.platform.target }}
-          toolchain: ${{ matrix.toolchain }}
-          args:
-            "--locked --release  --features ${{ steps.set-features-flag-value.outputs.features }} --no-default-features"
+        run: |
+          cd vetis
+          cargo test --locked --release --features "${{ steps.set-features-flag-value.outputs.features }}" --no-default-features
+          cd ..
         if: ${{ !matrix.platform.skip-tests }}
