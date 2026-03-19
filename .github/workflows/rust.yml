@@ -297,7 +297,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           toolchain: ${{ matrix.toolchain }}
           args:
-            "--locked --release --features ${{ steps.set-features-flag-value.outputs.features }} --no-default-features"
+            "--locked --release --features \"${{ steps.set-features-flag-value.outputs.features }}\" --no-default-features"
           strip: true
           cross-version: ${{ matrix.platform.cross-version }}
       - name: Run tests
