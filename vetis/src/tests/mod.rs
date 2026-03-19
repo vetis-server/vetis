@@ -30,7 +30,7 @@ mod config;
 #[cfg(test)]
 mod paths;
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod server;
 
