@@ -13,11 +13,11 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:    
-    name: Build and Test
+  test-with-interfaces:    
+    name: Test with Interfaces
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6
@@ -163,3 +163,149 @@ jobs:
         cd vetis-wsgi
         cargo test --features "smol-rt" --no-default-features
         cd ..
+
+  test-matrix:
+    name: Test ${{ matrix.platform.os-name }} with rust ${{ matrix.toolchain }}
+    runs-on: ${{ matrix.platform.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os-name: FreeBSD-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-freebsd
+            features: tokio-rt tokio-rust-tls http1            
+            skip-tests: true
+          - os-name: Linux-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+            features: tokio-rt tokio-rust-tls http1            
+          - os-name: Linux-x86_64 (rustls-native-roots)
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+            features: tokio-rt tokio-native-tls http1
+          - os-name: Linux-x86_64 (native-tls)
+            runs-on: ubuntu-24.04
+            # We need to use gnu or we cannot link against openssl.
+            target: x86_64-unknown-linux-gnu
+            features: tokio-rt tokio-native-tls http1
+          - os-name: Linux-x86_64 (native-tls-vendored)
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+            features: tokio-rt tokio-native-tls http1
+          - os-name: Linux-aarch64
+            runs-on: ubuntu-24.04
+            target: aarch64-unknown-linux-musl
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Linux-arm
+            runs-on: ubuntu-24.04
+            target: arm-unknown-linux-musleabi
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Linux-i686
+            runs-on: ubuntu-24.04
+            target: i686-unknown-linux-musl
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-powerpc
+            runs-on: ubuntu-24.04
+            target: powerpc-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-powerpc64
+            runs-on: ubuntu-24.04
+            target: powerpc64-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-powerpc64le
+            runs-on: ubuntu-24.04
+            target: powerpc64le-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-riscv64
+            runs-on: ubuntu-24.04
+            target: riscv64gc-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Linux-s390x
+            runs-on: ubuntu-24.04
+            target: s390x-unknown-linux-gnu
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: NetBSD-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-netbsd
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+            # Use a cross git commit that includes the fix for -lexecinfo on NetBSD
+            # (not yet in a released version of cross).
+            cross-version: 588b3c99db52b5a9c5906fab96cfadcf1bde7863
+          - os-name: Windows-aarch64
+            runs-on: windows-latest
+            target: aarch64-pc-windows-msvc
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Windows-i686
+            runs-on: windows-latest
+            target: i686-pc-windows-msvc
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Windows-x86_64
+            runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: macOS-x86_64
+            runs-on: macOS-latest
+            target: x86_64-apple-darwin
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: macOS-aarch64
+            runs-on: macOS-latest
+            target: aarch64-apple-darwin
+            features: tokio-rt tokio-rust-tls http1
+        toolchain:
+          - stable
+        include:
+          - platform:
+              os-name: Linux-x86_64
+              runs-on: ubuntu-24.04
+              target: x86_64-unknown-linux-musl
+              bin: ubi
+            toolchain: beta
+          - platform:
+              os-name: Linux-x86_64
+              runs-on: ubuntu-24.04
+              target: x86_64-unknown-linux-musl
+              bin: ubi
+            toolchain: nightly
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set "--features" flag value
+        id: set-features-flag-value
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.platform.features }}" ]; then
+              echo "features=${{ matrix.platform.features }}" >> "$GITHUB_OUTPUT"
+          else 
+              echo "features=default" >> "$GITHUB_OUTPUT"
+          fi
+          cat "$GITHUB_OUTPUT"
+      - name: Maybe install SSL packages
+        run: sudo apt-get update --yes && sudo apt-get install --yes pkg-config openssl libssl-dev
+        if: matrix.platform.features == 'native-tls'
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: "build"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args:
+            "--locked --release --features ${{ steps.set-features-flag-value.outputs.features }} --no-default-features"
+          strip: true
+          cross-version: ${{ matrix.platform.cross-version }}
+      - name: Run tests
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: "test"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args:
+            "--locked --release  --features ${{ steps.set-features-flag-value.outputs.features }} --no-default-features"
+        if: ${{ !matrix.platform.skip-tests }}
