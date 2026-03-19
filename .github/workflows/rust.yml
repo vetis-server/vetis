@@ -294,7 +294,6 @@ jobs:
         run: |
           cd vetis
           cargo build --locked --release --features "${{ steps.set-features-flag-value.outputs.features }}" --no-default-features
-          strip target/release/vetis
           cd ..
       - name: Run tests
         run: |
