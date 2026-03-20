@@ -3,17 +3,12 @@ use log::error;
 
 use serde::Deserialize;
 
-#[cfg(feature = "smol-rt")]
-use macro_rules_attribute::apply;
-#[cfg(feature = "smol-rt")]
-use smol_macros::main;
-
 #[cfg(target_env = "musl")]
 use mimalloc::MiMalloc;
 
 #[global_allocator]
 #[cfg(target_env = "musl")]
-static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+static GLOBAL: MiMalloc = MiMalloc;
 
 use std::{error::Error, fs::read_to_string, path::Path};
 use vetis::{

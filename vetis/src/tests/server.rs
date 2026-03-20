@@ -22,6 +22,8 @@ mod server_tests {
     };
 
     async fn do_multiple_interfaces() -> Result<(), Box<dyn Error>> {
+        let host = if cfg!(windows) { "localhost" } else { "ip6-localhost" };
+
         let ipv4 = ListenerConfig::builder()
             .port(8080)
             .protocol(default_protocol())
@@ -52,14 +54,22 @@ mod server_tests {
             .security(security_config)
             .build()?;
 
+        #[cfg(unix)]
         let ip6_security_config = SecurityConfig::builder()
             .ca_cert_from_bytes(CA_CERT.to_vec())
             .cert_from_bytes(IP6_SERVER_CERT.to_vec())
             .key_from_bytes(IP6_SERVER_KEY.to_vec())
             .build()?;
 
+        #[cfg(windows)]
+        let ip6_security_config = SecurityConfig::builder()
+            .ca_cert_from_bytes(CA_CERT.to_vec())
+            .cert_from_bytes(SERVER_CERT.to_vec())
+            .key_from_bytes(SERVER_KEY.to_vec())
+            .build()?;
+
         let ip6_localhost_config = VirtualHostConfig::builder()
-            .hostname("ip6-localhost")
+            .hostname(host)
             .port(8081)
             .root_directory("src/tests")
             .security(ip6_security_config)
@@ -128,7 +138,7 @@ mod server_tests {
             )
             .build();
 
-        let request = request::get("https://ip6-localhost:8081/hello")?
+        let request = request::get(format!("https://{}:8081/hello", host))?
             .send_with(&client)
             .await?;
 

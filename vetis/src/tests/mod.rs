@@ -29,8 +29,11 @@ pub(crate) const fn default_protocol() -> Protocol {
 mod config;
 #[cfg(test)]
 mod paths;
+
+#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod server;
+
 #[cfg(test)]
 mod tls;
 #[cfg(test)]

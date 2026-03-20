@@ -1,0 +1,28 @@
+[package]
+name = "vetis-wsgi"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rogerio Araújo <rogerio.araujo@gmail.com>"]
+repository = "https://github.com/ararog/vetis"
+homepage = "https://github.com/ararog/vetis"
+description = "Very Tiny Server WSGI support"
+readme = "README.md"
+license = "MIT"
+keywords = ["http", "modules", "server", "rest-server"]
+publish = true
+rust-version = "1.75.0"
+
+[features]
+default = ["tokio-rt"]
+smol-rt = ["dep:smol", "hyper-body-utils/smol-rt", "vetis-core/smol-rt"]
+tokio-rt = ["dep:tokio", "hyper-body-utils/tokio-rt", "vetis-core/tokio-rt"]
+
+[dependencies]
+crossfire = "3.1.6"
+http = "1.4.0"
+hyper-body-utils = { version = "0.1.6-beta.6", default-features = false, optional = true }
+log = "0.4.29"
+pyo3 = { version = "0.27.2", features = ["auto-initialize"] }
+smol = { version = "2.0.2", default-features = false, optional = true }
+tokio = { version = "1.50.0", default-features = false, optional = true }
+vetis-core = { version = "0.1.0", path = "../vetis-core", default-features = false, optional = true }

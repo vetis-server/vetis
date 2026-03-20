@@ -1,17 +1,32 @@
 use serde::Deserialize;
 
-use crate::errors::{ConfigError, VetisError};
+use vetis_core::errors::{ConfigError, VetisError};
 
 use std::{collections::HashMap, path::Path};
 
+/// Interface type for the path.
+///
+/// This enum defines the different interface types that can be used for a path.
+///
+/// # Variants
+///
+/// * `Asgi` - ASGI interface type for Python.
+/// * `Wsgi` - WSGI interface type for Python.
+/// * `Rsgi` - RSGI interface type for Python.
+/// * `Sapi` - SAPI interface type for PHP.
+/// * `Fcgi` - FCGI interface type.
+/// * `Scgi` - SCGI interface type.
+/// * `Rack` - Rack interface type for Ruby.
 #[derive(Clone, Deserialize)]
 #[non_exhaustive]
 pub enum InterfaceType {
-    Php,
     Asgi,
     Wsgi,
     Rsgi,
-    Ruby,
+    Sapi,
+    Fcgi,
+    Scgi,
+    Rack,
 }
 
 /// Builder for creating `InterfacePathConfig` instances.
@@ -105,7 +120,13 @@ impl InterfacePathConfigBuilder {
             return Err(VetisError::Config(ConfigError::Path("Missing target".to_string())));
         } else {
             match self.interface_type {
-                InterfaceType::Asgi | InterfaceType::Wsgi | InterfaceType::Rsgi => {
+                InterfaceType::Asgi => {
+                    unimplemented!("ASGI interface type is not implemented yet")
+                }
+                InterfaceType::Rsgi => {
+                    unimplemented!("RSGI interface type is not implemented yet")
+                }
+                InterfaceType::Wsgi => {
                     let target_parts = self
                         .target
                         .split_once(":");
@@ -124,11 +145,22 @@ impl InterfacePathConfigBuilder {
                         }
                     }
                 }
-                InterfaceType::Php => {
-                    // For PHP interface type, target is not used
+                InterfaceType::Sapi => {
+                    unimplemented!("SAPI interface type is not implemented yet")
                 }
-                InterfaceType::Ruby => {
-                    // For PHP interface type, target is not used
+                InterfaceType::Fcgi => {
+                    unimplemented!("FCGI interface type is not implemented yet")
+                }
+                InterfaceType::Scgi => {
+                    unimplemented!("SCGI interface type is not implemented yet")
+                }
+                InterfaceType::Rack => {
+                    unimplemented!("Rack interface type is not implemented yet")
+                }
+                _ => {
+                    return Err(VetisError::Config(ConfigError::Path(
+                        "Unsupported interface type".to_string(),
+                    )));
                 }
             }
         }

@@ -13,65 +13,282 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test-with-interfaces:    
+    name: Test with Interfaces
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6
 
-    - uses: actions/setup-python@v6
+    - name: Setup Python
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
 
-    - uses: ruby/setup-ruby@v1
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      if: matrix.os != 'windows-latest'
       with:
         ruby-version: '3.1'
 
-    - uses: actions/download-artifact@v8
-      id: download-php
-      continue-on-error: true
+    - name: Setup Ruby (Windows)
+      uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+      if: matrix.os == 'windows-latest'
       with:
-        name: php-binary
-        path: buildroot/
+        ruby-version: '3.1'
 
-    - name: Build Static PHP
-      id: build-php
-      if: steps.download-php.outputs.download-success != 'true'
-      run: |
-          curl -fsSL -o spc https://dl.static-php.dev/static-php-cli/spc-bin/nightly/spc-linux-x86_64
-          chmod +x spc
-          ./spc doctor --auto-fix
-          ./spc download php-src --with-php=8.3 --for-extensions="phar,posix,readline"
-          ./spc build phar,posix,readline --build-embed
-
-    - uses: actions/upload-artifact@v7
-      if: steps.build-php.outcome == 'success'
+    - name: Setup PHP
+      # Use the shivammathur/setup-php action to install a specific PHP version and extensions
+      uses: shivammathur/setup-php@v2
       with:
-        name: php-binary
-        path: buildroot/
-        retention-days: 1
+        php-version: '8.4'
+        extensions: fpm
 
     - uses: Swatinem/rust-cache@v2
 
-    - name: Run vetis tests
+    - name: Run vetis tests (tokio)
       run: |
-        export RIPHT_PHP_SAPI_PREFIX="${{github.workspace}}/buildroot"
         cd vetis
-
-        cargo test --features "http1 tokio-rt tokio-rust-tls static-files reverse-proxy auth interface" --no-default-features
-        cargo test --features "http2 tokio-rt tokio-rust-tls static-files reverse-proxy auth interface" --no-default-features
-        cargo test --features "http3 tokio-rt tokio-rust-tls static-files reverse-proxy auth interface" --no-default-features
-
-        cargo test --features "http1 smol-rt smol-rust-tls static-files reverse-proxy auth interface" --no-default-features
-        cargo test --features "http2 smol-rt smol-rust-tls static-files reverse-proxy auth interface" --no-default-features
-        cargo test --features "http3 smol-rt smol-rust-tls static-files reverse-proxy auth interface" --no-default-features
-
+        cargo test --features "http1 tokio-rt tokio-rust-tls static-files reverse-proxy auth __interface_wsgi" --no-default-features
+        cargo test --features "http2 tokio-rt tokio-rust-tls static-files reverse-proxy auth __interface_wsgi" --no-default-features
+        cargo test --features "http3 tokio-rt tokio-rust-tls static-files reverse-proxy auth __interface_wsgi" --no-default-features
         cd ..
 
-    - name: Run vetis-macros tests
+    - name: Run vetis tests (smol)
       run: |
-        export RIPHT_PHP_SAPI_PREFIX="${{github.workspace}}/buildroot"
-        cd vetis-macros
-
-        cargo test
-
+        cd vetis
+        cargo test --features "http1 smol-rt smol-rust-tls static-files reverse-proxy auth __interface_wsgi_smol" --no-default-features
+        cargo test --features "http2 smol-rt smol-rust-tls static-files reverse-proxy auth __interface_wsgi_smol" --no-default-features
+        cargo test --features "http3 smol-rt smol-rust-tls static-files reverse-proxy auth __interface_wsgi_smol" --no-default-features
         cd ..
+
+    - name: Run vetis-macros tests (tokio)
+      run: |
+        cd vetis-macros
+        cargo test --features "tokio-rt" --no-default-features
+        cd ..
+        
+    - name: Run vetis-macros tests (smol)
+      run: |
+        cd vetis-macros
+        cargo test --features "smol-rt" --no-default-features
+        cd ..
+        
+    - name: Run vetis-core tests (tokio)
+      run: |
+        cd vetis-core
+        cargo test --features "tokio-rt" --no-default-features
+        cd .. 
+
+    - name: Run vetis-core tests (smol)
+      run: |
+        cd vetis-core
+        cargo test --features "smol-rt" --no-default-features
+        cd .. 
+        
+    - name: Run vetis-asgi tests (tokio)
+      run: |
+        cd vetis-asgi
+        cargo test --features "tokio-rt" --no-default-features
+        cd ..
+
+    - name: Run vetis-asgi tests (smol)
+      run: |
+        cd vetis-asgi
+        cargo test --features "smol-rt" --no-default-features
+        cd ..
+
+    - name: Run vetis-fcgi tests (tokio)
+      run: |
+        cd vetis-fcgi
+        cargo test --features "tokio-rt" --no-default-features
+        cd ..
+        
+    - name: Run vetis-fcgi tests (smol)
+      run: |
+        cd vetis-fcgi
+        cargo test --features "smol-rt" --no-default-features
+        cd ..        
+    - name: Run vetis-rack tests (tokio)
+      run: |
+        cd vetis-rack
+        cargo test --features "tokio-rt" --no-default-features
+        cd ..
+
+    - name: Run vetis-rack tests (smol)
+      run: |
+        cd vetis-rack
+        cargo test --features "smol-rt" --no-default-features
+        cd ..
+        
+    - name: Run vetis-rsgi tests (tokio)
+      run: |
+        cd vetis-rsgi
+        cargo test --features "tokio-rt" --no-default-features
+        cd ..
+
+    - name: Run vetis-rsgi tests (smol)
+      run: |
+        cd vetis-rsgi
+        cargo test --features "smol-rt" --no-default-features
+        cd ..
+
+    - name: Run vetis-scgi tests (tokio)
+      run: |
+        cd vetis-scgi
+        cargo test --features "tokio-rt" --no-default-features
+        cd ..
+        
+    - name: Run vetis-scgi tests (smol)
+      run: |
+        cd vetis-scgi
+        cargo test --features "smol-rt" --no-default-features
+        cd ..
+        
+    # - name: Run vetis-sapi tests (tokio)
+    #   run: |
+    #     cd vetis-sapi
+    #     cargo test --features "tokio-rt" --no-default-features
+    #     cd ..
+        
+    # - name: Run vetis-sapi tests (smol)
+    #   run: |
+    #     cd vetis-sapi
+    #     cargo test --features "smol-rt" --no-default-features
+    #     cd ..
+
+    - name: Run vetis-wsgi tests (tokio)
+      run: |
+        cd vetis-wsgi
+        cargo test --features "tokio-rt" --no-default-features
+        cd ..
+        
+    - name: Run vetis-wsgi tests (smol)
+      run: |
+        cd vetis-wsgi
+        cargo test --features "smol-rt" --no-default-features
+        cd ..
+
+  test-matrix:
+    name: Test ${{ matrix.platform.os-name }} with rust ${{ matrix.toolchain }}
+    runs-on: ${{ matrix.platform.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os-name: FreeBSD-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-freebsd
+            features: tokio-rt tokio-rust-tls http1            
+            skip-tests: true
+          - os-name: Linux-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+            features: tokio-rt tokio-rust-tls http1            
+          - os-name: Linux-aarch64
+            runs-on: ubuntu-24.04
+            target: aarch64-unknown-linux-musl
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Linux-arm
+            runs-on: ubuntu-24.04
+            target: arm-unknown-linux-musleabi
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Linux-i686
+            runs-on: ubuntu-24.04
+            target: i686-unknown-linux-musl
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-powerpc
+            runs-on: ubuntu-24.04
+            target: powerpc-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-powerpc64
+            runs-on: ubuntu-24.04
+            target: powerpc64-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-powerpc64le
+            runs-on: ubuntu-24.04
+            target: powerpc64le-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+            skip-tests: true
+          - os-name: Linux-riscv64
+            runs-on: ubuntu-24.04
+            target: riscv64gc-unknown-linux-gnu
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Linux-s390x
+            runs-on: ubuntu-24.04
+            target: s390x-unknown-linux-gnu
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: NetBSD-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-unknown-netbsd
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+            # Use a cross git commit that includes the fix for -lexecinfo on NetBSD
+            # (not yet in a released version of cross).
+            cross-version: 588b3c99db52b5a9c5906fab96cfadcf1bde7863
+          - os-name: Windows-aarch64
+            runs-on: windows-latest
+            target: aarch64-pc-windows-msvc
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Windows-i686
+            runs-on: windows-latest
+            target: i686-pc-windows-msvc
+            skip-tests: true
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: Windows-x86_64
+            runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: macOS-x86_64
+            runs-on: macOS-latest
+            target: x86_64-apple-darwin
+            features: tokio-rt tokio-rust-tls http1
+          - os-name: macOS-aarch64
+            runs-on: macOS-latest
+            target: aarch64-apple-darwin
+            features: tokio-rt tokio-rust-tls http1
+        toolchain:
+          - stable
+        include:
+          - platform:
+              os-name: Linux-x86_64
+              runs-on: ubuntu-24.04
+              target: x86_64-unknown-linux-musl
+              bin: ubi
+            toolchain: beta
+          - platform:
+              os-name: Linux-x86_64
+              runs-on: ubuntu-24.04
+              target: x86_64-unknown-linux-musl
+              bin: ubi
+            toolchain: nightly
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set "--features" flag value
+        id: set-features-flag-value
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.platform.features }}" ]; then
+              echo "features=${{ matrix.platform.features }}" >> "$GITHUB_OUTPUT"
+          else 
+              echo "features=default" >> "$GITHUB_OUTPUT"
+          fi
+          cat "$GITHUB_OUTPUT"
+      - name: Build binary
+        run: |
+          cd vetis
+          cargo build --locked --release --features "${{ steps.set-features-flag-value.outputs.features }}" --no-default-features
+          cd ..
+      - name: Run tests
+        run: |
+          cd vetis
+          cargo test --locked --release --features "${{ steps.set-features-flag-value.outputs.features }}" --no-default-features
+          cd ..
+        if: ${{ !matrix.platform.skip-tests }}
