@@ -26,12 +26,12 @@ smol = ["smol-macros"]
 [dependencies]
 bytes = "1.11.1"
 clap = { version = "4.5.61", features = ["derive"] }
-deboa = { version = "0.1.0-beta.9", features = [
+deboa = { version = "0.1.0-beta.15", features = [
   "tokio-rt",
   "tokio-rust-tls",
   "http1",
 ], default-features = false }
-env_logger = "0.11.9"
+env_logger = "0.11.10"
 http-body-util = "0.1.3"
 hyper = "1.8.1"
 macro_rules_attribute = "0.2.2"
