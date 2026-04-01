@@ -130,9 +130,9 @@ clap = { version = "4.5.61", features = [
   "derive",
   "std",
 ], default-features = false }
-crossfire = { version = "3.1.6", optional = true, default-features = false }
-deboa = { version = "0.1.0-beta.9", default-features = false, optional = true }
-env_logger = "0.11.9"
+crossfire = { version = "3.1.7", optional = true, default-features = false }
+deboa = { version = "0.1.0-beta.15", default-features = false, optional = true }
+env_logger = "0.11.10"
 filedescriptor = { version = "0.8.3", optional = true }
 futures-lite = { version = "2.6.1", optional = true }
 futures-rustls = { version = "0.26.0", optional = true }
@@ -141,7 +141,7 @@ h3 = { version = "0.0.8", optional = true }
 h3-quinn = { version = "0.0.10", optional = true }
 http = "1.3.1"
 http-body-util = { version = "0.1.3" }
-hyper = { version = "1.8.1", default-features = false, optional = true }
+hyper = { version = "1.9.0", default-features = false, optional = true }
 hyper-body-utils = { version = "0.1.6-beta.2", optional = true, default-features = false}
 hyper-util = { version = "0.1.20", default-features = false, optional = true }
 log = "0.4.28"
