@@ -163,14 +163,14 @@ rustls = { version = "0.23.37", default-features = false, optional = true }
 rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
 serde = { version = "1.0.226", features = ["derive"] }
 serde_yaml_ng = "0.10.0"
-signal-hook = { version = "0.4.3", optional = true }
+signal-hook = { version = "0.4.4", optional = true }
 smol = { version = "2.0.2", optional = true }
 smol-hyper = { version = "0.1.1", optional = true }
 smol-macros = { version = "0.1.1", optional = true }
 socket2 = "0.6.3"
 thiserror = "2.0.17"
 time = { version = "0.3.41", features = ["formatting"] }
-tokio = { version = "1.50.0", default-features = false, optional = true }
+tokio = { version = "1.51.1", default-features = false, optional = true }
 tokio-rustls = { version = "0.26.0", optional = true }
 tokio-util = { version = "0.7.18", optional = true }
 url = "2.5.7"
@@ -179,4 +179,4 @@ url = "2.5.7"
 mimalloc = { version = "0.1.48", features = ["v3"] }
 
 [dev-dependencies]
-tokio = { version = "1.50.0", default-features = false, features = ["macros"] }
+tokio = { version = "1.51.1", default-features = false, features = ["macros"] }
