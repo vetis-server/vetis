@@ -16,10 +16,10 @@ use tokio::task::spawn_blocking;
 
 use crossfire::oneshot;
 
-use vetis_core::{
+use vetis::{
     errors::{VetisError, VirtualHostError},
     http::{Request, Response},
-    interface::InterfaceWorker,
+    virtual_host::path::interface::InterfaceWorker,
 };
 
 use crate::callback::StartResponse;

@@ -5,13 +5,13 @@ resolver = "3"
 members = [
   "vetis",
   "vetis-asgi",
-  "vetis-core",
   "vetis-fcgi",
-  "vetis-macros",
   "vetis-rack",
   "vetis-rsgi",
   "vetis-sapi",
   "vetis-scgi",
+  "vetis-smol",
+  "vetis-tokio",
   "vetis-wsgi",
   "examples/simple", 
 ]

@@ -2,10 +2,10 @@ use std::{future::Future, pin::Pin, sync::Arc};
 
 use http::StatusCode;
 use hyper_body_utils::HttpBody;
-use vetis_core::{
+use vetis::{
     errors::VetisError,
     http::{Request, Response},
-    interface::InterfaceWorker,
+    virtual_host::path::interface::InterfaceWorker,
 };
 
 mod tests;

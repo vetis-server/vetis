@@ -21,66 +21,7 @@
 //! Add VeTiS to your `Cargo.toml`:
 //!
 //! ```toml
-//! vetis = { version = "0.1.3", features = ["tokio-rt", "http1", "tokio-rust-tls"] }
-//! ```
-//!
-//! ## Basic Usage
-//!
-//! ```rust,ignore
-//! use bytes::Bytes;
-//! use http_body_util::Full;
-//! use hyper::StatusCode;
-//! use vetis::{
-//!     Vetis,
-//!     config::{ListenerConfig, SecurityConfig, ServerConfig, VirtualHostConfig},
-//!     server::virtual_host::{DefaultVirtualHost, VirtualHost, handler_fn},
-//! };
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // Configure server listener
-//!     let https = ListenerConfig::builder()
-//!         .port(8443)
-//!         .protocol(vetis::config::Protocol::HTTP1)
-//!         .interface("0.0.0.0")
-//!         .build();
-//!
-//!     let config = ServerConfig::builder()
-//!         .add_listener(https)
-//!         .build();
-//!
-//!     // Configure security (TLS)
-//!     let security_config = SecurityConfig::builder()
-//!         .cert_from_bytes(include_bytes!("server.der").to_vec())
-//!         .key_from_bytes(include_bytes!("server.key.der").to_vec())
-//!         .build();
-//!
-//!     // Configure virtual host
-//!     let localhost_config = VirtualHostConfig::builder()
-//!         .hostname("localhost")
-//!         .port(8443)
-//!         .security(security_config)
-//!         .build()?;
-//!
-//!     let mut localhost_virtual_host = VirtualHost::new(localhost_config);
-//!
-//!     // Set up request handler
-//!     let mut root_path = HandlerPath::new("/", handler_fn(|request| async move {
-//!         let response = vetis::Response::builder()
-//!             .status(StatusCode::OK)
-//!             .text("Hello, World!");
-//!         Ok(response)
-//!     }));
-//!
-//!     localhost_virtual_host.add_path(root_path);
-//!
-//!     // Create and run server
-//!     let mut server = Vetis::new(config);
-//!     server.add_virtual_host(localhost_virtual_host).await;
-//!     server.run().await?;
-//!
-//!     Ok(())
-//! }
+//! vetis = { version = "0.1.3" }
 //! ```
 //!
 //! ## Architecture
@@ -95,31 +36,14 @@
 //!
 //! ## Runtime Configuration
 //!
-//! VeTiS supports two async runtimes:
-//!
-//! - **Tokio** (default): Enable with `tokio-rt` feature
-//! - **Smol**: Enable with `smol-rt` feature
-//!
-//! Only one runtime can be enabled at a time.
-//!
-//! ## Protocol Support
-//!
-//! - **HTTP/1**: Enable with `http1` feature
-//! - **HTTP/2**: Enable with `http2` feature (requires TLS)
-//! - **HTTP/3**: Enable with `http3` feature (requires TLS)
-//!
-//! ## TLS Configuration
-//!
-//! For HTTPS support, enable one of:
-//!
-//! - **Tokio TLS**: `tokio-rust-tls` feature (default)
-//! - **Smol TLS**: `smol-rust-tls` feature
-//!
 //! ## Modules
 //!
+//! - [`auth`]: Authentication and authorization utilities
 //! - [`config`]: Server and virtual host configuration builders
 //! - [`errors`]: Comprehensive error handling types
-//! - [`server`]: HTTP server implementation and virtual host system
+//! - [`listener`]: Listener configuration builders
+//! - [`utils`]: Utility functions and types
+//! - [`virtual_host`]: Virtual host configuration builders
 //!
 //! ## Examples
 //!
@@ -130,323 +54,237 @@
 //! - Multiple virtual hosts
 //! - Custom request handlers
 
-#[cfg(all(
-    any(feature = "http2", feature = "http3"),
-    not(any(feature = "tokio-rust-tls", feature = "smol-rust-tls"))
-))]
-compile_error!("http2 and http3 requires tokio-rust-tls or smol-rust-tls!");
+use std::{collections::HashMap, future::Future, sync::Arc};
 
-#[cfg(all(feature = "tokio-rt", feature = "smol-rt"))]
-compile_error!("Only one runtime feature can be enabled at a time.");
-
-use std::{collections::HashMap, sync::Arc};
-
-use log::{error, info};
-
-#[cfg(feature = "smol-rt")]
-use async_signal::Signals;
-#[cfg(feature = "smol-rt")]
-use futures_lite::prelude::*;
-
-#[cfg(feature = "smol-rt")]
-use smol::fs::File;
-#[cfg(feature = "tokio-rt")]
-use tokio::fs::File;
-
-#[cfg(feature = "smol-rt")]
-use signal_hook::low_level;
-
-#[cfg(feature = "smol-rt")]
-use smol::lock::RwLock;
-
-#[cfg(feature = "tokio-rt")]
-use tokio::sync::RwLock;
-use vetis_core::errors::{VetisError, VirtualHostError};
-
-pub(crate) type VetisFile = File;
-
-pub(crate) type VetisRwLock<T> = RwLock<T>;
-
-pub(crate) type VetisVirtualHosts = Arc<VetisRwLock<HashMap<(Arc<str>, u16), VirtualHost>>>;
+use async_lock::RwLock;
+use serde::Deserialize;
 
 use crate::{
-    config::server::ServerConfig,
-    server::{virtual_host::VirtualHost, Server},
+    errors::{ConfigError, VetisError},
+    listener::ListenerConfig,
 };
 
-pub mod config;
-mod rt;
-pub mod server;
+pub mod auth;
+pub mod errors;
+pub mod http;
+pub mod listener;
 mod tests;
 pub mod utils;
+pub mod virtual_host;
 
-pub static CONFIG: &str = "vetis.toml";
+pub type VetisRwLock<T> = RwLock<T>;
 
-/// Main server instance that manages virtual hosts and listeners.
+pub type VetisVirtualHosts<T> = Arc<VetisRwLock<HashMap<(Arc<str>, u16), T>>>;
+
+/// Supported HTTP protocols.
 ///
-/// The `Vetis` struct is the core of the VeTiS server. It handles:
-/// - Managing multiple virtual hosts
-/// - Coordinating server listeners
-/// - Starting and stopping the server
-/// - Signal handling for graceful shutdown
+/// The protocol enum is feature-gated to only include protocols
+/// that are enabled in the crate's feature flags.
 ///
 /// # Examples
 ///
 /// ```rust,ignore
-/// use vetis::{Vetis, config::ServerConfig};
+/// use vetis::config::Protocol;
 ///
-/// #[tokio::main]
-/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let config = ServerConfig::builder().build();
-///     let mut server = Vetis::new(config);
-///     
-///     // Add virtual hosts...
-///     
-///     server.run().await?;
+/// #[cfg(feature = "http1")]
+/// let protocol = Protocol::Http1;
+///
+/// #[cfg(feature = "http2")]
+/// let protocol = Protocol::Http2;
+///
+/// #[cfg(feature = "http3")]
+/// let protocol = Protocol::Http3;
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[non_exhaustive]
+pub enum Protocol {
+    /// HTTP/1.1 protocol
+    Http1,
+    /// HTTP/2 protocol (requires TLS)
+    Http2,
+    /// HTTP/3 protocol over QUIC (requires TLS)
+    Http3,
+}
+
+/// Trait for server implementations.
+///
+/// This trait defines the interface that all server implementations must provide.
+/// It allows for different server backends while maintaining a consistent API.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use vetis::{Vetis, config::ServerConfig, errors::VetisError};
+///
+/// // Create a server instance
+/// let config = ServerConfig::builder().build();
+/// let mut server = Vetis::new(config);
+///
+/// // Start the server
+/// async fn run_server() -> Result<(), VetisError> {
+///     server.start().await?;
+///     // Server is running...
+///     server.stop().await?;
 ///     Ok(())
 /// }
 /// ```
-pub struct Vetis {
-    config: ServerConfig,
-    virtual_hosts: VetisVirtualHosts,
-    instance: Option<server::http::HttpServer>,
-}
-
-impl Vetis {
-    /// Creates a new `Vetis` server instance with the given configuration.
+pub trait Server {
+    type VirtualHost;
+    /// Creates a new server instance with the given configuration.
     ///
     /// # Arguments
     ///
-    /// * `config` - Server configuration containing listeners and global settings
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
-    ///
-    /// let config = ServerConfig::builder().build();
-    /// let server = Vetis::new(config);
-    /// ```
-    pub fn new(config: ServerConfig) -> Vetis {
-        Vetis { config, virtual_hosts: Arc::new(VetisRwLock::new(HashMap::new())), instance: None }
-    }
+    /// * `config` - Server configuration containing listeners and settings
+    fn new(config: ServerConfig) -> Self;
 
-    /// Adds a virtual host to the server.
+    /// Sets the virtual hosts for the server.
     ///
-    /// Virtual hosts allow you to host multiple domains on a single server instance.
-    /// Each virtual host is identified by its hostname and port combination.
+    /// This must be called before starting the server.
     ///
     /// # Arguments
     ///
-    /// * `virtual_host` - A type implementing the `VirtualHost` trait
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::{
-    ///     Vetis,
-    ///     config::{ServerConfig, VirtualHostConfig},
-    ///     server::virtual_host::{VirtualHost, handler_fn},
-    /// };
-    ///
-    /// let config = ServerConfig::builder().build();
-    /// let mut server = Vetis::new(config);
-    ///
-    /// let vhost_config = VirtualHostConfig::builder()
-    ///     .hostname("example.com")
-    ///     .port(80)
-    ///     .build()?;
-    ///
-    /// let mut vhost = VirtualHost::new(vhost_config);
-    ///
-    /// let mut root_path = HandlerPath::new("/", handler_fn(|request| async move {
-    ///     let response = vetis::Response::builder()
-    ///         .status(StatusCode::OK)
-    ///         .text("Hello, World!");
-    ///     Ok(response)
-    /// }));
-    ///
-    /// vhost.add_path(root_path);
-    ///
-    /// server.add_virtual_host(vhost).await;
-    /// ```
-    pub async fn add_virtual_host(&mut self, virtual_host: VirtualHost) {
-        let key = (Arc::from(virtual_host.hostname()), virtual_host.port());
+    /// * `virtual_hosts` - Arc containing the virtual host registry
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<Self::VirtualHost>);
 
-        self.virtual_hosts
-            .write()
-            .await
-            .insert(key, virtual_host);
-    }
-
-    /// Returns a reference to the server configuration.
-    ///
-    /// This provides access to the listeners and global settings
-    /// configured when the server was created.
-    pub fn config(&self) -> &ServerConfig {
-        &self.config
-    }
-
-    /// Returns a reference to the virtual hosts.
-    ///
-    /// This provides access to the virtual hosts configured when the server was created.
-    pub fn virtual_hosts(&self) -> &VetisVirtualHosts {
-        &self.virtual_hosts
-    }
-
-    /// Starts the server and runs until interrupted.
-    ///
-    /// This method combines `start()` and graceful shutdown handling:
-    /// 1. Starts the server with all configured virtual hosts
-    /// 2. Listens for shutdown signals (Ctrl+C on Tokio, SIGQUIT on Smol)
-    /// 3. Stops the server gracefully
+    /// Starts the server and begins accepting connections.
     ///
     /// # Errors
     ///
-    /// Returns an error if:
-    /// - No virtual hosts have been added
-    /// - Server fails to start
-    /// - Server fails to stop
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
-    ///     let mut server = Vetis::new(config);
-    ///     
-    ///     // Add virtual hosts...
-    ///     
-    ///     server.run().await?; // Runs until Ctrl+C
-    ///     Ok(())
-    /// }
-    /// ```
-    pub async fn run(&mut self) -> Result<(), VetisError> {
-        self.start().await?;
-
-        for listener in self
-            .config
-            .listeners()
-        {
-            info!("Server listening on port {}:{}", listener.interface(), listener.port());
-        }
-
-        #[cfg(feature = "tokio-rt")]
-        let _ = tokio::signal::ctrl_c().await;
-
-        #[cfg(feature = "smol-rt")]
-        {
-            use async_signal::Signal;
-
-            let mut signals = Signals::new([Signal::Quit]).unwrap();
-            while let Some(signal) = signals.next().await {
-                low_level::emulate_default_handler(signal.unwrap() as i32).unwrap();
-            }
-        }
-
-        info!("\nStopping server...");
-
-        self.stop().await?;
-
-        Ok(())
-    }
-
-    /// Starts the server without blocking.
-    ///
-    /// This method starts the server and returns immediately, allowing
-    /// you to perform additional setup or handle shutdown manually.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    /// - No virtual hosts have been added
-    /// - Server fails to bind to configured addresses
-    /// - TLS configuration fails
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
-    ///     let mut server = Vetis::new(config);
-    ///     
-    ///     // Add virtual hosts...
-    ///     
-    ///     server.start().await?;
-    ///     
-    ///     // Server is now running, do other work...
-    ///     
-    ///     server.stop().await?;
-    ///     Ok(())
-    /// }
-    /// ```
-    pub async fn start(&mut self) -> Result<(), VetisError> {
-        if self
-            .virtual_hosts
-            .read()
-            .await
-            .is_empty()
-        {
-            error!("You must add at least one virtual host");
-            return Err(VetisError::VirtualHost(VirtualHostError::NoVirtualHosts));
-        }
-
-        let mut server = server::http::HttpServer::new(self.config.clone());
-
-        server.set_virtual_hosts(
-            self.virtual_hosts
-                .clone(),
-        );
-
-        server
-            .start()
-            .await?;
-        self.instance = Some(server);
-
-        Ok(())
-    }
+    /// Returns an error if the server fails to start, bind to addresses,
+    /// or initialize TLS.
+    fn start(&mut self) -> impl Future<Output = Result<(), VetisError>>;
 
     /// Stops the server gracefully.
     ///
-    /// This method shuts down all listeners and waits for ongoing
-    /// requests to complete before returning.
+    /// This method waits for ongoing connections to complete
+    /// before shutting down.
     ///
     /// # Errors
     ///
-    /// Returns an error if:
-    /// - No server instance is running
-    /// - Server fails to stop properly
+    /// Returns an error if the server fails to stop properly.
+    fn stop(&mut self) -> impl Future<Output = Result<(), VetisError>>;
+}
+
+/// Builder for creating `ServerConfig` instances.
+///
+/// Provides a fluent API for configuring the overall server,
+/// including multiple listeners for different ports and protocols.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use vetis::{listener::ListenerConfig, ServerConfig, Protocol};
+///
+/// let http_listener = ListenerConfig::builder()
+///     .port(80)
+///     .protocol(Protocol::Http1)
+///     .build();
+///
+/// let https_listener = ListenerConfig::builder()
+///     .port(443)
+///     .protocol(Protocol::Http1)
+///     .build();
+///
+/// let config = ServerConfig::builder()
+///     .add_listener(http_listener)
+///     .add_listener(https_listener)
+///     .build();
+/// ```
+#[derive(Clone)]
+pub struct ServerConfigBuilder {
+    listeners: Vec<ListenerConfig>,
+}
+
+impl ServerConfigBuilder {
+    /// Adds a listener configuration to the server.
+    ///
+    /// Multiple listeners can be added to support different
+    /// ports, protocols, or interfaces simultaneously.
     ///
     /// # Examples
     ///
     /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// use vetis::{listener::ListenerConfig, ServerConfig};
     ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
-    ///     let mut server = Vetis::new(config);
-    ///     
-    ///     server.start().await?;
-    ///     // Server running...
-    ///     server.stop().await?;
-    ///     Ok(())
+    /// let listener = ListenerConfig::builder().port(8080).build();
+    /// let config = ServerConfig::builder()
+    ///     .add_listener(listener)
+    ///     .build();
+    /// ```
+    pub fn add_listener(mut self, listener: ListenerConfig) -> Self {
+        self.listeners
+            .push(listener);
+        self
+    }
+
+    /// Creates the `ServerConfig` with the configured listeners.
+    pub fn build(self) -> Result<ServerConfig, ConfigError> {
+        if self
+            .listeners
+            .is_empty()
+        {
+            return Err(ConfigError::Server("No listeners configured".to_string()));
+        }
+
+        Ok(ServerConfig { listeners: self.listeners })
+    }
+}
+
+/// Global server configuration.
+///
+/// Contains all the listeners that the server should use to accept
+/// incoming connections. Each listener can have different settings
+/// for port, protocol, and interface.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use vetis::{listener::ListenerConfig, ServerConfig};
+///
+/// let config = ServerConfig::builder()
+///     .add_listener(ListenerConfig::builder().port(80).build())
+///     .add_listener(ListenerConfig::builder().port(443).ssl(true).build())
+///     .build();
+///
+/// println!("Server has {} listeners", config.listeners().len());
+/// ```
+#[derive(Clone, Default, Deserialize)]
+pub struct ServerConfig {
+    listeners: Vec<ListenerConfig>,
+}
+
+impl ServerConfig {
+    /// Creates a new `ServerConfigBuilder` with no listeners.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,ignore
+    /// use vetis::{listener::ListenerConfig, ServerConfig};
+    ///
+    /// let config = ServerConfig::builder()
+    ///     .add_listener(ListenerConfig::builder().port(8080).build())
+    ///     .build();
+    /// ```
+    pub fn builder() -> ServerConfigBuilder {
+        ServerConfigBuilder { listeners: vec![] }
+    }
+
+    /// Returns a reference to all configured listeners.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,ignore
+    /// use vetis::{listener::ListenerConfig, ServerConfig};
+    ///
+    /// let config = ServerConfig::builder()
+    ///     .add_listener(ListenerConfig::builder().port(80).build())
+    ///     .build();
+    ///
+    /// for listener in config.listeners() {
+    ///     println!("Listening on port {}", listener.port());
     /// }
     /// ```
-    pub async fn stop(&mut self) -> Result<(), VetisError> {
-        if let Some(instance) = &mut self.instance {
-            instance
-                .stop()
-                .await?;
-        } else {
-            return Err(VetisError::NoInstances);
-        }
-        Ok(())
+    pub fn listeners(&self) -> &Vec<ListenerConfig> {
+        &self.listeners
     }
 }

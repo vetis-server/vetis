@@ -3,10 +3,10 @@ use std::{collections::HashMap, fs, future::Future, path::Path, pin::Pin, sync::
 use http::StatusCode;
 use hyper_body_utils::HttpBody;
 use log::error;
-use vetis_core::{
+use vetis::{
     errors::{VetisError, VirtualHostError},
     http::{Request, Response},
-    interface::InterfaceWorker,
+    virtual_host::path::interface::InterfaceWorker,
 };
 
 #[cfg(feature = "smol-rt")]

@@ -9,10 +9,10 @@ use ripht_php_sapi::{RiphtSapi, WebRequest};
 use smol::unblock as spawn_blocking;
 #[cfg(feature = "tokio-rt")]
 use tokio::task::spawn_blocking;
-use vetis_core::{
+use vetis::{
     errors::{VetisError, VirtualHostError},
     http::{Request, Response},
-    interface::InterfaceWorker,
+    virtual_host::path::interface::InterfaceWorker,
 };
 
 mod tests;

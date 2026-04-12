@@ -14,8 +14,8 @@ rust-version = "1.75.0"
 
 [features]
 default = ["tokio-rt"]
-smol-rt = ["dep:smol", "hyper-body-utils/smol-rt", "vetis-core/smol-rt"]
-tokio-rt = ["dep:tokio", "hyper-body-utils/tokio-rt", "vetis-core/tokio-rt"]
+smol-rt = ["dep:smol", "hyper-body-utils/smol-rt"]
+tokio-rt = ["dep:tokio", "hyper-body-utils/tokio-rt"]
 
 [dependencies]
 http = "1.4.0"
@@ -23,4 +23,4 @@ hyper-body-utils = { version = "0.1.6-beta.6", default-features = false, optiona
 pyo3 = "0.27.2"
 smol = { version = "2.0.2", default-features = false, optional = true }
 tokio = { version = "1.50.0", default-features = false, optional = true }
-vetis-core = { version = "0.1.0", path = "../vetis-core", default-features = false, optional = true }
+vetis = { path = "../vetis", default-features = false }

@@ -1,18 +1,15 @@
 use hyper::StatusCode;
 
-#[cfg(feature = "smol")]
-use macro_rules_attribute::apply;
-#[cfg(feature = "smol")]
-use smol_macros::main;
-
 use vetis::{
-    config::server::{
-        virtual_host::{
-            path::proxy::ProxyPathConfig, path::static_files::StaticPathConfig, SecurityConfig,
-            VirtualHostConfig,
-        },
-        ListenerConfig, Protocol, ServerConfig,
+    listener::ListenerConfig,
+    virtual_host::{
+        path::proxy::ProxyPathConfig, path::static_files::StaticPathConfig, SecurityConfig,
+        VirtualHostConfig,
     },
+    Protocol, ServerConfig,
+};
+
+use vetis_tokio::{
     server::virtual_host::{
         handler_fn,
         path::{proxy::ProxyPath, static_files::StaticPath, HandlerPath},
@@ -21,19 +18,12 @@ use vetis::{
     Vetis,
 };
 
-pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
+pub(crate) const CA_CERT: &[u8] = include_bytes!("../../../certs/ca.der");
 
-pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
-pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
+pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../../../certs/server.der");
+pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../../certs/server.key.der");
 
-#[cfg(feature = "tokio")]
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-#[cfg(feature = "smol")]
-#[apply(main!)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     run().await
 }
@@ -73,7 +63,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let root_path = HandlerPath::builder()
         .uri("/hello")
         .handler(handler_fn(|_request| async move {
-            let response = vetis::server::http::Response::builder()
+            let response = vetis::http::Response::builder()
                 .status(StatusCode::OK)
                 .text("Hello from localhost");
             Ok(response)
@@ -85,7 +75,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let health_path = HandlerPath::builder()
         .uri("/health")
         .handler(handler_fn(|_request| async move {
-            let response = vetis::server::http::Response::builder()
+            let response = vetis::http::Response::builder()
                 .status(StatusCode::OK)
                 .text("Health check");
             Ok(response)
