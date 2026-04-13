@@ -1,4 +1,8 @@
-use crate::{http, server::virtual_host::handler_fn};
+use crate::{
+    http,
+    tests::{deboa_default_protocol, vetis_default_protocol},
+    virtual_host::handler_fn,
+};
 use deboa::request::get;
 
 async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
@@ -10,7 +14,7 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
         hostname => "localhost",
         root_directory => "src",
-        protocol => vetis::Protocol::Http2,
+        protocol => vetis_default_protocol(),
         port => 8080,
         interface => "0.0.0.0",
         handler => handler
@@ -21,7 +25,9 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         .start()
         .await?;
 
-    let client = deboa_tokio::Client::default();
+    let client = deboa_tokio::Client::builder()
+        .protocol(deboa_default_protocol())
+        .build();
 
     let response = get("http://localhost:8080")?
         .send_with(&client)

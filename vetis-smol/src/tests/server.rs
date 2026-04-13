@@ -1,5 +1,5 @@
 mod server_tests {
-    use deboa::request;
+    use deboa::{request, HttpClient};
     use deboa_smol::cert::{Certificate, ContentEncoding};
     use http::StatusCode;
     use macro_rules_attribute::apply;
@@ -12,10 +12,12 @@ mod server_tests {
     };
 
     use crate::{
-        server::virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
         tests::{
-            default_protocol, CA_CERT, IP6_SERVER_CERT, IP6_SERVER_KEY, SERVER_CERT, SERVER_KEY,
+            deboa_default_protocol, vetis_default_protocol, CA_CERT, IP6_SERVER_CERT,
+            IP6_SERVER_KEY, SERVER_CERT, SERVER_KEY,
         },
+        virtual_host::{handler_fn, path::HandlerPath},
+        VirtualHost,
     };
 
     async fn do_multiple_interfaces() -> Result<(), Box<dyn Error>> {
@@ -23,13 +25,13 @@ mod server_tests {
 
         let ipv4 = ListenerConfig::builder()
             .port(8080)
-            .protocol(default_protocol())
+            .protocol(vetis_default_protocol())
             .interface("0.0.0.0")
             .build()?;
 
         let ipv6 = ListenerConfig::builder()
             .port(8081)
-            .protocol(default_protocol())
+            .protocol(vetis_default_protocol())
             .interface("::")
             .build()?;
 
@@ -78,7 +80,7 @@ mod server_tests {
         let ip4_root_path = HandlerPath::builder()
             .uri("/hello")
             .handler(handler_fn(|_request| async move {
-                let response = crate::server::http::Response::builder()
+                let response = crate::http::Response::builder()
                     .status(StatusCode::OK)
                     .text("Hello from ipv4");
                 Ok(response)
@@ -88,7 +90,7 @@ mod server_tests {
         let ip6_root_path = HandlerPath::builder()
             .uri("/hello")
             .handler(handler_fn(|_request| async move {
-                let response = crate::server::http::Response::builder()
+                let response = crate::http::Response::builder()
                     .status(StatusCode::OK)
                     .text("Hello from ipv6");
                 Ok(response)
@@ -112,6 +114,7 @@ mod server_tests {
 
         let client = deboa_smol::Client::builder()
             .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
+            .protocol(deboa_default_protocol())
             .build();
 
         let request = request::get("https://localhost:8080/hello")?
@@ -133,6 +136,7 @@ mod server_tests {
                     .parse()
                     .unwrap(),
             )
+            .protocol(deboa_default_protocol())
             .build();
 
         let request = request::get(format!("https://{}:8081/hello", host))?
@@ -155,7 +159,7 @@ mod server_tests {
     }
 
     #[apply(test!)]
-    async fn test_multiple_interfaces_smol() -> Result<(), Box<dyn Error>> {
+    async fn test_multiple_interfaces() -> Result<(), Box<dyn Error>> {
         do_multiple_interfaces().await
     }
 }

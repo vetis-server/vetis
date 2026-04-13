@@ -137,16 +137,22 @@ use log::{error, info};
 use std::{collections::HashMap, sync::Arc};
 use vetis::errors::{VetisError, VirtualHostError};
 
-use crate::server::virtual_host::VirtualHost;
+use crate::{http::HttpServer, virtual_host::VirtualHost};
 
+pub mod http;
+pub mod listener;
 #[cfg(feature = "macros")]
 pub mod macros;
-pub mod server;
 mod tests;
+mod tls;
+pub mod virtual_host;
 
-pub use vetis::*;
-
-pub static CONFIG: &str = "vetis.toml";
+pub use vetis::{
+    errors,
+    listener::ListenerConfig,
+    virtual_host::{SecurityConfig, VirtualHostConfig},
+    Protocol, Server, ServerConfig, VetisRwLock, VetisVirtualHosts,
+};
 
 /// Main server instance that manages virtual hosts and listeners.
 ///
@@ -175,7 +181,7 @@ pub static CONFIG: &str = "vetis.toml";
 pub struct Vetis {
     config: ServerConfig,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
-    instance: Option<server::http::HttpServer>,
+    instance: Option<HttpServer>,
 }
 
 impl Vetis {
@@ -352,7 +358,7 @@ impl Vetis {
             return Err(VetisError::VirtualHost(VirtualHostError::NoVirtualHosts));
         }
 
-        let mut server = server::http::HttpServer::new(self.config.clone());
+        let mut server = HttpServer::new(self.config.clone());
 
         server.set_virtual_hosts(
             self.virtual_hosts

@@ -10,7 +10,7 @@ use vetis::{
 };
 
 use vetis_tokio::{
-    server::virtual_host::{
+    virtual_host::{
         handler_fn,
         path::{proxy::ProxyPath, static_files::StaticPath, HandlerPath},
         VirtualHost,

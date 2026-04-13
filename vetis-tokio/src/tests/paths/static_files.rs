@@ -14,8 +14,8 @@ use vetis::{
 use crate::server::virtual_host::path::auth::BasicAuthConfig;
 
 use crate::{
-    server::virtual_host::{path::static_files::StaticPath, VirtualHost},
-    tests::{default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{path::static_files::StaticPath, VirtualHost},
 };
 
 #[test]
@@ -78,7 +78,7 @@ fn test_invalid_directory() {
 async fn do_index() -> Result<(), Box<dyn Error>> {
     let listener = ListenerConfig::builder()
         .port(9100)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 
@@ -147,14 +147,7 @@ async fn do_index() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[cfg(feature = "tokio-rt")]
 #[tokio::test]
-async fn test_index() -> Result<(), Box<dyn Error>> {
-    do_index().await
-}
-
-#[cfg(feature = "smol-rt")]
-#[apply(test!)]
 async fn test_index() -> Result<(), Box<dyn Error>> {
     do_index().await
 }
@@ -162,7 +155,7 @@ async fn test_index() -> Result<(), Box<dyn Error>> {
 async fn do_not_found() -> Result<(), Box<dyn Error>> {
     let listener = ListenerConfig::builder()
         .port(9000)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 

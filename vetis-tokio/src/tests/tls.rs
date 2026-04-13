@@ -9,11 +9,9 @@ mod tls_tests {
     };
 
     use crate::{
-        server::{
-            tls::TlsFactory,
-            virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
-        },
         tests::{CA_CERT, SERVER_CERT, SERVER_KEY},
+        tls::TlsFactory,
+        virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
     };
 
     fn create_test_virtual_hosts() -> VetisVirtualHosts<VirtualHost> {
@@ -38,7 +36,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::server::http::Response::builder()
+                        crate::http::Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -67,7 +65,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::server::http::Response::builder()
+                        crate::http::Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -103,7 +101,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::server::http::Response::builder()
+                        crate::http::Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -253,7 +251,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::server::http::Response::builder()
+                        crate::http::Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -276,7 +274,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::server::http::Response::builder()
+                        crate::http::Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )

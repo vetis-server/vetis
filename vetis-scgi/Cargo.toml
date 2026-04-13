@@ -20,7 +20,7 @@ tokio-rt = ["dep:tokio", "hyper-body-utils/tokio-rt"]
 [dependencies]
 cegla = "0.1.2"
 http = "1.4.0"
-hyper-body-utils = { version = "0.1.6-beta.6", default-features = false, optional = true }
+hyper-body-utils = { path = "../../hyper-body-utils", default-features = false, optional = true }
 log = "0.4.29"
 smol = { version = "2.0.2", default-features = false, optional = true }
 tokio = { version = "1.50.0", default-features = false, optional = true }

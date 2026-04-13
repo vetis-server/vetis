@@ -17,12 +17,12 @@ use vetis::{
 
 #[cfg(any(feature = "http1", feature = "http2"))]
 use crate::{
-    server::virtual_host::{
+    tests::{deboa_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{
         handler_fn,
         path::{proxy::ProxyPath, HandlerPath},
         VirtualHost,
     },
-    tests::{CA_CERT, SERVER_CERT, SERVER_KEY},
 };
 
 #[test]
@@ -72,17 +72,17 @@ fn test_invalid_proxy_path_target() -> Result<(), Box<dyn Error>> {
 
 #[cfg(any(feature = "http1", feature = "http2"))]
 async fn do_get_proxy_to_target() -> Result<(), Box<dyn Error>> {
-    use crate::tests::default_protocol;
+    use crate::tests::vetis_default_protocol;
 
     let source_listener = ListenerConfig::builder()
         .port(8084)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 
     let target_listener = ListenerConfig::builder()
         .port(8085)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 
@@ -123,7 +123,7 @@ async fn do_get_proxy_to_target() -> Result<(), Box<dyn Error>> {
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_request| async move {
-                Ok(crate::server::http::Response::builder()
+                Ok(crate::http::Response::builder()
                     .status(StatusCode::OK)
                     .text("Hello, world!"))
             }))
@@ -151,6 +151,7 @@ async fn do_get_proxy_to_target() -> Result<(), Box<dyn Error>> {
 
     let client = deboa_tokio::Client::builder()
         .certificate(Certificate::from_slice(CA_CERT, deboa_tokio::cert::ContentEncoding::DER))
+        .protocol(deboa_default_protocol())
         .build();
 
     let request = request::get("https://localhost:8085/")?
@@ -179,17 +180,17 @@ async fn test_get_proxy_to_target() -> Result<(), Box<dyn Error>> {
 
 #[cfg(any(feature = "http1", feature = "http2"))]
 async fn do_post_proxy_to_target() -> Result<(), Box<dyn Error>> {
-    use crate::tests::default_protocol;
+    use crate::tests::vetis_default_protocol;
 
     let source_listener = ListenerConfig::builder()
         .port(9093)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 
     let target_listener = ListenerConfig::builder()
         .port(9094)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 
@@ -236,7 +237,7 @@ async fn do_post_proxy_to_target() -> Result<(), Box<dyn Error>> {
                     .await
                     .unwrap()
                     .to_bytes();
-                Ok(crate::server::http::Response::builder()
+                Ok(crate::http::Response::builder()
                     .status(StatusCode::OK)
                     .bytes(text.as_ref()))
             }))
@@ -264,6 +265,7 @@ async fn do_post_proxy_to_target() -> Result<(), Box<dyn Error>> {
 
     let client = deboa_tokio::Client::builder()
         .certificate(Certificate::from_slice(CA_CERT, deboa_tokio::cert::ContentEncoding::DER))
+        .protocol(deboa_default_protocol())
         .build();
 
     let response = request::post("https://localhost:9093/")?

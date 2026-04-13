@@ -9,8 +9,8 @@ use vetis::{
 };
 
 use crate::{
-    server::virtual_host::{path::interface::InterfacePath, VirtualHost},
-    tests::default_protocol,
+    tests::vetis_default_protocol,
+    virtual_host::{path::interface::InterfacePath, VirtualHost},
     ServerConfig,
 };
 
@@ -19,7 +19,7 @@ async fn do_wsgi_to_target() -> Result<(), Box<dyn Error>> {
 
     let listener = ListenerConfig::builder()
         .port(8088)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 

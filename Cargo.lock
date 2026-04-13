@@ -215,7 +215,6 @@ dependencies = [
  "futures-util",
  "native-tls",
  "thiserror 1.0.69",
- "tokio",
  "url",
 ]
 
@@ -837,7 +836,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.6",
  "hyper-util",
  "indexmap",
  "log",
@@ -881,7 +880,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "hyper-util",
  "indexmap",
  "log",
@@ -914,7 +913,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "hyper-util",
  "indexmap",
  "log",
@@ -956,7 +955,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "hyper-util",
  "indexmap",
  "log",
@@ -1695,9 +1694,24 @@ checksum = "d4eff608807e6c410941de3e22c17044fecec132e20dc21f33247cc31509f14f"
 dependencies = [
  "bytes",
  "futures",
+ "hotpath",
+ "http-body-util",
+ "hyper",
+ "macro_rules_attribute",
+ "smol",
+ "smol-macros",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
+name = "hyper-body-utils"
+version = "0.1.6-beta.7"
+dependencies = [
+ "bytes",
+ "futures",
  "h3",
  "h3-quinn",
- "hotpath",
  "http-body-util",
  "hyper",
  "macro_rules_attribute",
@@ -4157,7 +4171,7 @@ dependencies = [
  "http",
  "http-body-util",
  "hyper",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "hyper-util",
  "log",
  "macro_rules_attribute",
@@ -4186,7 +4200,7 @@ version = "0.1.0"
 dependencies = [
  "crossfire",
  "http",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "log",
  "pyo3",
  "pyo3-async-runtimes",
@@ -4201,7 +4215,7 @@ version = "0.1.0"
 dependencies = [
  "fastcgi-client",
  "http",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "log",
  "smol",
  "tokio",
@@ -4214,7 +4228,7 @@ version = "0.1.0"
 dependencies = [
  "bindgen 0.72.1",
  "http",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "log",
  "magnus",
  "mimalloc",
@@ -4229,7 +4243,7 @@ name = "vetis-rsgi"
 version = "0.1.0"
 dependencies = [
  "http",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "pyo3",
  "smol",
  "tokio",
@@ -4241,7 +4255,7 @@ name = "vetis-sapi"
 version = "0.1.0"
 dependencies = [
  "http",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "log",
  "ripht-php-sapi",
  "smol",
@@ -4255,7 +4269,7 @@ version = "0.1.0"
 dependencies = [
  "cegla",
  "http",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "log",
  "smol",
  "tokio",
@@ -4285,7 +4299,7 @@ dependencies = [
  "http",
  "http-body-util",
  "hyper",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "hyper-util",
  "log",
  "macro_rules_attribute",
@@ -4344,7 +4358,7 @@ dependencies = [
  "http",
  "http-body-util",
  "hyper",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "hyper-util",
  "log",
  "macro_rules_attribute",
@@ -4386,7 +4400,7 @@ version = "0.1.0"
 dependencies = [
  "crossfire",
  "http",
- "hyper-body-utils",
+ "hyper-body-utils 0.1.6-beta.7",
  "log",
  "pyo3",
  "smol",

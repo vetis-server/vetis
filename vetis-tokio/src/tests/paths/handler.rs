@@ -8,14 +8,14 @@ use vetis::{
 };
 
 use crate::{
-    server::virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
-    tests::{default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
 };
 
 async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
     let ipv4 = ListenerConfig::builder()
         .port(8082)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 
@@ -41,7 +41,7 @@ async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
     let root_path = HandlerPath::builder()
         .uri("/hello")
         .handler(handler_fn(|_request| async move {
-            let response = crate::server::http::Response::builder()
+            let response = crate::http::Response::builder()
                 .status(StatusCode::OK)
                 .text("Hello from localhost");
             Ok(response)

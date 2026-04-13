@@ -140,23 +140,26 @@ use log::{error, info};
 use async_signal::Signals;
 use futures_lite::prelude::*;
 
-use smol::fs::File;
-
 use signal_hook::low_level;
+use vetis::errors::{VetisError, VirtualHostError};
 
-pub(crate) type VetisFile = File;
+use crate::{http::HttpServer, virtual_host::VirtualHost};
 
-use crate::server::{virtual_host::VirtualHost, Server};
-
+pub mod http;
+pub mod listener;
 #[cfg(feature = "macros")]
 pub mod macros;
 mod rt;
-pub mod server;
 mod tests;
+mod tls;
+pub mod virtual_host;
 
-pub use vetis::*;
-
-pub static CONFIG: &str = "vetis.toml";
+pub use vetis::{
+    errors,
+    listener::ListenerConfig,
+    virtual_host::{SecurityConfig, VirtualHostConfig},
+    Protocol, Server, ServerConfig, VetisRwLock, VetisVirtualHosts,
+};
 
 /// Main server instance that manages virtual hosts and listeners.
 ///
@@ -185,7 +188,7 @@ pub static CONFIG: &str = "vetis.toml";
 pub struct Vetis {
     config: ServerConfig,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
-    instance: Option<server::http::HttpServer>,
+    instance: Option<http::HttpServer>,
 }
 
 impl Vetis {
@@ -266,7 +269,7 @@ impl Vetis {
     /// Returns a reference to the virtual hosts.
     ///
     /// This provides access to the virtual hosts configured when the server was created.
-    pub fn virtual_hosts(&self) -> &VetisVirtualHosts {
+    pub fn virtual_hosts(&self) -> &VetisVirtualHosts<VirtualHost> {
         &self.virtual_hosts
     }
 
@@ -367,7 +370,7 @@ impl Vetis {
             return Err(VetisError::VirtualHost(VirtualHostError::NoVirtualHosts));
         }
 
-        let mut server = server::http::HttpServer::new(self.config.clone());
+        let mut server = HttpServer::new(self.config.clone());
 
         server.set_virtual_hosts(
             self.virtual_hosts

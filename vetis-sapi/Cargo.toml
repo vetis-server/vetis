@@ -10,7 +10,7 @@ tokio-rt = ["dep:tokio", "hyper-body-utils/tokio-rt"]
 
 [dependencies]
 http = "1.4.0"
-hyper-body-utils = { version = "0.1.6-beta.6", default-features = false, optional = true }
+hyper-body-utils = { path = "../../hyper-body-utils", default-features = false, optional = true }
 log = "0.4.29"
 ripht-php-sapi = "0.1.0-rc.7"
 smol = { version = "2.0.2", default-features = false, optional = true }

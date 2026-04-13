@@ -8,7 +8,7 @@ macro_rules! http {
             };
 
             use $crate::{
-                server::virtual_host::{path::HandlerPath, VirtualHost},
+                virtual_host::{path::HandlerPath, VirtualHost},
                 Vetis,
             };
 

@@ -5,17 +5,14 @@ use serde::Deserialize;
 
 #[cfg(target_env = "musl")]
 use mimalloc::MiMalloc;
+use vetis::{virtual_host::VirtualHostConfig, ServerConfig};
 
 #[global_allocator]
 #[cfg(target_env = "musl")]
 static GLOBAL: MiMalloc = MiMalloc;
 
 use std::{error::Error, fs::read_to_string, path::Path};
-use vetis::{
-    config::server::{virtual_host::VirtualHostConfig, ServerConfig},
-    server::virtual_host::VirtualHost,
-    Vetis,
-};
+use vetis_smol::{virtual_host::VirtualHost, Vetis};
 
 #[derive(Deserialize)]
 pub struct VetisServerConfig {
@@ -91,20 +88,7 @@ fn init_runtime() -> Result<(), Box<dyn Error>> {
                     .format_module_path(false)
                     .init();
 
-                    #[cfg(feature = "tokio-rt")]
-                    {
-                        let rt = tokio::runtime::Builder::new_multi_thread()
-                            .enable_all()
-                            .worker_threads(config.worker_threads)
-                            .max_blocking_threads(config.max_blocking_threads)
-                            .build()?;
-                        rt.block_on(async { run(config.server, config.virtual_hosts).await })?;
-                    }
-
-                    #[cfg(feature = "smol-rt")]
-                    {
-                        smol::block_on(async { run(config.server, config.virtual_hosts).await })?;
-                    }
+                    smol::block_on(async { run(config.server, config.virtual_hosts).await })?;
                 } else {
                     eprintln!(
                         "Failed to parse config file: {}",
@@ -120,15 +104,6 @@ fn init_runtime() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[cfg(feature = "tokio-rt")]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if let Err(e) = init_runtime() {
-        eprintln!("Failed to start server: {}", e);
-    }
-    Ok(())
-}
-
-#[cfg(feature = "smol-rt")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Err(e) = init_runtime() {
         eprintln!("Failed to start server: {}", e);

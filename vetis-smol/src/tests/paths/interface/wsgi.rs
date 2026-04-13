@@ -1,4 +1,4 @@
-use deboa::request;
+use deboa::{request, HttpClient};
 use deboa_smol::cert::Certificate;
 use http::StatusCode;
 use macro_rules_attribute::apply;
@@ -10,17 +10,15 @@ use vetis::{
 };
 
 use crate::{
-    server::virtual_host::{path::interface::InterfacePath, VirtualHost},
-    tests::default_protocol,
+    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{path::interface::InterfacePath, VirtualHost},
     ServerConfig,
 };
 
 async fn do_wsgi_to_target() -> Result<(), Box<dyn Error>> {
-    use crate::tests::{CA_CERT, SERVER_CERT, SERVER_KEY};
-
     let listener = ListenerConfig::builder()
         .port(8088)
-        .protocol(default_protocol())
+        .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
 

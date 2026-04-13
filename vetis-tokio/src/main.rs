@@ -12,7 +12,7 @@ static GLOBAL: MiMalloc = MiMalloc;
 
 use std::{error::Error, fs::read_to_string, path::Path};
 use vetis::{virtual_host::VirtualHostConfig, ServerConfig};
-use vetis_tokio::{server::virtual_host::VirtualHost, Vetis};
+use vetis_tokio::{virtual_host::VirtualHost, Vetis};
 
 #[derive(Deserialize)]
 pub struct VetisServerConfig {
