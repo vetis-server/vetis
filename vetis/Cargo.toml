@@ -145,7 +145,7 @@ hyper = { version = "1.9.0", default-features = false, optional = true }
 hyper-body-utils = { version = "0.1.6-beta.2", optional = true, default-features = false}
 hyper-util = { version = "0.1.20", default-features = false, optional = true }
 log = "0.4.28"
-lru = { version = "0.16.3", optional = true, default-features = false}
+lru = { version = "0.16.4", optional = true, default-features = false}
 macro_rules_attribute = { version = "0.2.2", optional = true }
 magnus = { version = "0.8.2", optional = true, features = ["embed"] }
 mime = { version = "0.3.17", optional = true }
