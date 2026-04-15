@@ -150,7 +150,7 @@ macro_rules_attribute = { version = "0.2.2", optional = true }
 magnus = { version = "0.8.2", optional = true, features = ["embed"] }
 mime = { version = "0.3.17", optional = true }
 minimime = { version = "1.0.0", optional = true }
-peekable = { version = "0.4.1", optional = true, default-features = false }
+peekable = { version = "0.5.0", optional = true, default-features = false }
 pyo3 = { version = "0.27.2", default-features = false, optional = true }
 pyo3-async-runtimes = { version = "0.27.0", default-features = false, optional = true }
 quinn = { version = "0.11.7", default-features = false, optional = true }
