@@ -8,6 +8,8 @@ use http::StatusCode;
 #[cfg(any(feature = "http1", feature = "http2"))]
 use http_body_util::BodyExt;
 
+#[cfg(any(feature = "http1", feature = "http2"))]
+use vetis::virtual_host::handler_fn;
 use vetis::{
     errors::{ConfigError, VetisError},
     listener::ListenerConfig,
@@ -19,7 +21,6 @@ use vetis::{
 use crate::{
     tests::{deboa_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
     virtual_host::{
-        handler_fn,
         path::{proxy::ProxyPath, HandlerPath},
         VirtualHost,
     },

@@ -1,21 +1,20 @@
 #[cfg(test)]
 mod tls_tests {
-    use std::sync::Arc;
-
+    use async_lock::RwLock;
     use macro_rules_attribute::apply;
-    use smol::lock::RwLock;
     use smol_macros::test;
+    use std::sync::Arc;
 
     use vetis::{
         errors::VetisError,
         http::Response,
-        virtual_host::{SecurityConfig, VirtualHostConfig},
+        virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
     };
 
     use crate::{
         tests::{CA_CERT, SERVER_CERT, SERVER_KEY},
         tls::TlsFactory,
-        virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
+        virtual_host::{path::HandlerPath, VirtualHost},
         VetisVirtualHosts,
     };
 

@@ -9,13 +9,13 @@ use smol_macros::test;
 use vetis::{
     http::Response,
     listener::ListenerConfig,
-    virtual_host::{SecurityConfig, VirtualHostConfig},
+    virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
     ServerConfig,
 };
 
 use crate::{
     tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
+    virtual_host::{path::HandlerPath, VirtualHost},
 };
 
 async fn do_test_handler() -> Result<(), Box<dyn Error>> {

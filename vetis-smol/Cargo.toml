@@ -21,21 +21,19 @@ eula = false
 [features]
 default = [
   "http2",
-  "macros",
   "rust-tls",
   "__interface_wsgi",
   "__interface_fcgi",
   "__interface_rack",
 ]
 
-macros = []
 basic-auth = ["vetis/basic-auth"]
 static-files = ["vetis/static-files"]
-reverse-proxy = ["vetis/reverse-proxy"]
+reverse-proxy = ["vetis/reverse-proxy", "dep:deboa-smol"]
 
 rust-tls = ["futures-rustls", "rustls", "rustls-provider"]
 
-interface = []
+interface = ["vetis/interface"]
 __interface_asgi = ["interface", "asgi", "vetis-asgi/tokio-rt"]
 __interface_fcgi = ["interface", "fcgi", "vetis-fcgi/tokio-rt"]
 __interface_sapi = ["interface", "sapi", "vetis-sapi/tokio-rt"]
@@ -79,12 +77,12 @@ http3 = [
 ]
 
 [dependencies]
+async-lock = "3.4.1"
 async-native-tls = { version = "0.5.0", features = ["runtime-async-std"], default-features = false }
 async-signal = { version = "0.2.12", default-features = false }
 base64 = { version = "0.22.1", optional = true, default-features = false }
 blocking = { version = "1.6.2", optional = true, default-features = false }
 bytes = "1.11.1"
-cfg-if = "1.0.4"
 clap = { version = "4.5.61", features = [
   "derive",
   "std",
@@ -128,17 +126,19 @@ thiserror = "2.0.17"
 time = { version = "0.3.41", features = ["formatting"] }
 url = "2.5.7"
 vetis = { path = "../vetis", default-features = false }
-vetis-asgi = { version = "0.1.0", path = "../vetis-asgi", optional = true, default-features = false }
-vetis-fcgi = { version = "0.1.0", path = "../vetis-fcgi", optional = true, default-features = false }
-vetis-rack = { version = "0.1.0", path = "../vetis-rack", optional = true, default-features = false }
-vetis-rsgi = { version = "0.1.0", path = "../vetis-rsgi", optional = true, default-features = false }
-vetis-sapi = { version = "0.1.0", path = "../vetis-sapi", optional = true, default-features = false }
-vetis-scgi = { version = "0.1.0", path = "../vetis-scgi", optional = true, default-features = false }
-vetis-wsgi = { version = "0.1.0", path = "../vetis-wsgi", optional = true, default-features = false }
+vetis-asgi = { version = "0.1.0", path = "../interfaces/vetis-asgi", optional = true, default-features = false }
+vetis-fcgi = { version = "0.1.0", path = "../interfaces/vetis-fcgi", optional = true, default-features = false }
+vetis-rack = { version = "0.1.0", path = "../interfaces/vetis-rack", optional = true, default-features = false }
+vetis-rsgi = { version = "0.1.0", path = "../interfaces/vetis-rsgi", optional = true, default-features = false }
+vetis-sapi = { version = "0.1.0", path = "../interfaces/vetis-sapi", optional = true, default-features = false }
+vetis-scgi = { version = "0.1.0", path = "../interfaces/vetis-scgi", optional = true, default-features = false }
+vetis-wsgi = { version = "0.1.0", path = "../interfaces/vetis-wsgi", optional = true, default-features = false }
 
 [dev-dependencies]
 deboa = { path = "../../deboa/deboa" }
 deboa-smol = { path = "../../deboa/deboa-smol" }
+macro_rules_attribute = { version = "0.2.2", default-features = false }
 smol = { version = "2.0.2", default-features = false }
 smol-hyper = { version = "0.1.1", default-features = false }
 smol-macros = { version = "0.1.1", default-features = false }
+vetis-macros = { path = "../vetis-macros" }

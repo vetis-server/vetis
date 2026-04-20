@@ -8,7 +8,7 @@ mod server_tests {
     use vetis::{
         http::Response,
         listener::ListenerConfig,
-        virtual_host::{SecurityConfig, VirtualHostConfig},
+        virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
         ServerConfig,
     };
 
@@ -17,7 +17,7 @@ mod server_tests {
             deboa_default_protocol, vetis_default_protocol, CA_CERT, IP6_SERVER_CERT,
             IP6_SERVER_KEY, SERVER_CERT, SERVER_KEY,
         },
-        virtual_host::{handler_fn, path::HandlerPath},
+        virtual_host::path::HandlerPath,
         VirtualHost,
     };
 

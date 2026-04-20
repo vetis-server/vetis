@@ -12,9 +12,6 @@ use crate::{http::HttpServer, virtual_host::VirtualHost};
 pub mod http;
 /// Listener module
 pub mod listener;
-/// Macros module
-#[cfg(feature = "macros")]
-pub mod macros;
 /// Tests module
 #[cfg(test)]
 mod tests;
@@ -26,7 +23,7 @@ pub mod virtual_host;
 pub use vetis::{
     errors,
     listener::ListenerConfig,
-    virtual_host::{SecurityConfig, VirtualHostConfig},
+    virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
     Protocol, Server, ServerConfig, VetisRwLock, VetisVirtualHosts,
 };
 

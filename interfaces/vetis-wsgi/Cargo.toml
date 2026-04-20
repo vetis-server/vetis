@@ -20,9 +20,9 @@ tokio-rt = ["dep:tokio", "hyper-body-utils/tokio-rt"]
 [dependencies]
 crossfire = "3.1.6"
 http = "1.4.0"
-hyper-body-utils = { path = "../../hyper-body-utils", default-features = false, optional = true }
+hyper-body-utils = { path = "../../../hyper-body-utils", default-features = false, optional = true }
 log = "0.4.29"
 pyo3 = { version = "0.27.2", features = ["auto-initialize"] }
 smol = { version = "2.0.2", default-features = false, optional = true }
 tokio = { version = "1.50.0", default-features = false, optional = true }
-vetis = { path = "../vetis", default-features = false }
+vetis = { path = "../../vetis", default-features = false }

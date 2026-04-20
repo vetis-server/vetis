@@ -30,7 +30,7 @@ use crate::callback::StartResponse;
 pub mod callback;
 mod tests;
 
-/// WSGI worker
+/// WSGI worker10
 pub struct WsgiWorker {
     func: Arc<Py<PyAny>>,
     env: Arc<Py<PyDict>>,

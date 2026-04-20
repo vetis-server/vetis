@@ -21,14 +21,12 @@ eula = false
 [features]
 default = [
   "http2",
-  "macros",
   "rust-tls",
   "__interface_wsgi",
   "__interface_fcgi",
   "__interface_rack",
 ]
 
-macros = []
 basic-auth = ["vetis/basic-auth"]
 static-files = ["vetis/static-files"]
 reverse-proxy = ["vetis/reverse-proxy", "dep:deboa-tokio"]
@@ -70,11 +68,9 @@ http3 = [
 
 [dependencies]
 async-lock = "3.4.1"
-async-signal = { version = "0.2.12", optional = true, default-features = false }
 base64 = { version = "0.22.1", optional = true, default-features = false }
 blocking = { version = "1.6.2", optional = true, default-features = false }
 bytes = "1.11.1"
-cfg-if = "1.0.4"
 clap = { version = "4.5.61", features = [
   "derive",
   "std",
@@ -96,7 +92,6 @@ hyper-util = { version = "0.1.20", features = [
   "tokio",
 ], default-features = false }
 log = "0.4.28"
-macro_rules_attribute = { version = "0.2.2", optional = true, default-features = false }
 mimalloc = "0.1.48"
 mime = { version = "0.3.17", optional = true, default-features = false }
 minimime = { version = "1.0.0", default-features = false }
@@ -111,7 +106,6 @@ rustls = { version = "0.23.37", optional = true, default-features = false }
 rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
 serde = { version = "1.0.226", features = ["derive"] }
 serde_yaml_ng = "0.10.0"
-signal-hook = { version = "0.4.3", optional = true, default-features = false }
 socket2 = "0.6.3"
 thiserror = "2.0.17"
 time = { version = "0.3.41", features = ["formatting"] }
@@ -124,15 +118,16 @@ tokio-rustls = { version = "0.26.0", optional = true, default-features = false }
 tokio-util = { version = "0.7.18", default-features = false }
 url = "2.5.7"
 vetis = { path = "../vetis", default-features = false }
-vetis-asgi = { version = "0.1.0", path = "../vetis-asgi", optional = true, default-features = false }
-vetis-fcgi = { version = "0.1.0", path = "../vetis-fcgi", optional = true, default-features = false }
-vetis-rack = { version = "0.1.0", path = "../vetis-rack", optional = true, default-features = false }
-vetis-rsgi = { version = "0.1.0", path = "../vetis-rsgi", optional = true, default-features = false }
-vetis-sapi = { version = "0.1.0", path = "../vetis-sapi", optional = true, default-features = false }
-vetis-scgi = { version = "0.1.0", path = "../vetis-scgi", optional = true, default-features = false }
-vetis-wsgi = { version = "0.1.0", path = "../vetis-wsgi", optional = true, default-features = false }
+vetis-asgi = { version = "0.1.0", path = "../interfaces/vetis-asgi", optional = true, default-features = false }
+vetis-fcgi = { version = "0.1.0", path = "../interfaces/vetis-fcgi", optional = true, default-features = false }
+vetis-rack = { version = "0.1.0", path = "../interfaces/vetis-rack", optional = true, default-features = false }
+vetis-rsgi = { version = "0.1.0", path = "../interfaces/vetis-rsgi", optional = true, default-features = false }
+vetis-sapi = { version = "0.1.0", path = "../interfaces/vetis-sapi", optional = true, default-features = false }
+vetis-scgi = { version = "0.1.0", path = "../interfaces/vetis-scgi", optional = true, default-features = false }
+vetis-wsgi = { version = "0.1.0", path = "../interfaces/vetis-wsgi", optional = true, default-features = false }
 
 [dev-dependencies]
 deboa = { path = "../../deboa/deboa" }
 deboa-tokio = { path = "../../deboa/deboa-tokio" }
 tokio = { version = "1.50.0", default-features = false, features = ["macros"] }
+vetis-macros = { path = "../vetis-macros" }

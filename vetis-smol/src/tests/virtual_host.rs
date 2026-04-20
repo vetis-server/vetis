@@ -6,9 +6,9 @@ mod virtual_host_tests {
     use macro_rules_attribute::apply;
     use smol_macros::test;
 
-    use vetis::virtual_host::VirtualHostConfig;
+    use vetis::virtual_host::{handler_fn, VirtualHostConfig};
 
-    use crate::virtual_host::{handler_fn, path::HandlerPath, VirtualHost};
+    use crate::virtual_host::{path::HandlerPath, VirtualHost};
 
     async fn do_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
         let config = VirtualHostConfig::builder()

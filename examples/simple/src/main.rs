@@ -3,15 +3,15 @@ use hyper::StatusCode;
 use vetis::{
     listener::ListenerConfig,
     virtual_host::{
-        path::proxy::ProxyPathConfig, path::static_files::StaticPathConfig, SecurityConfig,
-        VirtualHostConfig,
+        handler_fn,
+        path::{proxy::ProxyPathConfig, static_files::StaticPathConfig},
+        SecurityConfig, VirtualHostConfig,
     },
     Protocol, ServerConfig,
 };
 
 use vetis_tokio::{
     virtual_host::{
-        handler_fn,
         path::{proxy::ProxyPath, static_files::StaticPath, HandlerPath},
         VirtualHost,
     },

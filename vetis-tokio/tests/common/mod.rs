@@ -28,12 +28,3 @@ pub(crate) const fn deboa_default_protocol() -> HttpVersion {
     #[cfg(feature = "http3")]
     return HttpVersion::Http3;
 }
-
-mod config;
-mod paths;
-
-#[cfg(target_os = "linux")]
-mod server;
-
-mod tls;
-mod virtual_host;

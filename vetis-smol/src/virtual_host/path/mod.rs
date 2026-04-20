@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use vetis::errors::{HandlerError, VetisError, VirtualHostError};
 use vetis::http::{Request, Response};
+use vetis::virtual_host::BoxedHandlerClosure;
 
 #[cfg(feature = "interface")]
 use crate::virtual_host::path::interface::InterfacePath;
@@ -13,8 +14,6 @@ use crate::virtual_host::path::interface::InterfacePath;
 use crate::virtual_host::path::proxy::ProxyPath;
 #[cfg(feature = "static-files")]
 use crate::virtual_host::path::static_files::StaticPath;
-
-use crate::virtual_host::BoxedHandlerClosure;
 
 /// Basic auth module
 #[cfg(feature = "basic-auth")]

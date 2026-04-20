@@ -4,14 +4,14 @@ mod tls_tests {
     use std::sync::Arc;
     use vetis::{
         errors::VetisError,
-        virtual_host::{SecurityConfig, VirtualHostConfig},
+        virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
         VetisVirtualHosts,
     };
 
     use crate::{
         tests::{CA_CERT, SERVER_CERT, SERVER_KEY},
         tls::TlsFactory,
-        virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
+        virtual_host::{path::HandlerPath, VirtualHost},
     };
 
     fn create_test_virtual_hosts() -> VetisVirtualHosts<VirtualHost> {

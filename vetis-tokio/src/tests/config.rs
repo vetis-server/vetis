@@ -5,17 +5,14 @@ use vetis::errors::{ConfigError, VetisError};
 use vetis::{
     listener::ListenerConfig,
     virtual_host::{SecurityConfig, VirtualHostConfig},
-    Protocol, ServerConfig,
+    ServerConfig,
 };
+
+use crate::tests::vetis_default_protocol;
 
 #[test]
 fn test_listener_config() -> Result<(), Box<dyn Error>> {
-    #[cfg(feature = "http1")]
-    let protocol = Protocol::Http1;
-    #[cfg(feature = "http2")]
-    let protocol = Protocol::Http2;
-    #[cfg(feature = "http3")]
-    let protocol = Protocol::Http3;
+    let protocol = vetis_default_protocol();
 
     let listener_config = ListenerConfig::builder()
         .port(8080)
@@ -142,7 +139,7 @@ mod reverse_proxy_tests {
     }
 }
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "basic-auth")]
 mod auth_tests {
     use vetis::virtual_host::path::auth::{Algorithm, BasicAuthConfig};
 

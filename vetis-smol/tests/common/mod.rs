@@ -1,6 +1,6 @@
 #![allow(unreachable_code, dead_code)]
 
-use deboa_tokio::HttpVersion;
+use deboa_smol::HttpVersion;
 use vetis::Protocol;
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../../../certs/ca.der");
@@ -28,12 +28,3 @@ pub(crate) const fn deboa_default_protocol() -> HttpVersion {
     #[cfg(feature = "http3")]
     return HttpVersion::Http3;
 }
-
-mod config;
-mod paths;
-
-#[cfg(target_os = "linux")]
-mod server;
-
-mod tls;
-mod virtual_host;

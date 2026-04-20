@@ -7,7 +7,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use log::{error, info};
 
-use async_signal::Signals;
+use async_signal::{Signal, Signals};
 use futures_lite::prelude::*;
 
 use signal_hook::low_level;
@@ -18,9 +18,6 @@ use crate::{http::HttpServer, virtual_host::VirtualHost};
 pub mod http;
 /// Listener module
 pub mod listener;
-/// Macros module
-#[cfg(feature = "macros")]
-pub mod macros;
 /// Runtime module
 mod rt;
 /// Tests module
@@ -34,7 +31,7 @@ pub mod virtual_host;
 pub use vetis::{
     errors,
     listener::ListenerConfig,
-    virtual_host::{SecurityConfig, VirtualHostConfig},
+    virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
     Protocol, Server, ServerConfig, VetisRwLock, VetisVirtualHosts,
 };
 
@@ -189,8 +186,6 @@ impl Vetis {
         {
             info!("Server listening on port {}:{}", listener.interface(), listener.port());
         }
-
-        use async_signal::Signal;
 
         let mut signals = Signals::new([Signal::Quit]).unwrap();
         while let Some(signal) = signals.next().await {

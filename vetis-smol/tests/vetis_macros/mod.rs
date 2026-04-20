@@ -1,16 +1,11 @@
 use deboa::request::get;
-
+use deboa_smol::Client;
 use macro_rules_attribute::apply;
 use smol_macros::test;
+use vetis::{http::Response, virtual_host::handler_fn};
+use vetis_macros::http;
 
-use deboa_smol::Client;
-use vetis::http::Response;
-
-use crate::{
-    http,
-    tests::{deboa_default_protocol, vetis_default_protocol},
-    virtual_host::handler_fn,
-};
+use crate::common::{deboa_default_protocol, vetis_default_protocol};
 
 async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });

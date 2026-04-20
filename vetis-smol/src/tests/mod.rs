@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![allow(unreachable_code, dead_code)]
 
 use deboa_smol::HttpVersion;
 use vetis::Protocol;
@@ -30,7 +30,6 @@ pub(crate) const fn deboa_default_protocol() -> HttpVersion {
 }
 
 mod config;
-mod macros;
 mod paths;
 
 #[cfg(target_os = "linux")]

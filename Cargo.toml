@@ -4,16 +4,17 @@ resolver = "3"
 # Include both parts of the library in the workspace
 members = [
   "vetis",
-  "vetis-asgi",
-  "vetis-fcgi",
-  "vetis-rack",
-  "vetis-rsgi",
-  "vetis-sapi",
-  "vetis-scgi",
+  "vetis-macros",
   "vetis-smol",
   "vetis-tokio",
-  "vetis-wsgi",
   "examples/simple", 
+  "interfaces/vetis-asgi",
+  "interfaces/vetis-fcgi",
+  "interfaces/vetis-rack",
+  "interfaces/vetis-rsgi",
+  "interfaces/vetis-sapi",
+  "interfaces/vetis-scgi",
+  "interfaces/vetis-wsgi",
 ]
 
 [profile.release]
