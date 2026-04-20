@@ -8,9 +8,7 @@ mod virtual_host_tests {
 
     use vetis::virtual_host::VirtualHostConfig;
 
-    use crate::{
-        virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
-    };
+    use crate::virtual_host::{handler_fn, path::HandlerPath, VirtualHost};
 
     async fn do_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
         let config = VirtualHostConfig::builder()

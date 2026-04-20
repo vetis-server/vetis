@@ -3,11 +3,13 @@ mod tls_tests {
     use std::sync::Arc;
 
     use macro_rules_attribute::apply;
-    use smol_macros::test;
     use smol::lock::RwLock;
+    use smol_macros::test;
 
     use vetis::{
-        errors::VetisError, http::Response, virtual_host::{SecurityConfig, VirtualHostConfig}
+        errors::VetisError,
+        http::Response,
+        virtual_host::{SecurityConfig, VirtualHostConfig},
     };
 
     use crate::{

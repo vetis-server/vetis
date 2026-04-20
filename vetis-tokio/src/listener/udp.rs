@@ -37,7 +37,7 @@ pub struct UdpListener {
 
 impl Listener for UdpListener {
     type VirtualHost = VirtualHost;
-    
+
     /// Create a new listener
     ///
     /// # Arguments

@@ -3,10 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use http::HeaderMap;
 
 use hyper_body_utils::HttpBody;
-use vetis::{
-    errors::VetisError,
-    Protocol, Server, ServerConfig,
-};
+use vetis::{errors::VetisError, Protocol, Server, ServerConfig};
 
 use crate::{
     listener::{Listener, ServerListener},

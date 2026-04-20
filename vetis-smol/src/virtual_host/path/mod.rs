@@ -14,9 +14,7 @@ use crate::virtual_host::path::proxy::ProxyPath;
 #[cfg(feature = "static-files")]
 use crate::virtual_host::path::static_files::StaticPath;
 
-use crate::{
-    virtual_host::BoxedHandlerClosure,
-};
+use crate::virtual_host::BoxedHandlerClosure;
 
 #[cfg(feature = "basic_auth")]
 pub mod auth;
