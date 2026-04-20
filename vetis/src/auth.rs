@@ -1,16 +1,13 @@
 use std::sync::Arc;
-#[cfg(feature = "basic_auth")]
 use std::{collections::HashMap, path::Path};
 
 use futures_util::future::BoxFuture;
 use http::HeaderMap;
 use serde::Deserialize;
 
-#[cfg(feature = "basic_auth")]
 use crate::errors::ConfigError;
 use crate::errors::VetisError;
 
-#[cfg(feature = "basic_auth")]
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 /// An enum with authentication algorithms.
 ///
@@ -41,14 +38,12 @@ pub trait PasswordVerifier {
     fn verify(&self, password: &str, hashed_password: &str, algorithm: Arc<Algorithm>) -> bool;
 }
 
-#[cfg(feature = "basic_auth")]
 pub struct BasicAuthConfigBuilder {
     users: HashMap<String, String>,
     algorithm: Algorithm,
     htpasswd: Option<String>,
 }
 
-#[cfg(feature = "basic_auth")]
 impl BasicAuthConfigBuilder {
     /// Allow manually set a hashmap of user and passowrd
     ///

@@ -3,9 +3,10 @@ use std::{collections::HashMap, sync::Arc};
 use http::HeaderMap;
 
 use hyper_body_utils::HttpBody;
-#[cfg(feature = "http2")]
-use vetis::Protocol;
-use vetis::{errors::VetisError, Server, ServerConfig};
+use vetis::{
+    errors::VetisError,
+    Protocol, Server, ServerConfig,
+};
 
 use crate::{
     listener::{Listener, ServerListener},

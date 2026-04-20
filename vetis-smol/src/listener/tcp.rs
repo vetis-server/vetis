@@ -7,6 +7,8 @@ use std::{
 use http::header;
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
+#[cfg(feature = "http1")]
+use hyper_util::rt::TokioIo;
 use log::{debug, error, info};
 use vetis::{errors::VetisError, http::Request, listener::ListenerConfig, Protocol};
 
@@ -122,7 +124,7 @@ impl Listener for TcpListener {
     /// * `ListenerResult<'_, ()>` - A `ListenerResult` instance containing the result of the listener.
     fn stop(&mut self) -> ListenerResult<'_, ()> {
         let future = async move {
-            if let Some(mut task) = self.task.take() {
+            if let Some(task) = self.task.take() {
                 task.cancel().await;
             }
             Ok(())
@@ -378,8 +380,8 @@ async fn process_request(
 #[cfg(feature = "http1")]
 fn handle_http1_request<T>(
     port: Arc<u16>,
-    io: VetisIo<T>,
-    virtual_hosts: VetisVirtualHosts,
+    io: FuturesIo<T>,
+    virtual_hosts: VetisVirtualHosts<VirtualHost>,
     client_addr: SocketAddr,
 ) -> Result<(), VetisError>
 where

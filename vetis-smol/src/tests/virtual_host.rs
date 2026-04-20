@@ -9,7 +9,6 @@ mod virtual_host_tests {
     use vetis::virtual_host::VirtualHostConfig;
 
     use crate::{
-        http::Request,
         virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
     };
 
@@ -25,7 +24,7 @@ mod virtual_host_tests {
             HandlerPath::builder()
                 .uri("/")
                 .handler(handler_fn(|_request| async move {
-                    Ok(crate::http::Response::builder()
+                    Ok(vetis::http::Response::builder()
                         .status(StatusCode::OK)
                         .text("Hello, world!"))
                 }))
@@ -59,7 +58,7 @@ mod virtual_host_tests {
             HandlerPath::builder()
                 .uri("/")
                 .handler(handler_fn(|_request| async move {
-                    Ok(crate::http::Response::builder()
+                    Ok(vetis::http::Response::builder()
                         .status(StatusCode::OK)
                         .text("Hello, world!"))
                 }))
@@ -83,7 +82,7 @@ mod virtual_host_tests {
 
         let (parts, body) = request.into_parts();
 
-        let request = Request::from_parts(parts, body);
+        let request = vetis::http::Request::from_parts(parts, body);
 
         let response = virtual_host
             .route(request)

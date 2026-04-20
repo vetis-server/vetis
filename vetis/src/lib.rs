@@ -64,6 +64,7 @@ use crate::{
     listener::ListenerConfig,
 };
 
+#[cfg(feature = "basic-auth")]
 pub mod auth;
 pub mod errors;
 pub mod http;

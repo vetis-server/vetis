@@ -5,6 +5,7 @@ use std::{future::Future, pin::Pin};
 use std::sync::Arc;
 
 use vetis::errors::{HandlerError, VetisError, VirtualHostError};
+use vetis::http::{Request, Response};
 
 #[cfg(feature = "interface")]
 use crate::virtual_host::path::interface::InterfacePath;
@@ -14,7 +15,6 @@ use crate::virtual_host::path::proxy::ProxyPath;
 use crate::virtual_host::path::static_files::StaticPath;
 
 use crate::{
-    http::{Request, Response},
     virtual_host::BoxedHandlerClosure,
 };
 

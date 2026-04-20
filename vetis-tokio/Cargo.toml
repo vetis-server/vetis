@@ -29,8 +29,9 @@ default = [
 ]
 
 macros = []
-static-files = []
-reverse-proxy = []
+basic-auth = ["vetis/basic-auth"]
+static-files = ["vetis/static-files"]
+reverse-proxy = ["vetis/reverse-proxy"]
 
 rust-tls = ["tokio-rustls", "rustls", "rustls-provider"]
 
@@ -63,7 +64,7 @@ http3 = [
   "hyper-util/server",
   "dep:h3",
   "dep:h3-quinn",
-  "dep:quinn",
+  "quinn/runtime-tokio",
   "hyper-body-utils/http3",
 ]
 
@@ -122,12 +123,7 @@ tokio = { version = "1.50.0", features = [
 tokio-rustls = { version = "0.26.0", optional = true, default-features = false }
 tokio-util = { version = "0.7.18", default-features = false }
 url = "2.5.7"
-vetis = { path = "../vetis", features = [
-  "basic_auth",
-  "interface",
-  "static-files",
-  "reverse-proxy",
-], default-features = false }
+vetis = { path = "../vetis", default-features = false }
 vetis-asgi = { version = "0.1.0", path = "../vetis-asgi", optional = true, default-features = false }
 vetis-fcgi = { version = "0.1.0", path = "../vetis-fcgi", optional = true, default-features = false }
 vetis-rack = { version = "0.1.0", path = "../vetis-rack", optional = true, default-features = false }

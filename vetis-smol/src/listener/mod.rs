@@ -1,6 +1,5 @@
 use std::{future::Future, pin::Pin};
 
-#[cfg(feature = "http2")]
 use vetis::Protocol;
 use vetis::{errors::VetisError, listener::ListenerConfig};
 

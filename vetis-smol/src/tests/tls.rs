@@ -4,12 +4,10 @@ mod tls_tests {
 
     use macro_rules_attribute::apply;
     use smol_macros::test;
-
     use smol::lock::RwLock;
 
     use vetis::{
-        errors::VetisError,
-        virtual_host::{SecurityConfig, VirtualHostConfig},
+        errors::VetisError, http::Response, virtual_host::{SecurityConfig, VirtualHostConfig}
     };
 
     use crate::{
@@ -41,7 +39,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::http::Response::builder()
+                        Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -70,7 +68,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::http::Response::builder()
+                        Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -106,7 +104,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::http::Response::builder()
+                        Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -228,7 +226,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::http::Response::builder()
+                        Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )
@@ -251,7 +249,7 @@ mod tls_tests {
                 .uri("/")
                 .handler(handler_fn(|_req| async move {
                     Ok::<_, VetisError>(
-                        crate::http::Response::builder()
+                        Response::builder()
                             .status(http::StatusCode::OK)
                             .text("Test response"),
                     )

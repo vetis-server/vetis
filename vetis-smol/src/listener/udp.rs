@@ -14,27 +14,26 @@ use h3_quinn::{
 
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
-use rt_gate::{spawn_server, spawn_worker, GateTask};
+use smol::Task;
 use vetis::{
     errors::{StartError, VetisError},
     http::Request,
 };
 
 use crate::{
-    config::server::ListenerConfig,
-    server::{
-        conn::listener::{Listener, ListenerResult},
-        http::static_response,
-        tls::TlsFactory,
-    },
+    http::static_response,
+    listener::ListenerConfig,
+    listener::{Listener, ListenerResult},
+    tls::TlsFactory,
+    virtual_host::VirtualHost,
     VetisRwLock, VetisVirtualHosts,
 };
 
 /// UDP listener
 pub struct UdpListener {
     config: ListenerConfig,
-    task: Option<GateTask>,
-    virtual_hosts: VetisVirtualHosts,
+    task: Option<Task<()>>,
+    virtual_hosts: VetisVirtualHosts<VirtualHost>,
 }
 
 impl Listener for UdpListener {
@@ -56,7 +55,7 @@ impl Listener for UdpListener {
     /// # Arguments
     ///
     /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual hosts.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts) {
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>) {
         self.virtual_hosts = virtual_hosts;
     }
 
@@ -124,7 +123,7 @@ impl Listener for UdpListener {
     /// * `ListenerResult<'_, ()>` - A `ListenerResult` instance containing the result of the listener.
     fn stop(&mut self) -> ListenerResult<'_, ()> {
         Box::pin(async move {
-            if let Some(mut task) = self.task.take() {
+            if let Some(task) = self.task.take() {
                 task.cancel().await;
             }
             Ok(())
@@ -136,17 +135,17 @@ impl UdpListener {
     async fn handle_connections(
         &mut self,
         endpoint: quinn::Endpoint,
-        virtual_hosts: VetisVirtualHosts,
-    ) -> Result<GateTask, VetisError> {
+        virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    ) -> Result<Task<()>, VetisError> {
         let port = self.config.port();
-        let task = spawn_server(async move {
+        let task = smol::spawn(async move {
             while let Some(new_conn) = endpoint
                 .accept()
                 .await
             {
                 let virtual_hosts = virtual_hosts.clone();
                 let addr = new_conn.remote_address();
-                spawn_worker(async move {
+                smol::spawn(async move {
                     match new_conn.await {
                         Ok(conn) => {
                             let mut h3_conn: Connection<QuinnConnection, Bytes> =
@@ -189,7 +188,8 @@ impl UdpListener {
                             error!("Accepting connection failed: {:?}", err);
                         }
                     }
-                });
+                })
+                .detach();
             }
 
             endpoint
@@ -204,11 +204,11 @@ impl UdpListener {
 fn handle_http_request(
     port: u16,
     resolver: RequestResolver<QuinnConnection, Bytes>,
-    virtual_hosts: VetisVirtualHosts,
+    virtual_hosts: VetisVirtualHosts<VirtualHost>,
     client_addr: SocketAddr,
 ) -> Result<(), VetisError> {
     let virtual_hosts = virtual_hosts.clone();
-    spawn_worker(async move {
+    smol::spawn(async move {
         let result = resolver
             .resolve_request()
             .await;
@@ -351,7 +351,8 @@ fn handle_http_request(
                 error!("HttpServer - Error serving connection: {:?}", response.err());
             }
         }
-    });
+    })
+    .detach();
 
     Ok(())
 }

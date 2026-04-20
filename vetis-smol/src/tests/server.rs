@@ -1,11 +1,12 @@
 mod server_tests {
-    use deboa::{request, HttpClient};
+    use deboa::request;
     use deboa_smol::cert::{Certificate, ContentEncoding};
     use http::StatusCode;
     use macro_rules_attribute::apply;
     use smol_macros::test;
     use std::error::Error;
     use vetis::{
+        http::Response,
         listener::ListenerConfig,
         virtual_host::{SecurityConfig, VirtualHostConfig},
         ServerConfig,
@@ -80,7 +81,7 @@ mod server_tests {
         let ip4_root_path = HandlerPath::builder()
             .uri("/hello")
             .handler(handler_fn(|_request| async move {
-                let response = crate::http::Response::builder()
+                let response = Response::builder()
                     .status(StatusCode::OK)
                     .text("Hello from ipv4");
                 Ok(response)
@@ -90,7 +91,7 @@ mod server_tests {
         let ip6_root_path = HandlerPath::builder()
             .uri("/hello")
             .handler(handler_fn(|_request| async move {
-                let response = crate::http::Response::builder()
+                let response = Response::builder()
                     .status(StatusCode::OK)
                     .text("Hello from ipv6");
                 Ok(response)

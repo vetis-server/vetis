@@ -26,7 +26,7 @@ use bytes::Bytes;
 use futures_lite::AsyncReadExt;
 use futures_util::TryStreamExt;
 use http::StatusCode;
-use http_body_util::{BodyExt, StreamBody};
+use http_body_util::StreamBody;
 use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;

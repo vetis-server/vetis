@@ -208,7 +208,6 @@ impl StaticPathConfigBuilder {
     }
 }
 
-#[cfg(feature = "static-files")]
 #[derive(Clone, Deserialize)]
 pub struct StaticPathConfig {
     uri: String,
@@ -220,7 +219,6 @@ pub struct StaticPathConfig {
     cache: Option<StaticPathCache>,
 }
 
-#[cfg(feature = "static-files")]
 impl StaticPathConfig {
     /// Allow create a new `StaticPathConfigBuilder` with default settings.
     ///

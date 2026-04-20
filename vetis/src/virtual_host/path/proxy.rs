@@ -8,7 +8,6 @@ pub struct ProxyPathConfigBuilder {
     target: String,
 }
 
-#[cfg(feature = "reverse-proxy")]
 impl ProxyPathConfigBuilder {
     /// Allow set the URI of the proxy path.
     ///
@@ -52,7 +51,6 @@ impl ProxyPathConfigBuilder {
     }
 }
 
-#[cfg(feature = "reverse-proxy")]
 #[derive(Clone, Deserialize)]
 pub struct ProxyPathConfig {
     uri: String,
@@ -62,7 +60,6 @@ pub struct ProxyPathConfig {
     // TODO: Add support for custom headers
 }
 
-#[cfg(feature = "reverse-proxy")]
 impl ProxyPathConfig {
     /// Creates a new `ProxyPathConfigBuilder` with default settings.
     ///

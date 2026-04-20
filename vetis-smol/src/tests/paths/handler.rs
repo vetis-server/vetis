@@ -1,10 +1,13 @@
+use std::error::Error;
+
 use deboa::request;
-use deboa_smol::cert::Certificate;
+use deboa_smol::{cert::Certificate, cert::ContentEncoding, Client};
 use http::StatusCode;
 
 use macro_rules_attribute::apply;
 use smol_macros::test;
 use vetis::{
+    http::Response,
     listener::ListenerConfig,
     virtual_host::{SecurityConfig, VirtualHostConfig},
     ServerConfig,
@@ -15,7 +18,7 @@ use crate::{
     virtual_host::{handler_fn, path::HandlerPath, VirtualHost},
 };
 
-async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
+async fn do_test_handler() -> Result<(), Box<dyn Error>> {
     let ipv4 = ListenerConfig::builder()
         .port(8082)
         .protocol(vetis_default_protocol())
@@ -44,7 +47,7 @@ async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
     let root_path = HandlerPath::builder()
         .uri("/hello")
         .handler(handler_fn(|_request| async move {
-            let response = crate::http::Response::builder()
+            let response = Response::builder()
                 .status(StatusCode::OK)
                 .text("Hello from localhost");
             Ok(response)
@@ -62,8 +65,8 @@ async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
         .start()
         .await?;
 
-    let client = deboa_smol::Client::builder()
-        .certificate(Certificate::from_slice(CA_CERT, deboa_smol::cert::ContentEncoding::DER))
+    let client = Client::builder()
+        .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
         .build();
 
     let request = request::get("https://localhost:8082/hello")?
@@ -80,6 +83,6 @@ async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[apply(test!)]
-async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_handler() -> Result<(), Box<dyn Error>> {
     do_test_handler().await
 }

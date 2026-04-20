@@ -1,3 +1,4 @@
+use http::{HeaderMap, StatusCode};
 use hyper_body_utils::HttpBody;
 
 /// Builder for creating HTTP responses.
@@ -27,9 +28,9 @@ use hyper_body_utils::HttpBody;
 ///     .text(r#"{"status": "success"}"#);
 /// ```
 pub struct ResponseBuilder {
-    status: http::StatusCode,
+    status: StatusCode,
     version: http::Version,
-    headers: Option<http::HeaderMap>,
+    headers: Option<HeaderMap>,
 }
 
 impl ResponseBuilder {
@@ -88,7 +89,7 @@ impl ResponseBuilder {
             .headers
             .is_none()
         {
-            self.headers = Some(http::HeaderMap::new());
+            self.headers = Some(HeaderMap::new());
         }
         self.headers
             .as_mut()
@@ -113,7 +114,7 @@ impl ResponseBuilder {
     ///     .headers(headers)
     ///     .text("Plain text");
     /// ```
-    pub fn headers(mut self, headers: http::HeaderMap) -> Self {
+    pub fn headers(mut self, headers: HeaderMap) -> Self {
         self.headers = Some(headers);
         self
     }

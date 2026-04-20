@@ -143,6 +143,7 @@ pub mod http;
 pub mod listener;
 #[cfg(feature = "macros")]
 pub mod macros;
+#[cfg(test)]
 mod tests;
 mod tls;
 pub mod virtual_host;
