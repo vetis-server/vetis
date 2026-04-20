@@ -12,6 +12,7 @@ use crate::virtual_host::path::static_files::StaticPathConfig;
 
 use crate::errors::{ConfigError, VetisError};
 
+/// Path configuration for virtual hosts.
 pub mod path;
 
 /// Builder for creating `VirtualHostConfig` instances.
@@ -775,6 +776,7 @@ impl SecurityConfig {
     }
 }
 
+/// Security configuration loaded from files.
 #[derive(Clone, Deserialize)]
 pub struct SecurityConfigFromFile {
     cert_from_file: String,

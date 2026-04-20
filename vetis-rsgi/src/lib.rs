@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
 use std::{future::Future, pin::Pin, sync::Arc};
 
 use http::StatusCode;
@@ -11,20 +13,24 @@ use vetis::{
 mod callback;
 mod tests;
 
+/// RSGI worker implementation
 pub struct RsgiWorker {
     directory: String,
     target: String,
 }
 
 impl RsgiWorker {
+    /// Create a new RSGI worker
     pub fn new(directory: String, target: String) -> RsgiWorker {
         RsgiWorker { directory, target }
     }
 
+    /// Get the directory
     pub fn directory(&self) -> &String {
         &self.directory
     }
 
+    /// Get the target
     pub fn target(&self) -> &String {
         &self.target
     }

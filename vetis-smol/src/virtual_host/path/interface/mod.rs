@@ -25,19 +25,27 @@ use vetis_wsgi::WsgiWorker;
 
 use crate::virtual_host::path::{HostPath, Path};
 
+/// Interface enum
 pub enum Interface {
+    /// ASGI interface
     #[cfg(feature = "asgi")]
     Asgi(AsgiWorker),
+    /// FCGI interface
     #[cfg(feature = "fcgi")]
     Fcgi(FcgiWorker),
+    /// RACK interface
     #[cfg(feature = "rack")]
     Rack(RackWorker),
+    /// RSGI interface
     #[cfg(feature = "rsgi")]
     Rsgi(RsgiWorker),
+    /// SAPI interface
     #[cfg(feature = "sapi")]
     Sapi(SapiWorker),
+    /// SCGI interface
     #[cfg(feature = "scgi")]
     Scgi(ScgiWorker),
+    /// WSGI interface
     #[cfg(feature = "wsgi")]
     Wsgi(WsgiWorker),
 }

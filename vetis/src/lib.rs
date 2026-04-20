@@ -1,59 +1,5 @@
-//! # VeTiS (Very Tiny Server)
-//!
-//! **A blazingly fast, minimalist HTTP server built for modern Rust applications**
-//!
-//! VeTiS is a lightweight yet powerful web server that brings simplicity and performance together.
-//! Designed with Rust's safety guarantees in mind, it delivers HTTP/1, HTTP/2, and HTTP/3 support
-//! with a clean, intuitive API that makes building web services a breeze.
-//!
-//! ## Features
-//!
-//! - **Minimalist Design**: Focus on what matters - serving HTTP requests efficiently
-//! - **Flexible Runtime**: Choose between Tokio or Smol async runtimes
-//! - **Protocol Support**: Full HTTP/1, HTTP/2, and HTTP/3 implementation
-//! - **Secure by Default**: Built-in TLS support with modern cryptography
-//! - **Zero-Cost Abstractions**: Leverage Rust's performance without overhead
-//! - **Feature-Gated**: Include only what you need for optimal binary size
-//! - **Virtual Hosts**: Host multiple domains on a single server
-//!
-//! ## Quick Start
-//!
-//! Add VeTiS to your `Cargo.toml`:
-//!
-//! ```toml
-//! vetis = { version = "0.1.3" }
-//! ```
-//!
-//! ## Architecture
-//!
-//! VeTiS is built around several key components:
-//!
-//! - **[`Vetis`]**: Main server instance that manages virtual hosts and listeners
-//! - **[`ServerConfig`]**: Configuration for server listeners and global settings
-//! - **[`VirtualHost`]**: Trait for implementing virtual hosts that handle requests
-//! - **[`Request`]**: HTTP request wrapper supporting multiple protocols
-//! - **[`Response`]**: HTTP response builder for creating responses
-//!
-//! ## Runtime Configuration
-//!
-//! ## Modules
-//!
-//! - [`auth`]: Authentication and authorization utilities
-//! - [`config`]: Server and virtual host configuration builders
-//! - [`errors`]: Comprehensive error handling types
-//! - [`listener`]: Listener configuration builders
-//! - [`utils`]: Utility functions and types
-//! - [`virtual_host`]: Virtual host configuration builders
-//!
-//! ## Examples
-//!
-//! Check out the `examples/` directory for more comprehensive examples including:
-//!
-//! - Basic HTTP server
-//! - HTTPS with TLS
-//! - Multiple virtual hosts
-//! - Custom request handlers
-
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
 use std::{collections::HashMap, future::Future, sync::Arc};
 
 use async_lock::RwLock;
@@ -64,17 +10,26 @@ use crate::{
     listener::ListenerConfig,
 };
 
+/// Basic authentication module
 #[cfg(feature = "basic-auth")]
 pub mod auth;
+/// Error handling module
 pub mod errors;
+/// HTTP request/response handling module
 pub mod http;
+/// Listener configuration and management module
 pub mod listener;
+/// Internal tests module
 mod tests;
+/// Utility functions and helpers
 pub mod utils;
+/// Virtual host configuration and management module
 pub mod virtual_host;
 
+/// A type alias for a read-write lock wrapping a value
 pub type VetisRwLock<T> = RwLock<T>;
 
+/// A type alias for a vector of virtual hosts
 pub type VetisVirtualHosts<T> = Arc<VetisRwLock<HashMap<(Arc<str>, u16), T>>>;
 
 /// Supported HTTP protocols.
@@ -130,6 +85,7 @@ pub enum Protocol {
 /// }
 /// ```
 pub trait Server {
+    /// The type of virtual host that this server can handle
     type VirtualHost;
     /// Creates a new server instance with the given configuration.
     ///

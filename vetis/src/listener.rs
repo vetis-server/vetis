@@ -7,19 +7,26 @@ use crate::{
     Protocol, VetisVirtualHosts,
 };
 
+/// A pinned future that resolves to a result of type T or a VetisError
 pub type ListenerResult<'a, T> = Pin<Box<dyn Future<Output = Result<T, VetisError>> + Send + 'a>>;
 
+/// A trait for defining server listeners that can handle HTTP requests
 pub trait Listener {
+    /// The type of virtual host that this listener can handle
     type VirtualHost;
 
+    /// Creates a new listener with the given configuration
     fn new(config: ListenerConfig) -> Self
     where
         Self: Sized;
 
+    /// Sets the virtual hosts for this listener
     fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<Self::VirtualHost>);
 
+    /// Starts the listener and begins accepting connections
     fn listen(&mut self) -> ListenerResult<'_, ()>;
 
+    /// Stops the listener and closes all connections
     fn stop(&mut self) -> ListenerResult<'_, ()>;
 }
 

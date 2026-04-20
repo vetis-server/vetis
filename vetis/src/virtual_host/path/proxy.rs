@@ -2,6 +2,7 @@ use serde::Deserialize;
 
 use crate::errors::{ConfigError, VetisError};
 
+/// Builder for creating `ProxyPathConfig` instances.
 #[derive(Deserialize)]
 pub struct ProxyPathConfigBuilder {
     uri: String,
@@ -51,6 +52,7 @@ impl ProxyPathConfigBuilder {
     }
 }
 
+/// Configuration for a proxy path.
 #[derive(Clone, Deserialize)]
 pub struct ProxyPathConfig {
     uri: String,

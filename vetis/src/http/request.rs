@@ -119,6 +119,7 @@ impl Request {
         }
     }
 
+    /// Convert the request into parts.
     pub fn into_parts(self) -> (http::request::Parts, HttpBody) {
         match self.inner {
             Some(req) => {

@@ -7,7 +7,9 @@ use crate::{
     http::{Request, Response},
 };
 
+/// Interface worker trait
 pub trait InterfaceWorker {
+    /// Handle the request
     fn handle(
         &self,
         request: Arc<Request>,
@@ -31,12 +33,19 @@ pub trait InterfaceWorker {
 #[derive(Clone, Deserialize)]
 #[non_exhaustive]
 pub enum InterfaceType {
+    /// ASGI interface type for Python.
     Asgi,
+    /// WSGI interface type for Python.
     Wsgi,
+    /// RSGI interface type for Python.
     Rsgi,
+    /// SAPI interface type for PHP.
     Sapi,
+    /// FCGI interface type.
     Fcgi,
+    /// SCGI interface type.
     Scgi,
+    /// Rack interface type for Ruby.
     Rack,
 }
 

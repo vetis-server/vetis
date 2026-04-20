@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
 use std::{collections::HashMap, fs, future::Future, path::Path, pin::Pin, sync::Arc};
 
 use http::StatusCode;
@@ -16,12 +18,14 @@ use tokio::task::spawn_blocking;
 
 mod tests;
 
+/// FastCGI worker implementation
 pub struct FcgiWorker {
     params: Arc<HashMap<String, String>>,
     script: Arc<String>,
 }
 
 impl FcgiWorker {
+    /// Create a new FastCGI worker
     pub fn new(directory: String, target: String) -> Result<FcgiWorker, VetisError> {
         let directory = Path::new(&directory);
         let params = HashMap::new();
@@ -38,6 +42,7 @@ impl FcgiWorker {
 }
 
 impl InterfaceWorker for FcgiWorker {
+    /// Handle a request
     fn handle(
         &self,
         request: Arc<Request>,

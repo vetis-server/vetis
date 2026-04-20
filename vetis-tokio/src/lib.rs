@@ -1,135 +1,5 @@
-//! # VeTiS (Very Tiny Server)
-//!
-//! **A blazingly fast, minimalist HTTP server built for modern Rust applications**
-//!
-//! VeTiS is a lightweight yet powerful web server that brings simplicity and performance together.
-//! Designed with Rust's safety guarantees in mind, it delivers HTTP/1, HTTP/2, and HTTP/3 support
-//! with a clean, intuitive API that makes building web services a breeze.
-//!
-//! ## Features
-//!
-//! - **Minimalist Design**: Focus on what matters - serving HTTP requests efficiently
-//! - **Flexible Runtime**: Choose between Tokio or Smol async runtimes
-//! - **Protocol Support**: Full HTTP/1, HTTP/2, and HTTP/3 implementation
-//! - **Secure by Default**: Built-in TLS support with modern cryptography
-//! - **Zero-Cost Abstractions**: Leverage Rust's performance without overhead
-//! - **Feature-Gated**: Include only what you need for optimal binary size
-//! - **Virtual Hosts**: Host multiple domains on a single server
-//!
-//! ## Quick Start
-//!
-//! Add VeTiS to your `Cargo.toml`:
-//!
-//! ```toml
-//! vetis = { version = "0.1.3", features = ["tokio-rt", "http1", "tokio-rust-tls"] }
-//! ```
-//!
-//! ## Basic Usage
-//!
-//! ```rust,ignore
-//! use bytes::Bytes;
-//! use http_body_util::Full;
-//! use hyper::StatusCode;
-//! use vetis::{
-//!     Vetis,
-//!     config::{ListenerConfig, SecurityConfig, ServerConfig, VirtualHostConfig},
-//!     server::virtual_host::{DefaultVirtualHost, VirtualHost, handler_fn},
-//! };
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // Configure server listener
-//!     let https = ListenerConfig::builder()
-//!         .port(8443)
-//!         .protocol(vetis::config::Protocol::HTTP1)
-//!         .interface("0.0.0.0")
-//!         .build();
-//!
-//!     let config = ServerConfig::builder()
-//!         .add_listener(https)
-//!         .build();
-//!
-//!     // Configure security (TLS)
-//!     let security_config = SecurityConfig::builder()
-//!         .cert_from_bytes(include_bytes!("server.der").to_vec())
-//!         .key_from_bytes(include_bytes!("server.key.der").to_vec())
-//!         .build();
-//!
-//!     // Configure virtual host
-//!     let localhost_config = VirtualHostConfig::builder()
-//!         .hostname("localhost")
-//!         .port(8443)
-//!         .security(security_config)
-//!         .build()?;
-//!
-//!     let mut localhost_virtual_host = VirtualHost::new(localhost_config);
-//!
-//!     // Set up request handler
-//!     let mut root_path = HandlerPath::new("/", handler_fn(|request| async move {
-//!         let response = vetis::Response::builder()
-//!             .status(StatusCode::OK)
-//!             .text("Hello, World!");
-//!         Ok(response)
-//!     }));
-//!
-//!     localhost_virtual_host.add_path(root_path);
-//!
-//!     // Create and run server
-//!     let mut server = Vetis::new(config);
-//!     server.add_virtual_host(localhost_virtual_host).await;
-//!     server.run().await?;
-//!
-//!     Ok(())
-//! }
-//! ```
-//!
-//! ## Architecture
-//!
-//! VeTiS is built around several key components:
-//!
-//! - **[`Vetis`]**: Main server instance that manages virtual hosts and listeners
-//! - **[`ServerConfig`]**: Configuration for server listeners and global settings
-//! - **[`VirtualHost`]**: Trait for implementing virtual hosts that handle requests
-//! - **[`Request`]**: HTTP request wrapper supporting multiple protocols
-//! - **[`Response`]**: HTTP response builder for creating responses
-//!
-//! ## Runtime Configuration
-//!
-//! VeTiS supports two async runtimes:
-//!
-//! - **Tokio** (default): Enable with `tokio-rt` feature
-//! - **Smol**: Enable with `smol-rt` feature
-//!
-//! Only one runtime can be enabled at a time.
-//!
-//! ## Protocol Support
-//!
-//! - **HTTP/1**: Enable with `http1` feature
-//! - **HTTP/2**: Enable with `http2` feature (requires TLS)
-//! - **HTTP/3**: Enable with `http3` feature (requires TLS)
-//!
-//! ## TLS Configuration
-//!
-//! For HTTPS support, enable one of:
-//!
-//! - **Tokio TLS**: `tokio-rust-tls` feature (default)
-//! - **Smol TLS**: `smol-rust-tls` feature
-//!
-//! ## Modules
-//!
-//! - [`config`]: Server and virtual host configuration builders
-//! - [`errors`]: Comprehensive error handling types
-//! - [`server`]: HTTP server implementation and virtual host system
-//!
-//! ## Examples
-//!
-//! Check out the `examples/` directory for more comprehensive examples including:
-//!
-//! - Basic HTTP server
-//! - HTTPS with TLS
-//! - Multiple virtual hosts
-//! - Custom request handlers
-
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
 #[cfg(all(any(feature = "http2", feature = "http3"), not(feature = "rust-tls")))]
 compile_error!("http2 and http3 requires rust-tls!");
 
@@ -138,14 +8,19 @@ use std::{collections::HashMap, sync::Arc};
 use vetis::errors::{VetisError, VirtualHostError};
 
 use crate::{http::HttpServer, virtual_host::VirtualHost};
-
+/// HTTP module
 pub mod http;
+/// Listener module
 pub mod listener;
+/// Macros module
 #[cfg(feature = "macros")]
 pub mod macros;
+/// Tests module
 #[cfg(test)]
 mod tests;
+/// TLS module
 mod tls;
+/// Virtual host module
 pub mod virtual_host;
 
 pub use vetis::{

@@ -160,6 +160,7 @@ pub enum VirtualHostError {
     #[error("No virtual hosts")]
     NoVirtualHosts,
 
+    /// Handler errors
     #[error("Handler error: {0}")]
     Handler(HandlerError),
 
@@ -175,27 +176,68 @@ pub enum VirtualHostError {
     #[error("Interface error: {0}")]
     Interface(String),
 
+    /// Authentication errors
     #[error("Auth error: {0}")]
     Auth(String),
 }
 
+/// Handler related errors.
+///
+/// These errors occur when working with request handlers,
+/// such as URI parsing or handler execution failures.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use vetis::errors::HandlerError;
+///
+/// match error {
+///     HandlerError::Uri(msg) => {
+///         println!("URI parsing failed: {}", msg);
+///     }
+///     HandlerError::Handler(msg) => {
+///         println!("Handler execution failed: {}", msg);
+///     }
+/// }
+/// ```
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum HandlerError {
+    /// URI parsing errors
     #[error("Uri error: {0}")]
     Uri(String),
 
+    /// Handler execution errors
     #[error("Handler error: {0}")]
     Handler(String),
 }
 
+/// File related errors.
+///
+/// These errors occur when working with files,
+/// such as missing files or invalid metadata.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use vetis::errors::FileError;
+///
+/// match error {
+///     FileError::NotFound => {
+///         println!("File not found");
+///     }
+/// }
+/// ```
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum FileError {
+    /// File not found
     #[error("File not found")]
     NotFound,
 
+    /// Invalid file metadata
     #[error("Invalid metadata")]
     InvalidMetadata,
 
+    /// Invalid range
     #[error("Invalid range")]
     InvalidRange,
 }

@@ -15,9 +15,12 @@ pub(crate) mod tcp;
 #[cfg(feature = "http3")]
 pub(crate) mod udp;
 
+/// Server listener enum
 pub enum ServerListener {
+    /// TCP listener
     #[cfg(any(feature = "http1", feature = "http2"))]
     Tcp(TcpListener),
+    /// UDP listener
     #[cfg(feature = "http3")]
     Udp(UdpListener),
 }

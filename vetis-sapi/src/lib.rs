@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
 use std::{fs, future::Future, path::Path, pin::Pin, sync::Arc};
 
 use http::StatusCode;
@@ -17,12 +19,14 @@ use vetis::{
 
 mod tests;
 
+/// SAPI worker implementation
 pub struct SapiWorker {
     php: Arc<RiphtSapi>,
     code: Arc<String>,
 }
 
 impl SapiWorker {
+    /// Create a new SAPI worker
     pub fn new(directory: String, target: String) -> Result<SapiWorker, VetisError> {
         let directory = Path::new(&directory);
         let php = RiphtSapi::instance();

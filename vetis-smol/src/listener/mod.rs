@@ -16,23 +16,32 @@ pub(crate) mod tcp;
 #[cfg(feature = "http3")]
 pub(crate) mod udp;
 
+/// Listener result
 pub type ListenerResult<'a, T> = Pin<Box<dyn Future<Output = Result<T, VetisError>> + Send + 'a>>;
 
+/// Listener trait
 pub trait Listener {
+    /// Create a new listener
     fn new(config: ListenerConfig) -> Self
     where
         Self: Sized;
 
+    /// Set the virtual hosts
     fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>);
 
+    /// Listen for connections
     fn listen(&mut self) -> ListenerResult<'_, ()>;
 
+    /// Stop the listener
     fn stop(&mut self) -> ListenerResult<'_, ()>;
 }
 
+/// Server listener
 pub enum ServerListener {
+    /// TCP listener
     #[cfg(any(feature = "http1", feature = "http2"))]
     Tcp(TcpListener),
+    /// UDP listener
     #[cfg(feature = "http3")]
     Udp(UdpListener),
 }
@@ -53,6 +62,7 @@ impl Listener for ServerListener {
         }
     }
 
+    /// Set the virtual hosts
     fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>) {
         match self {
             #[cfg(any(feature = "http1", feature = "http2"))]

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Deserializer};
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "basic-auth")]
 use crate::auth::BasicAuthConfig;
 use crate::errors::{ConfigError, VetisError};
 
@@ -11,6 +11,7 @@ const DEFAULT_TTL: Duration = Duration::from_secs(60);
 const DEFAULT_TTI: Duration = Duration::from_secs(10);
 const DEFAULT_CAPACITY: u64 = 1000;
 
+/// Builder for creating `StaticPathCache` instances.
 #[derive(Debug, Clone)]
 pub struct StaticPathCacheBuilder {
     max_file_size: usize,
@@ -20,26 +21,31 @@ pub struct StaticPathCacheBuilder {
 }
 
 impl StaticPathCacheBuilder {
+    /// Set max file size
     pub fn max_file_size(mut self, max_file_size: usize) -> Self {
         self.max_file_size = max_file_size;
         self
     }
 
+    /// Set time to live
     pub fn ttl(mut self, ttl: Duration) -> Self {
         self.ttl = ttl;
         self
     }
 
+    /// Set time to idle
     pub fn tti(mut self, tti: Duration) -> Self {
         self.tti = tti;
         self
     }
 
+    /// Set capacity
     pub fn capacity(mut self, capacity: u64) -> Self {
         self.capacity = capacity;
         self
     }
 
+    /// Build the `StaticPathCache`
     pub fn build(self) -> StaticPathCache {
         StaticPathCache {
             max_file_size: self.max_file_size,
@@ -50,6 +56,7 @@ impl StaticPathCacheBuilder {
     }
 }
 
+/// Configuration for static file caching.
 #[derive(Debug, Clone, Deserialize)]
 pub struct StaticPathCache {
     max_file_size: usize,
@@ -71,7 +78,9 @@ impl Default for StaticPathCache {
     }
 }
 
+/// Configuration for static file caching.
 impl StaticPathCache {
+    /// Create a new builder for `StaticPathCache`.
     pub fn builder() -> StaticPathCacheBuilder {
         StaticPathCacheBuilder {
             max_file_size: MAX_FILE_SIZE,
@@ -81,29 +90,34 @@ impl StaticPathCache {
         }
     }
 
+    /// Return max file size
     pub fn max_file_size(&self) -> usize {
         self.max_file_size
     }
 
+    /// Return time to live
     pub fn ttl(&self) -> Duration {
         self.ttl
     }
 
+    /// Return time to idle
     pub fn tti(&self) -> Duration {
         self.tti
     }
 
+    /// Return capacity
     pub fn capacity(&self) -> u64 {
         self.capacity
     }
 }
 
+/// Builder for creating `StaticPathConfig` instances.
 pub struct StaticPathConfigBuilder {
     uri: String,
     extensions: String,
     directory: String,
     index_files: Option<Vec<String>>,
-    #[cfg(feature = "basic_auth")]
+    #[cfg(feature = "basic-auth")]
     basic_auth: Option<BasicAuthConfig>,
     cache: Option<StaticPathCache>,
 }
@@ -149,7 +163,7 @@ impl StaticPathConfigBuilder {
         self
     }
 
-    #[cfg(feature = "basic_auth")]
+    #[cfg(feature = "basic-auth")]
     /// Allow set the authentication of the static path.
     ///
     /// # Returns
@@ -201,20 +215,21 @@ impl StaticPathConfigBuilder {
             extensions: self.extensions,
             directory: self.directory,
             index_files: self.index_files,
-            #[cfg(feature = "basic_auth")]
+            #[cfg(feature = "basic-auth")]
             basic_auth: self.basic_auth,
             cache: self.cache,
         })
     }
 }
 
+/// Configuration for static file serving.
 #[derive(Clone, Deserialize)]
 pub struct StaticPathConfig {
     uri: String,
     extensions: String,
     directory: String,
     index_files: Option<Vec<String>>,
-    #[cfg(feature = "basic_auth")]
+    #[cfg(feature = "basic-auth")]
     basic_auth: Option<BasicAuthConfig>,
     cache: Option<StaticPathCache>,
 }
@@ -231,7 +246,7 @@ impl StaticPathConfig {
             extensions: ".html".to_string(),
             directory: ".".to_string(),
             index_files: None,
-            #[cfg(feature = "basic_auth")]
+            #[cfg(feature = "basic-auth")]
             basic_auth: None,
             cache: Some(StaticPathCache::default()),
         }
@@ -273,7 +288,7 @@ impl StaticPathConfig {
         &self.index_files
     }
 
-    #[cfg(feature = "basic_auth")]
+    #[cfg(feature = "basic-auth")]
     /// Returns basic_auth
     ///
     /// # Returns

@@ -20,19 +20,17 @@ eula = false
 
 [features]
 default = [
-  "basic_auth",
+  "basic-auth",
   "interface",
   "reverse-proxy",
   "static-files",
 ]
 
-basic_auth = ["argon2/password-hash", "argon2/alloc", "bcrypt/std", "base64"]
+basic-auth = ["argon2/password-hash", "argon2/alloc", "bcrypt/std", "base64"]
 
 interface = []
 
 reverse-proxy = []
-__deboa_tokio = ["deboa/tokio-rt", "deboa/tokio-rust-tls"]
-__deboa_smol = ["deboa/smol-rt", "deboa/smol-rust-tls"]
 
 static-files = [
   "dep:mime",

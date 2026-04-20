@@ -118,7 +118,7 @@ where
     Box::new(move |req| Box::pin(f(req)))
 }
 
-// All of them should have a handler to process requests
+/// Virtual host structure
 pub struct VirtualHost {
     config: VirtualHostConfig,
     paths: Trie<String, HostPath>,

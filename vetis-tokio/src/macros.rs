@@ -1,3 +1,4 @@
+/// Macro to create a HTTP server
 #[macro_export]
 macro_rules! http {
     (hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident) => {
@@ -91,6 +92,7 @@ macro_rules! http {
     };
 }
 
+/// Macro to create a HTTPS server
 #[macro_export]
 macro_rules! https {
     (hostname => &$hostname:ident, protocol => $protocol:expr, port => &$port:ident, interface => &$interface:ident, &cert => &$cert:ident, &key => &$key:ident) => {

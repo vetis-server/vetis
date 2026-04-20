@@ -823,43 +823,26 @@ version = "0.1.0-beta.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "142d241e88f31c2beb8996839a3d00ae8adaa9ee06c9994563cacbbf25c3fa14"
 dependencies = [
- "async-executor",
- "async-std-resolver",
  "async-trait",
  "base64",
  "bytes",
  "cfg-if",
  "cookie",
  "futures",
- "futures-rustls",
  "http",
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils 0.1.6-beta.6",
  "hyper-util",
  "indexmap",
  "log",
- "macro_rules_attribute",
  "minimime",
  "mockall",
- "quinn",
  "rand 0.9.3",
  "regex",
- "rt-gate",
- "rustls",
- "rustls-native-certs",
- "rustls-pki-types",
  "serde",
- "smol",
- "smol-hyper",
- "smol-macros",
  "thiserror 2.0.18",
  "time 0.2.27",
- "tokio",
- "tokio-rustls",
- "tokio-util",
- "trust-dns-resolver",
  "url",
  "urlencoding",
 ]
@@ -880,7 +863,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "hyper-util",
  "indexmap",
  "log",
@@ -903,7 +886,6 @@ dependencies = [
  "async-trait",
  "base64",
  "bytes",
- "cfg-if",
  "cookie",
  "deboa 0.1.0-beta.16",
  "futures",
@@ -912,7 +894,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "hyper-util",
  "indexmap",
  "log",
@@ -941,11 +923,9 @@ dependencies = [
 name = "deboa-tokio"
 version = "0.1.0-beta.1"
 dependencies = [
- "async-std-resolver",
  "async-trait",
  "base64",
  "bytes",
- "cfg-if",
  "cookie",
  "deboa 0.1.0-beta.16",
  "futures",
@@ -954,7 +934,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "hyper",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "hyper-util",
  "indexmap",
  "log",
@@ -1604,21 +1584,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hotpath"
-version = "0.14.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7d9982fcb4356a5260502f0e646411ec1feb2962cc98c230777104a8d1c5ed3"
-dependencies = [
- "hotpath-macros",
-]
-
-[[package]]
-name = "hotpath-macros"
-version = "0.14.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4398eddb78466298f1ddcc739abbbd8a942e541d1972c7590bd83de364e626e0"
-
-[[package]]
 name = "http"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1683,24 +1648,6 @@ dependencies = [
  "smallvec",
  "tokio",
  "want",
-]
-
-[[package]]
-name = "hyper-body-utils"
-version = "0.1.6-beta.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4eff608807e6c410941de3e22c17044fecec132e20dc21f33247cc31509f14f"
-dependencies = [
- "bytes",
- "futures",
- "hotpath",
- "http-body-util",
- "hyper",
- "macro_rules_attribute",
- "smol",
- "smol-macros",
- "tokio",
- "tokio-util",
 ]
 
 [[package]]
@@ -3120,16 +3067,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rt-gate"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d78077a3e29aa7f843d854b0133957d485ecaff3b47c657c156a2808ced16dc"
-dependencies = [
- "smol",
- "tokio",
-]
-
-[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3554,8 +3491,6 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7428a49d323867702cd12b97b08a6b0104f39ec13b49117911f101271321bc1a"
 dependencies = [
- "async-executor",
- "async-io",
  "futures-io",
  "hyper",
  "pin-project-lite",
@@ -4170,7 +4105,7 @@ dependencies = [
  "http",
  "http-body-util",
  "hyper",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "hyper-util",
  "log",
  "macro_rules_attribute",
@@ -4199,7 +4134,7 @@ version = "0.1.0"
 dependencies = [
  "crossfire",
  "http",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "log",
  "pyo3",
  "pyo3-async-runtimes",
@@ -4214,7 +4149,7 @@ version = "0.1.0"
 dependencies = [
  "fastcgi-client",
  "http",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "log",
  "smol",
  "tokio",
@@ -4227,7 +4162,7 @@ version = "0.1.0"
 dependencies = [
  "bindgen 0.72.1",
  "http",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "log",
  "magnus",
  "mimalloc",
@@ -4242,7 +4177,7 @@ name = "vetis-rsgi"
 version = "0.1.0"
 dependencies = [
  "http",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "pyo3",
  "smol",
  "tokio",
@@ -4254,7 +4189,7 @@ name = "vetis-sapi"
 version = "0.1.0"
 dependencies = [
  "http",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "log",
  "ripht-php-sapi",
  "smol",
@@ -4268,7 +4203,7 @@ version = "0.1.0"
 dependencies = [
  "cegla",
  "http",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "log",
  "smol",
  "tokio",
@@ -4298,7 +4233,7 @@ dependencies = [
  "http",
  "http-body-util",
  "hyper",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "hyper-util",
  "log",
  "macro_rules_attribute",
@@ -4357,7 +4292,7 @@ dependencies = [
  "http",
  "http-body-util",
  "hyper",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "hyper-util",
  "log",
  "macro_rules_attribute",
@@ -4399,7 +4334,7 @@ version = "0.1.0"
 dependencies = [
  "crossfire",
  "http",
- "hyper-body-utils 0.1.6-beta.7",
+ "hyper-body-utils",
  "log",
  "pyo3",
  "smol",

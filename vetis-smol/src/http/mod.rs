@@ -13,6 +13,7 @@ use crate::{
 
 pub use vetis::http::{Request, Response};
 
+/// HTTP server
 pub struct HttpServer {
     config: ServerConfig,
     listeners: Vec<ServerListener>,
@@ -120,7 +121,7 @@ impl Server for HttpServer {
     }
 }
 
-// TODO: Move to utils, try make it more flexible
+/// Create a static response
 pub fn static_response(
     status: http::StatusCode,
     headers: Option<HeaderMap>,

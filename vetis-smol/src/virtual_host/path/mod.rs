@@ -16,12 +16,18 @@ use crate::virtual_host::path::static_files::StaticPath;
 
 use crate::virtual_host::BoxedHandlerClosure;
 
-#[cfg(feature = "basic_auth")]
+/// Basic auth module
+#[cfg(feature = "basic-auth")]
 pub mod auth;
+/// Interface module
 #[cfg(feature = "interface")]
 pub mod interface;
+///
+/// Proxy module
 #[cfg(feature = "reverse-proxy")]
 pub mod proxy;
+///
+/// Static files module
 #[cfg(feature = "static-files")]
 pub mod static_files;
 

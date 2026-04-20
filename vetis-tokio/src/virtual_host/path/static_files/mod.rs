@@ -19,11 +19,12 @@ use std::os::unix::fs::MetadataExt;
 #[cfg(windows)]
 use std::os::windows::fs::MetadataExt;
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "basic-auth")]
 use crate::server::virtual_host::path::auth::Auth;
 
 pub(crate) type VetisFileCache = Cache<String, StaticFile>;
 
+/// Builder for creating static file metadata
 pub struct StaticFileMetadataBuilder {
     mime: Option<String>,
     size: u64,
@@ -32,26 +33,31 @@ pub struct StaticFileMetadataBuilder {
 }
 
 impl StaticFileMetadataBuilder {
+    /// Set the MIME type of the static file
     pub fn mime(mut self, mime: String) -> Self {
         self.mime = Some(mime);
         self
     }
 
+    /// Set the size of the static file
     pub fn size(mut self, size: u64) -> Self {
         self.size = size;
         self
     }
 
+    /// Set the last modified time of the static file
     pub fn modified(mut self, modified: std::time::SystemTime) -> Self {
         self.modified = modified;
         self
     }
 
+    /// Set the ETag of the static file
     pub fn etag(mut self, etag: String) -> Self {
         self.etag = Some(etag);
         self
     }
 
+    /// Build the static file metadata
     pub fn build(self) -> StaticFileMetadata {
         StaticFileMetadata {
             mime: self.mime,
@@ -62,6 +68,7 @@ impl StaticFileMetadataBuilder {
     }
 }
 
+/// Metadata for a static file
 #[derive(Clone)]
 pub struct StaticFileMetadata {
     mime: Option<String>,
@@ -71,6 +78,7 @@ pub struct StaticFileMetadata {
 }
 
 impl StaticFileMetadata {
+    /// Create a new static file metadata builder
     pub fn builder() -> StaticFileMetadataBuilder {
         StaticFileMetadataBuilder {
             mime: None,
@@ -80,30 +88,48 @@ impl StaticFileMetadata {
         }
     }
 
+    /// Get the MIME type of the static file
     pub fn mime(&self) -> Option<&String> {
         self.mime.as_ref()
     }
 
+    /// Get the size of the static file
     pub fn size(&self) -> u64 {
         self.size
     }
 
+    /// Get the last modified time of the static file
     pub fn modified(&self) -> std::time::SystemTime {
         self.modified
     }
 
+    /// Get the ETag of the static file
     pub fn etag(&self) -> Option<&String> {
         self.etag.as_ref()
     }
 }
 
+/// Represents a static file that can be either in memory or on disk
 #[derive(Clone)]
 pub enum StaticFile {
-    Data { data: Vec<u8>, metadata: StaticFileMetadata },
-    File { path: PathBuf, metadata: StaticFileMetadata },
+    /// Static file data in memory
+    Data {
+        /// The data of the static file
+        data: Vec<u8>,
+        /// The metadata of the static file
+        metadata: StaticFileMetadata,
+    },
+    /// Static file on disk
+    File {
+        /// The path to the static file
+        path: PathBuf,
+        /// The metadata of the static file
+        metadata: StaticFileMetadata,
+    },
 }
 
 impl StaticFile {
+    /// Get the metadata of the static file
     pub fn metadata(&self) -> &StaticFileMetadata {
         match self {
             StaticFile::Data { metadata, .. } => metadata,
@@ -111,6 +137,7 @@ impl StaticFile {
         }
     }
 
+    /// Get the data of the static file
     pub fn data(&self) -> Option<&Vec<u8>> {
         match self {
             StaticFile::Data { data, .. } => Some(data),
@@ -118,6 +145,7 @@ impl StaticFile {
         }
     }
 
+    /// Get the path of the static file
     pub fn path(&self) -> Option<&PathBuf> {
         match self {
             StaticFile::Data { .. } => None,

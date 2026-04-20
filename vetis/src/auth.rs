@@ -16,7 +16,9 @@ use crate::errors::VetisError;
 /// * `BCrypt` - The bcrypt algorithm.
 /// * `Argon2` - The argon2 algorithm.
 pub enum Algorithm {
+    /// The bcrypt algorithm.
     BCrypt,
+    /// The argon2 algorithm.
     Argon2,
 }
 
@@ -34,10 +36,25 @@ pub trait Auth {
     fn authenticate(&self, headers: &HeaderMap) -> BoxFuture<'_, Result<bool, VetisError>>;
 }
 
+/// A trait for password verification methods.
+///
+/// This trait defines a method for verifying passwords against hashed passwords.
 pub trait PasswordVerifier {
+    /// Verify a password against a hashed password.
+    ///
+    /// # Arguments
+    ///
+    /// * `password` - The password to verify.
+    /// * `hashed_password` - The hashed password to verify against.
+    /// * `algorithm` - The algorithm used to hash the password.
+    ///
+    /// # Returns
+    ///
+    /// * `bool` - A boolean indicating whether the password is valid.
     fn verify(&self, password: &str, hashed_password: &str, algorithm: Arc<Algorithm>) -> bool;
 }
 
+/// A builder for creating a `BasicAuthConfig`.
 pub struct BasicAuthConfigBuilder {
     users: HashMap<String, String>,
     algorithm: Algorithm,
@@ -152,7 +169,7 @@ impl BasicAuthConfigBuilder {
     }
 }
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "basic-auth")]
 #[derive(Clone, Deserialize)]
 /// A struct with basic authentication configuration.
 ///
@@ -177,7 +194,7 @@ pub struct BasicAuthConfig {
     htpasswd: Option<String>,
 }
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "basic-auth")]
 impl BasicAuthConfig {
     /// Creates a new `BasicAuthConfigBuilder` with default settings.
     ///

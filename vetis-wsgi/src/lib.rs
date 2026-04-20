@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
 use std::{ffi::CString, fs, future::Future, path::Path, pin::Pin, sync::Arc};
 
 use http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
@@ -24,15 +26,18 @@ use vetis::{
 
 use crate::callback::StartResponse;
 
+/// WSGI worker implementation
 pub mod callback;
 mod tests;
 
+/// WSGI worker
 pub struct WsgiWorker {
     func: Arc<Py<PyAny>>,
     env: Arc<Py<PyDict>>,
 }
 
 impl WsgiWorker {
+    /// Create a new WSGI worker
     pub fn new(directory: String, target: String) -> Result<WsgiWorker, VetisError> {
         let directory = Path::new(&directory);
         let target = target.split_once(":");
@@ -79,6 +84,7 @@ impl WsgiWorker {
 }
 
 impl InterfaceWorker for WsgiWorker {
+    /// Handle a request
     fn handle(
         &self,
         request: Arc<Request>,

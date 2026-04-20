@@ -12,6 +12,7 @@ use crate::{listener::ServerListener, virtual_host::VirtualHost};
 
 pub use vetis::http::{Request, Response};
 
+/// HTTP server structure
 pub struct HttpServer {
     config: ServerConfig,
     listeners: Vec<ServerListener>,
@@ -119,7 +120,17 @@ impl Server for HttpServer {
     }
 }
 
-// TODO: Move to utils, try make it more flexible
+/// Create a static response
+///
+/// # Arguments
+///
+/// * `status` - The status code of the response
+/// * `headers` - The headers of the response
+/// * `body` - The body of the response
+///
+/// # Returns
+///
+/// * `http::Response<HttpBody>` - The response
 pub fn static_response(
     status: http::StatusCode,
     headers: Option<HeaderMap>,
