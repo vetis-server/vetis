@@ -1,17 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
-use http::HeaderMap;
+use vetis::{errors::VetisError, listener::Listener, Protocol, Server, ServerConfig};
 
-use hyper_body_utils::HttpBody;
-use vetis::{errors::VetisError, Protocol, Server, ServerConfig};
+use crate::{listener::ServerListener, virtual_host::VirtualHost, VetisRwLock, VetisVirtualHosts};
 
-use crate::{
-    listener::{Listener, ServerListener},
-    virtual_host::VirtualHost,
-    VetisRwLock, VetisVirtualHosts,
-};
-
-pub use vetis::http::{Request, Response};
+pub use vetis::{Request, Response};
 
 /// HTTP server
 pub struct HttpServer {
@@ -119,22 +112,4 @@ impl Server for HttpServer {
         }
         Ok(())
     }
-}
-
-/// Create a static response
-pub fn static_response(
-    status: http::StatusCode,
-    headers: Option<HeaderMap>,
-    body: String,
-) -> http::Response<HttpBody> {
-    let mut response = http::Response::builder()
-        .status(status)
-        .body(HttpBody::from_bytes(body.as_bytes()))
-        .unwrap();
-
-    if let Some(headers) = headers {
-        *response.headers_mut() = headers;
-    }
-
-    response
 }

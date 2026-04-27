@@ -8,7 +8,7 @@ use http::header;
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
-use vetis::{errors::VetisError, http::Request, listener::ListenerConfig, Protocol};
+use vetis::{errors::VetisError, listener::ListenerConfig, Protocol, Request};
 
 use peekable::tokio::AsyncPeekable;
 

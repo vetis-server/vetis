@@ -63,7 +63,7 @@ impl Request {
     /// ```rust,ignore
     /// use vetis::Request;
     ///
-    /// async fn handler(request: Request) -> Result<vetis::Response, vetis::VetisError> {
+    /// async fn handler(request: Request) -> VetisResult<vetis::Response> {
     ///     let content_type = request.headers().get("content-type");
     ///     let user_agent = request.headers().get("user-agent");
     ///     Ok(/* response */)
@@ -80,13 +80,12 @@ impl Request {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```
     /// use vetis::Request;
     ///
-    /// async fn handler(request: Request) -> Result<vetis::Response, vetis::VetisError> {
-    ///     let content_type = request.headers().get("content-type");
-    ///     let user_agent = request.headers().get("user-agent");
-    ///     Ok(/* response */)
+    /// async fn handler(mut request: Request) -> VetisResult<vetis::Response> {
+    ///     request.headers_mut().insert("x-custom-header", "value".parse()?);
+    ///     Ok(vetis::Response::builder().status(http::StatusCode::OK).text("Hello"))
     /// }
     /// ```
     pub fn headers_mut(&mut self) -> &mut http::HeaderMap {
@@ -103,7 +102,7 @@ impl Request {
     /// ```rust,ignore
     /// use vetis::Request;
     ///
-    /// async fn handler(request: Request) -> Result<vetis::Response, vetis::VetisError> {
+    /// async fn handler(request: Request) -> VetisResult<vetis::Response> {
     ///     match request.method() {
     ///         &http::Method::GET => { /* handle GET */ }
     ///         &http::Method::POST => { /* handle POST */ }

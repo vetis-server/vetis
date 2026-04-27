@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 use crate::{
     errors::{ConfigError, VetisError},
-    http::{Request, Response},
+    Request, Response,
 };
 
 /// Interface worker trait

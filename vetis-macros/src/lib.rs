@@ -28,6 +28,7 @@
 ///     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 ///
 ///     let mut server = http!(
+///         crate_name => vetis_smol,
 ///         hostname => "localhost",
 ///         root_directory => "src",
 ///         protocol => vetis_default_protocol(),
@@ -60,14 +61,14 @@
 /// }
 /// ```
 macro_rules! http {
-    (hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident) => {
+    (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident) => {
         async move {
             use vetis::{
                 errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHostConfig,
                 ServerConfig,
             };
 
-            use $crate::{
+            use $from_crate::{
                 virtual_host::{path::HandlerPath, VirtualHost},
                 Vetis,
             };
@@ -107,14 +108,14 @@ macro_rules! http {
         }
     };
 
-    (hostname => $hostname:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident, security_config => $security_config:expr) => {
+    (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident, security_config => $security_config:expr) => {
         async move {
             use vetis::{
                 errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHostConfig,
                 ServerConfig,
             };
 
-            use $crate::{
+            use $from_crate::{
                 virtual_host::{path::HandlerPath, VirtualHost},
                 Vetis,
             };
@@ -155,14 +156,63 @@ macro_rules! http {
         }
     };
 
-    (hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident) => {
+    (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident, security_config => $security_config:expr) => {
         async move {
             use vetis::{
                 config::{virtual_host::VirtualHostConfig, ListenerConfig, ServerConfig},
                 errors::{ConfigError, VetisError},
             };
 
-            use $crate::server::virtual_host::VirtualHost;
+            use $from_crate::{
+                virtual_host::{path::HandlerPath, VirtualHost},
+                Vetis,
+            };
+
+            let listener = ListenerConfig::builder()
+                .port($port)
+                .protocol($protocol)
+                .interface($interface)
+                .build()?;
+
+            let config = ServerConfig::builder()
+                .add_listener(listener)
+                .build()?;
+
+            let virtual_host_config = VirtualHostConfig::builder()
+                .hostname($hostname)
+                .port($port)
+                .build()?;
+
+            let mut virtual_host = VirtualHost::new(virtual_host_config);
+
+            let root_path = HandlerPath::builder()
+                .uri("/")
+                .handler(Box::new($handler))
+                .build()?;
+
+            virtual_host.add_path(root_path);
+
+            let mut vetis = Vetis::new(config);
+
+            vetis
+                .add_virtual_host(virtual_host)
+                .await;
+
+            Ok::<Vetis, VetisError>(vetis)
+        }
+    };
+
+    (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident) => {
+        async move {
+            use vetis::{
+                config::{virtual_host::VirtualHostConfig, ListenerConfig, ServerConfig},
+                errors::{ConfigError, VetisError},
+            };
+
+            use $from_crate::{
+                virtual_host::{path::HandlerPath, VirtualHost},
+                Vetis,
+            };
 
             let listener = ListenerConfig::builder()
                 .port($port)

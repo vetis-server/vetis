@@ -5,9 +5,7 @@ use std::{future::Future, pin::Pin, sync::Arc};
 use http::StatusCode;
 use hyper_body_utils::HttpBody;
 use vetis::{
-    errors::VetisError,
-    http::{Request, Response},
-    virtual_host::path::interface::InterfaceWorker,
+    errors::VetisError, virtual_host::path::interface::InterfaceWorker, Request, Response,
 };
 
 mod tests;

@@ -25,15 +25,15 @@ use std::{future::Future, path::PathBuf, pin::Pin};
 
 use futures_util::TryStreamExt;
 use http::StatusCode;
-use http_body_util::{BodyExt, StreamBody};
+use http_body_util::StreamBody;
 use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;
 use std::sync::Arc;
 use vetis::{
     errors::{FileError, VetisError, VirtualHostError},
-    http::{Request, Response},
     virtual_host::VirtualHostConfig,
+    Request, Response,
 };
 
 use crate::virtual_host::path::{HostPath, Path};

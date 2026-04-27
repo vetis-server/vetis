@@ -20,8 +20,8 @@ use crossfire::oneshot;
 
 use vetis::{
     errors::{VetisError, VirtualHostError},
-    http::{Request, Response},
     virtual_host::path::interface::InterfaceWorker,
+    Request, Response,
 };
 
 use crate::callback::StartResponse;

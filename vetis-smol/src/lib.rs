@@ -5,11 +5,9 @@ compile_error!("http2 and http3 requires rust-tls!");
 
 use std::{collections::HashMap, sync::Arc};
 
-use log::{error, info};
-
 use async_signal::{Signal, Signals};
 use futures_lite::prelude::*;
-
+use log::{error, info};
 use signal_hook::low_level;
 use vetis::errors::{VetisError, VirtualHostError};
 

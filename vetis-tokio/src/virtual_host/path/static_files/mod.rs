@@ -2,11 +2,11 @@ use hyper_body_utils::HttpBody;
 use log::error;
 use moka::future::{Cache, CacheBuilder};
 
-use tokio::{fs::File, io::AsyncSeekExt};
+use tokio::fs::File;
 use vetis::{
     errors::{FileError, VetisError, VirtualHostError},
-    http::{Request, Response},
     virtual_host::path::static_files::StaticPathConfig,
+    Request, Response,
 };
 
 use crate::virtual_host::path::{HostPath, Path};

@@ -4,8 +4,8 @@ use std::{future::Future, pin::Pin, sync::Arc};
 use vetis::virtual_host::path::interface::InterfaceType;
 use vetis::{
     errors::VetisError,
-    http::{Request, Response},
     virtual_host::path::interface::{InterfacePathConfig, InterfaceWorker},
+    Request, Response,
 };
 
 #[cfg(feature = "asgi")]

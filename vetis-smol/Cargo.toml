@@ -22,9 +22,6 @@ eula = false
 default = [
   "http2",
   "rust-tls",
-  "__interface_wsgi",
-  "__interface_fcgi",
-  "__interface_rack",
 ]
 
 basic-auth = ["vetis/basic-auth"]

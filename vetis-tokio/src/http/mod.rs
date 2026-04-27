@@ -10,7 +10,7 @@ use vetis::{
 
 use crate::{listener::ServerListener, virtual_host::VirtualHost};
 
-pub use vetis::http::{Request, Response};
+pub use vetis::{Request, Response};
 
 /// HTTP server structure
 pub struct HttpServer {

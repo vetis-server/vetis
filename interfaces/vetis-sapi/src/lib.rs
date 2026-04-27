@@ -12,8 +12,8 @@ use smol::unblock as spawn_blocking;
 #[cfg(feature = "tokio-rt")]
 use tokio::task::spawn_blocking;
 use vetis::{
+    Request, Response,
     errors::{VetisError, VirtualHostError},
-    http::{Request, Response},
     virtual_host::path::interface::InterfaceWorker,
 };
 

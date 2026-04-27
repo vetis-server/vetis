@@ -7,8 +7,8 @@ use hyper_body_utils::HttpBody;
 use log::error;
 use vetis::{
     errors::{VetisError, VirtualHostError},
-    http::{Request, Response},
     virtual_host::path::interface::InterfaceWorker,
+    Request, Response,
 };
 
 #[cfg(feature = "smol-rt")]

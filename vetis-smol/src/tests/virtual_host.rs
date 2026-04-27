@@ -22,7 +22,7 @@ mod virtual_host_tests {
             HandlerPath::builder()
                 .uri("/")
                 .handler(handler_fn(|_request| async move {
-                    Ok(vetis::http::Response::builder()
+                    Ok(vetis::Response::builder()
                         .status(StatusCode::OK)
                         .text("Hello, world!"))
                 }))
@@ -56,7 +56,7 @@ mod virtual_host_tests {
             HandlerPath::builder()
                 .uri("/")
                 .handler(handler_fn(|_request| async move {
-                    Ok(vetis::http::Response::builder()
+                    Ok(vetis::Response::builder()
                         .status(StatusCode::OK)
                         .text("Hello, world!"))
                 }))
@@ -80,7 +80,7 @@ mod virtual_host_tests {
 
         let (parts, body) = request.into_parts();
 
-        let request = vetis::http::Request::from_parts(parts, body);
+        let request = vetis::Request::from_parts(parts, body);
 
         let response = virtual_host
             .route(request)

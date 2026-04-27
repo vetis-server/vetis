@@ -4,13 +4,13 @@ use std::{
     sync::Arc,
 };
 
-use http::header;
+use http::{header, Response};
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
 #[cfg(feature = "http1")]
 use hyper_util::rt::TokioIo;
 use log::{debug, error, info};
-use vetis::{errors::VetisError, http::Request, listener::ListenerConfig, Protocol};
+use vetis::{errors::VetisError, listener::ListenerConfig, Protocol, Request};
 
 use peekable::future::AsyncPeekable;
 
@@ -32,7 +32,6 @@ use futures_rustls::TlsAcceptor;
 use smol_hyper::rt::FuturesIo;
 
 use crate::{
-    http::static_response,
     listener::{Listener, ListenerResult},
     tls::TlsFactory,
     virtual_host::VirtualHost,
@@ -47,6 +46,7 @@ pub struct TcpListener {
 }
 
 impl Listener for TcpListener {
+    type VirtualHost = VirtualHost;
     /// Create a new listener
     ///
     /// # Arguments
@@ -359,21 +359,17 @@ async fn process_request(
             Ok::<http::Response<HttpBody>, VetisError>(response)
         } else {
             error!("Virtual host not found: {}", host);
-            let response = static_response(
-                http::StatusCode::NOT_FOUND,
-                None,
-                "Virtual host not found".to_string(),
-            );
-            Ok(response)
+            Response::builder()
+                .status(http::StatusCode::NOT_FOUND)
+                .body(HttpBody::empty())
+                .map_err(|e| VetisError::Handler(e.to_string()))
         }
     } else {
         error!("Host not found in request");
-        let response = static_response(
-            http::StatusCode::BAD_REQUEST,
-            None,
-            "Host not found in request".to_string(),
-        );
-        Ok(response)
+        Response::builder()
+            .status(http::StatusCode::BAD_REQUEST)
+            .body(HttpBody::empty())
+            .map_err(|e| VetisError::Handler(e.to_string()))
     }
 }
 

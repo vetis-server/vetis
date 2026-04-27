@@ -6,10 +6,9 @@ mod server_tests {
     use smol_macros::test;
     use std::error::Error;
     use vetis::{
-        http::Response,
         listener::ListenerConfig,
         virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
-        ServerConfig,
+        Response, ServerConfig,
     };
 
     use crate::{

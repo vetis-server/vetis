@@ -4,9 +4,11 @@ use std::{future::Future, pin::Pin};
 
 use std::sync::Arc;
 
-use vetis::errors::{HandlerError, VetisError, VirtualHostError};
-use vetis::http::{Request, Response};
-use vetis::virtual_host::BoxedHandlerClosure;
+use vetis::{
+    errors::{HandlerError, VetisError, VirtualHostError},
+    virtual_host::BoxedHandlerClosure,
+    Request, Response,
+};
 
 #[cfg(feature = "interface")]
 use crate::virtual_host::path::interface::InterfacePath;

@@ -2,8 +2,8 @@ use std::{future::Future, pin::Pin, sync::Arc};
 
 use vetis::{
     errors::VetisError,
-    http::{Request, Response},
     virtual_host::path::interface::{InterfacePathConfig, InterfaceType, InterfaceWorker},
+    Request, Response,
 };
 
 #[cfg(feature = "asgi")]

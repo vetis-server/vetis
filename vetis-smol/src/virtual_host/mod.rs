@@ -33,8 +33,8 @@ use radix_trie::Trie;
 use std::sync::Arc;
 use vetis::{
     errors::{FileError, VetisError, VirtualHostError},
-    http::{Request, Response},
     virtual_host::VirtualHostConfig,
+    Request, Response,
 };
 
 use crate::virtual_host::path::{HostPath, Path};

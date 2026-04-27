@@ -12,7 +12,7 @@ use crate::virtual_host::path::static_files::StaticPathConfig;
 
 use crate::{
     errors::{ConfigError, VetisError},
-    http::{Request, Response},
+    Request, Response,
 };
 
 /// Path configuration for virtual hosts.

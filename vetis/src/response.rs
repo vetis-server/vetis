@@ -119,6 +119,20 @@ impl ResponseBuilder {
         self
     }
 
+    /// Sets an empty body and creates the final `Response`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,ignore
+    /// use vetis::Response;
+    ///
+    /// let response = Response::builder()
+    ///     .empty();
+    /// ```    
+    pub fn empty(self) -> Response {
+        self.body(HttpBody::from_text(""))
+    }
+
     /// Sets the body from a text string and creates the final `Response`.
     ///
     /// # Arguments
