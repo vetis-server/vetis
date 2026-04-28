@@ -23,8 +23,10 @@ pub mod virtual_host;
 pub use vetis::{
     errors,
     listener::ListenerConfig,
-    virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
-    Protocol, Server, ServerConfig, VetisRwLock, VetisVirtualHosts,
+    security::SecurityConfig,
+    server::{Protocol, Server, ServerConfig},
+    virtual_host::{handler_fn, VirtualHostConfig},
+    VetisRwLock, VetisVirtualHosts,
 };
 
 /// Main server instance that manages virtual hosts and listeners.
@@ -37,16 +39,17 @@ pub use vetis::{
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use vetis::{Vetis, config::ServerConfig};
+/// ```rust,no_run
+/// use vetis::server::ServerConfig;
+/// use vetis_tokio::Vetis;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let config = ServerConfig::builder().build();
+///     let config = ServerConfig::builder().build().unwrap();
 ///     let mut server = Vetis::new(config);
-///     
+///
 ///     // Add virtual hosts...
-///     
+///
 ///     server.run().await?;
 ///     Ok(())
 /// }
@@ -66,10 +69,11 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// ```rust, no_run
+    /// use vetis::server::ServerConfig;
+    /// use vetis_tokio::Vetis;
     ///
-    /// let config = ServerConfig::builder().build();
+    /// let config = ServerConfig::builder().build().unwrap();
     /// let server = Vetis::new(config);
     /// ```
     pub fn new(config: ServerConfig) -> Vetis {
@@ -87,33 +91,42 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
+    /// use http::StatusCode;
+    ///
     /// use vetis::{
-    ///     Vetis,
-    ///     config::{ServerConfig, VirtualHostConfig},
-    ///     server::virtual_host::{VirtualHost, handler_fn},
+    ///     server::ServerConfig,
+    ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
     /// };
     ///
-    /// let config = ServerConfig::builder().build();
+    /// use vetis_tokio::{Vetis, virtual_host::{VirtualHost, path::HandlerPath}};
+    ///
+    /// let config = ServerConfig::builder().build().unwrap();
     /// let mut server = Vetis::new(config);
     ///
     /// let vhost_config = VirtualHostConfig::builder()
     ///     .hostname("example.com")
     ///     .port(80)
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     ///
     /// let mut vhost = VirtualHost::new(vhost_config);
     ///
-    /// let mut root_path = HandlerPath::new("/", handler_fn(|request| async move {
-    ///     let response = vetis::Response::builder()
-    ///         .status(StatusCode::OK)
-    ///         .text("Hello, World!");
-    ///     Ok(response)
-    /// }));
+    /// let mut root_path = HandlerPath::builder()
+    ///     .uri("/")
+    ///     .handler(handler_fn(|request| async move {
+    ///         let response = vetis::Response::builder()
+    ///             .status(StatusCode::OK)
+    ///             .text("Hello, World!");
+    ///         Ok(response)
+    ///     }))
+    ///     .build()
+    ///     .unwrap();
     ///
     /// vhost.add_path(root_path);
-    ///
-    /// server.add_virtual_host(vhost).await;
+    /// async move {
+    ///   server.add_virtual_host(vhost).await;
+    /// };
     /// ```
     pub async fn add_virtual_host(&mut self, virtual_host: VirtualHost) {
         let key = (Arc::from(virtual_host.hostname()), virtual_host.port());
@@ -155,16 +168,17 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// ```rust,no_run
+    /// use vetis::server::ServerConfig;
+    /// use vetis_tokio::Vetis;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
+    ///     let config = ServerConfig::builder().build().unwrap();
     ///     let mut server = Vetis::new(config);
-    ///     
+    ///
     ///     // Add virtual hosts...
-    ///     
+    ///
     ///     server.run().await?; // Runs until Ctrl+C
     ///     Ok(())
     /// }
@@ -202,20 +216,21 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// ```rust,no_run
+    /// use vetis::server::ServerConfig;
+    /// use vetis_tokio::Vetis;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build();
     ///     let mut server = Vetis::new(config);
-    ///     
+    ///
     ///     // Add virtual hosts...
-    ///     
+    ///
     ///     server.start().await?;
-    ///     
+    ///
     ///     // Server is now running, do other work...
-    ///     
+    ///
     ///     server.stop().await?;
     ///     Ok(())
     /// }
@@ -259,14 +274,15 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// ```rust,no_run
+    /// use vetis::server::ServerConfig;
+    /// use vetis_tokio::Vetis;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build();
     ///     let mut server = Vetis::new(config);
-    ///     
+    ///
     ///     server.start().await?;
     ///     // Server running...
     ///     server.stop().await?;

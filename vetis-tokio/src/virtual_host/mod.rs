@@ -1,26 +1,7 @@
-/// # Examples
-///
-/// ```rust,ignore
-/// use vetis::{
-///     virtual_host::VirtualHostConfig,
-///     server::virtual_host::{VirtualHost, handler_fn},
-///     Request, Response,
-/// };
-///
-/// // Create a virtual host with a simple handler
-/// let config = VirtualHostConfig::builder()
-///     .hostname("example.com")
-///     .port(80)
-///     .build()?;
-///
-/// let mut vhost = VirtualHost::new(config);
-/// vhost.set_handler(handler_fn(|request: Request| async move {
-///     let response = Response::builder()
-///         .status(http::StatusCode::OK)
-///         .body(http_body_util::Full::new(bytes::Bytes::from("Hello, World!")));
-///     Ok(response)
-/// }));
-/// ```
+//! Virtual host module
+//!
+//! This module provides functionality for creating and managing virtual hosts,
+//! including path routing and request handling.
 use std::{future::Future, path::PathBuf, pin::Pin};
 
 use futures_util::TryStreamExt;
@@ -32,11 +13,11 @@ use radix_trie::Trie;
 use std::sync::Arc;
 use vetis::{
     errors::{FileError, VetisError, VirtualHostError},
-    virtual_host::VirtualHostConfig,
+    virtual_host::{path::Path, VirtualHostConfig},
     Request, Response,
 };
 
-use crate::virtual_host::path::{HostPath, Path};
+use crate::virtual_host::path::HostPath;
 
 use tokio::fs::File;
 

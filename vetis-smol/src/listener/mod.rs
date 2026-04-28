@@ -1,6 +1,6 @@
 use vetis::{
     listener::{Listener, ListenerConfig, ListenerResult},
-    Protocol,
+    server::Protocol,
 };
 
 #[cfg(any(feature = "http1", feature = "http2"))]

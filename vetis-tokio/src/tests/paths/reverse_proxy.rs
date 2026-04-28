@@ -13,8 +13,9 @@ use vetis::virtual_host::handler_fn;
 use vetis::{
     errors::{ConfigError, VetisError},
     listener::ListenerConfig,
-    virtual_host::{path::proxy::ProxyPathConfig, SecurityConfig, VirtualHostConfig},
-    ServerConfig,
+    security::SecurityConfig,
+    server::ServerConfig,
+    virtual_host::{path::proxy::ProxyPathConfig, VirtualHostConfig},
 };
 
 #[cfg(any(feature = "http1", feature = "http2"))]

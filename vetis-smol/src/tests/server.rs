@@ -7,8 +7,10 @@ mod server_tests {
     use std::error::Error;
     use vetis::{
         listener::ListenerConfig,
-        virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
-        Response, ServerConfig,
+        security::SecurityConfig,
+        server::ServerConfig,
+        virtual_host::{handler_fn, VirtualHostConfig},
+        Response,
     };
 
     use crate::{

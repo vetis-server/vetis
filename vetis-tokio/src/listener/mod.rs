@@ -1,6 +1,7 @@
 use vetis::{
     listener::{Listener, ListenerConfig, ListenerResult},
-    Protocol, VetisVirtualHosts,
+    server::Protocol,
+    VetisVirtualHosts,
 };
 
 #[cfg(any(feature = "http1", feature = "http2"))]

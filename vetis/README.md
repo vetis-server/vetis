@@ -28,49 +28,29 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 Add VeTiS to your `Cargo.toml`:
 
 ```toml
-vetis = { version = "0.1.0", features = ["tokio-rt", "http2", "tokio-rust-tls"] }
+vetis = { version = "0.1.0" }
 ```
-
-## Runtimes
-
-- [tokio](https://github.com/tokio-rs/tokio)
-- [smol](https://github.com/smol-rs/smol)
 
 ## Crate features
 
-- tokio-rt (default)
-- smol-rt
-- http1
-- http2 (default)
-- http3
-- tokio-rust-tls (default)
 - static-files
 - reverse-proxy
 - auth
-
-Note: To avoid build issues, do not disable http1.
 
 ## Usage Example
 
 Here's how simple it is to create a web server with VeTiS:
 
-```rust
+```rust,ignore
 use hyper::StatusCode;
 
-#[cfg(feature = "smol")]
-use macro_rules_attribute::apply;
-#[cfg(feature = "smol")]
-use smol_macros::main;
-
 use vetis::{
-    config::server::{
-        virtual_host::{
-            path::proxy::ProxyPathConfig, path::static_files::StaticPathConfig, SecurityConfig,
-            VirtualHostConfig,
-        },
-        ListenerConfig, Protocol, ServerConfig,
+    virtual_host::{
+        path::proxy::ProxyPathConfig, path::static_files::StaticPathConfig, SecurityConfig,
+        VirtualHostConfig,
     },
-    server::virtual_host::{
+    ListenerConfig, Protocol, ServerConfig,
+    virtual_host::{
         handler_fn,
         path::{proxy::ProxyPath, static_files::StaticPath, HandlerPath},
         VirtualHost,

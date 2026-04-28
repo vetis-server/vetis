@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use vetis::{
     errors::{HandlerError, VetisError, VirtualHostError},
-    virtual_host::BoxedHandlerClosure,
+    virtual_host::{path::Path, BoxedHandlerClosure},
     Request, Response,
 };
 
@@ -18,7 +18,7 @@ use crate::virtual_host::path::proxy::ProxyPath;
 use crate::virtual_host::path::static_files::StaticPath;
 
 /// Basic auth module
-#[cfg(feature = "basic-auth")]
+#[cfg(feature = "auth")]
 pub mod auth;
 /// Interface module
 #[cfg(feature = "interface")]
@@ -31,32 +31,6 @@ pub mod proxy;
 /// Static files module
 #[cfg(feature = "static-files")]
 pub mod static_files;
-
-/// Trait for handling different types of paths in the server
-pub trait Path {
-    /// Returns the URI of the path
-    ///
-    /// # Returns
-    ///
-    /// * `&str` - The URI of the path
-    fn uri(&self) -> &str;
-
-    /// Handles the request for the path
-    ///
-    /// # Arguments
-    ///
-    /// * `request` - The request to handle
-    /// * `uri` - The URI of the path
-    ///
-    /// # Returns
-    ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
-    fn handle(
-        &self,
-        request: Request,
-        uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>;
-}
 
 /// Enum for different types of paths in the server
 pub enum HostPath {

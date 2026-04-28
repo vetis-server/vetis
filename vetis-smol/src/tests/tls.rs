@@ -7,7 +7,8 @@ mod tls_tests {
 
     use vetis::{
         errors::VetisError,
-        virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
+        security::SecurityConfig,
+        virtual_host::{handler_fn, VirtualHostConfig},
         Response,
     };
 

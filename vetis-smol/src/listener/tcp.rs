@@ -10,7 +10,7 @@ use hyper_body_utils::HttpBody;
 #[cfg(feature = "http1")]
 use hyper_util::rt::TokioIo;
 use log::{debug, error, info};
-use vetis::{errors::VetisError, listener::ListenerConfig, Protocol, Request};
+use vetis::{errors::VetisError, listener::ListenerConfig, server::Protocol, Request};
 
 use peekable::future::AsyncPeekable;
 

@@ -12,7 +12,7 @@
 //!
 //! # Examples
 //!
-//! ```rust,ignore
+//! ```rust,no_run
 //! use vetis::{
 //!     config::{ServerConfig, VirtualHostConfig},
 //!     server::virtual_host::{DefaultVirtualHost, VirtualHost, handler_fn},
@@ -46,7 +46,7 @@ use crate::{VirtualHost, VetisVirtualHosts};
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::{Vetis, config::ServerConfig, errors::VetisError};
 ///
 /// // Create a server instance

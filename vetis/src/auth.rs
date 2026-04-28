@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::{collections::HashMap, path::Path};
 
 use futures_util::future::BoxFuture;
@@ -151,7 +150,7 @@ impl BasicAuthConfigBuilder {
     }
 }
 
-#[cfg(feature = "basic-auth")]
+#[cfg(feature = "auth")]
 #[derive(Clone, Deserialize)]
 /// A struct with basic authentication configuration.
 ///
@@ -163,7 +162,7 @@ impl BasicAuthConfigBuilder {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// let auth = BasicAuthConfig::builder()
 ///     .users(HashMap::new())
 ///     .algorithm(Algorithm::BCrypt)
@@ -176,7 +175,7 @@ pub struct BasicAuthConfig {
     htpasswd: Option<String>,
 }
 
-#[cfg(feature = "basic-auth")]
+#[cfg(feature = "auth")]
 impl BasicAuthConfig {
     /// Creates a new `BasicAuthConfigBuilder` with default settings.
     ///

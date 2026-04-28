@@ -6,7 +6,7 @@
 //!
 //! # Examples
 //!
-//! ```rust,ignore
+//! ```rust,no_run
 //! use vetis::errors::{VetisError, ConfigError};
 //!
 //! match some_operation() {
@@ -28,7 +28,7 @@ use thiserror::Error;
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::errors::VetisError;
 ///
 /// match result {
@@ -84,7 +84,7 @@ pub enum VetisError {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::errors::ConfigError;
 ///
 /// match error {
@@ -122,7 +122,7 @@ pub enum ConfigError {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::errors::StartError;
 ///
 /// match error {
@@ -145,7 +145,7 @@ pub enum StartError {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::errors::VirtualHostError;
 ///
 /// match error {
@@ -188,7 +188,7 @@ pub enum VirtualHostError {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::errors::HandlerError;
 ///
 /// match error {
@@ -218,7 +218,7 @@ pub enum HandlerError {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::errors::FileError;
 ///
 /// match error {

@@ -4,7 +4,8 @@ mod tls_tests {
     use std::sync::Arc;
     use vetis::{
         errors::VetisError,
-        virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
+        security::SecurityConfig,
+        virtual_host::{handler_fn, VirtualHostConfig},
         VetisVirtualHosts,
     };
 
@@ -131,14 +132,7 @@ mod tls_tests {
         assert_eq!(config.max_early_data_size, u32::MAX);
     }
 
-    #[cfg(feature = "tokio-rt")]
     #[tokio::test]
-    async fn test_create_tls_config_success() {
-        do_create_tls_config_success().await;
-    }
-
-    #[cfg(feature = "smol-rt")]
-    #[apply(test!)]
     async fn test_create_tls_config_success() {
         do_create_tls_config_success().await;
     }
@@ -157,14 +151,7 @@ mod tls_tests {
         assert_eq!(config.alpn_protocols, vec![b"http/1.1".to_vec()]);
     }
 
-    #[cfg(feature = "tokio-rt")]
     #[tokio::test]
-    async fn test_create_tls_config_no_security() {
-        do_create_tls_config_no_security().await;
-    }
-
-    #[cfg(feature = "smol-rt")]
-    #[apply(test!)]
     async fn test_create_tls_config_no_security() {
         do_create_tls_config_no_security().await;
     }
@@ -184,14 +171,7 @@ mod tls_tests {
         }
     }
 
-    #[cfg(feature = "tokio-rt")]
     #[tokio::test]
-    async fn test_create_tls_config_invalid_private_key() {
-        do_create_tls_config_invalid_private_key().await;
-    }
-
-    #[cfg(feature = "smol-rt")]
-    #[apply(test!)]
     async fn test_create_tls_config_invalid_private_key() {
         do_create_tls_config_invalid_private_key().await;
     }
@@ -215,14 +195,7 @@ mod tls_tests {
         );
     }
 
-    #[cfg(feature = "tokio-rt")]
     #[tokio::test]
-    async fn test_create_tls_config_empty_alpn() {
-        do_create_tls_config_empty_alpn().await;
-    }
-
-    #[cfg(feature = "smol-rt")]
-    #[apply(test!)]
     async fn test_create_tls_config_empty_alpn() {
         do_create_tls_config_empty_alpn().await;
     }
@@ -296,14 +269,7 @@ mod tls_tests {
         assert!(tls_config.is_some(), "TLS config should be Some");
     }
 
-    #[cfg(feature = "tokio-rt")]
     #[tokio::test]
-    async fn test_create_tls_config_multiple_hosts() {
-        do_create_tls_config_multiple_hosts().await;
-    }
-
-    #[cfg(feature = "smol-rt")]
-    #[apply(test!)]
     async fn test_create_tls_config_multiple_hosts() {
         do_create_tls_config_multiple_hosts().await;
     }
@@ -322,14 +288,7 @@ mod tls_tests {
         assert_eq!(config.alpn_protocols, vec![b"http/1.1".to_vec()]);
     }
 
-    #[cfg(feature = "tokio-rt")]
     #[tokio::test]
-    async fn test_create_tls_config_with_ca_cert() {
-        do_create_tls_config_with_ca_cert().await;
-    }
-
-    #[cfg(feature = "smol-rt")]
-    #[apply(test!)]
     async fn test_create_tls_config_with_ca_cert() {
         do_create_tls_config_with_ca_cert().await;
     }

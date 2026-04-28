@@ -1,5 +1,9 @@
 //! Path module for virtual host configuration.
 
+use std::{future::Future, pin::Pin, sync::Arc};
+
+use crate::{errors::VetisError, Request, Response};
+
 /// Interface for path configuration.
 pub mod interface;
 /// Proxy path configuration.
@@ -8,3 +12,29 @@ pub mod proxy;
 /// Static files path configuration.
 #[cfg(feature = "static-files")]
 pub mod static_files;
+
+/// Trait for handling different types of paths in the server
+pub trait Path {
+    /// Returns the URI of the path
+    ///
+    /// # Returns
+    ///
+    /// * `&str` - The URI of the path
+    fn uri(&self) -> &str;
+
+    /// Handles the request for the path
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - The request to handle
+    /// * `uri` - The URI of the path
+    ///
+    /// # Returns
+    ///
+    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
+    fn handle(
+        &self,
+        request: Request,
+        uri: Arc<String>,
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>;
+}

@@ -4,8 +4,11 @@ use std::{future::Future, pin::Pin};
 
 use std::sync::Arc;
 
-use vetis::errors::{HandlerError, VetisError, VirtualHostError};
-use vetis::virtual_host::BoxedHandlerClosure;
+use vetis::{
+    errors::{HandlerError, VetisError, VirtualHostError},
+    virtual_host::{path::Path, BoxedHandlerClosure},
+    Request, Response,
+};
 
 #[cfg(feature = "interface")]
 use crate::virtual_host::path::interface::InterfacePath;
@@ -14,10 +17,8 @@ use crate::virtual_host::path::proxy::ProxyPath;
 #[cfg(feature = "static-files")]
 use crate::virtual_host::path::static_files::StaticPath;
 
-use crate::http::{Request, Response};
-
 /// Module for handling basic authentication
-#[cfg(feature = "basic-auth")]
+#[cfg(feature = "auth")]
 pub mod auth;
 /// Module for handling interface paths
 #[cfg(feature = "interface")]
@@ -28,32 +29,6 @@ pub mod proxy;
 /// Module for handling static files
 #[cfg(feature = "static-files")]
 pub mod static_files;
-
-/// Trait for handling different types of paths in the server
-pub trait Path {
-    /// Returns the URI of the path
-    ///
-    /// # Returns
-    ///
-    /// * `&str` - The URI of the path
-    fn uri(&self) -> &str;
-
-    /// Handles the request for the path
-    ///
-    /// # Arguments
-    ///
-    /// * `request` - The request to handle
-    /// * `uri` - The URI of the path
-    ///
-    /// # Returns
-    ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
-    fn handle(
-        &self,
-        request: Request,
-        uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>;
-}
 
 /// Enum for different types of paths in the server
 pub enum HostPath {

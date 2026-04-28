@@ -29,8 +29,10 @@ pub mod virtual_host;
 pub use vetis::{
     errors,
     listener::ListenerConfig,
-    virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
-    Protocol, Server, ServerConfig, VetisRwLock, VetisVirtualHosts,
+    security::SecurityConfig,
+    server::{Protocol, Server, ServerConfig},
+    virtual_host::{handler_fn, VirtualHostConfig},
+    VetisRwLock, VetisVirtualHosts,
 };
 
 /// Main server instance that manages virtual hosts and listeners.
@@ -43,7 +45,7 @@ pub use vetis::{
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::{Vetis, config::ServerConfig};
 ///
 /// #[tokio::main]
@@ -72,7 +74,7 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::{Vetis, config::ServerConfig};
     ///
     /// let config = ServerConfig::builder().build();
@@ -93,7 +95,7 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::{
     ///     Vetis,
     ///     config::{ServerConfig, VirtualHostConfig},
@@ -161,7 +163,7 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::{Vetis, config::ServerConfig};
     ///
     /// #[tokio::main]
@@ -211,7 +213,7 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::{Vetis, config::ServerConfig};
     ///
     /// #[tokio::main]
@@ -268,7 +270,7 @@ impl Vetis {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::{Vetis, config::ServerConfig};
     ///
     /// #[tokio::main]

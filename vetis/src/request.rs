@@ -8,7 +8,7 @@ use hyper_body_utils::HttpBody;
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::Request;
 ///
 /// // In a request handler:
@@ -40,7 +40,7 @@ impl Request {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Request;
     ///
     /// async fn handler(request: Request) -> Result<vetis::Response, vetis::VetisError> {
@@ -60,7 +60,7 @@ impl Request {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Request;
     ///
     /// async fn handler(request: Request) -> VetisResult<vetis::Response> {
@@ -99,7 +99,7 @@ impl Request {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Request;
     ///
     /// async fn handler(request: Request) -> VetisResult<vetis::Response> {

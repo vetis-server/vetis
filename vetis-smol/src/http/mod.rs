@@ -1,6 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
-use vetis::{errors::VetisError, listener::Listener, Protocol, Server, ServerConfig};
+use vetis::{
+    errors::VetisError,
+    listener::Listener,
+    server::{Protocol, Server, ServerConfig},
+};
 
 use crate::{listener::ServerListener, virtual_host::VirtualHost, VetisRwLock, VetisVirtualHosts};
 

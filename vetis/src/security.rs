@@ -12,7 +12,7 @@ use crate::errors::{ConfigError, VetisError};
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::config::SecurityConfig;
 ///
 /// let security = SecurityConfig::builder()
@@ -37,7 +37,7 @@ impl SecurityConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
@@ -59,7 +59,7 @@ impl SecurityConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
@@ -83,7 +83,7 @@ impl SecurityConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
@@ -105,7 +105,7 @@ impl SecurityConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
@@ -129,7 +129,7 @@ impl SecurityConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
@@ -151,7 +151,7 @@ impl SecurityConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
@@ -175,7 +175,7 @@ impl SecurityConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
@@ -219,7 +219,7 @@ impl SecurityConfigBuilder {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::config::SecurityConfig;
 ///
 /// let security = SecurityConfig::builder()
@@ -248,7 +248,7 @@ impl SecurityConfig {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()

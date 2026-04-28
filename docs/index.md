@@ -40,18 +40,14 @@ Add VeTiS to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-vetis = { version = "0.1.4-beta.2", features = ["tokio-rt", "http2", "tokio-rust-tls"] }
+vetis = { version = "0.1.4-beta.2" }
+vetis-tokio = { version = "0.1.0", features = ["http2", "rust-tls"] }
 ```
 
 Basic usage:
 
 ```rust
 use hyper::StatusCode;
-
-#[cfg(feature = "smol")]
-use macro_rules_attribute::apply;
-#[cfg(feature = "smol")]
-use smol_macros::main;
 
 use vetis::{
     config::server::{
@@ -70,18 +66,11 @@ use vetis::{
 };
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
-
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
 
 #[cfg(feature = "tokio")]
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-#[cfg(feature = "smol")]
-#[apply(main!)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     run().await
 }
@@ -178,6 +167,8 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
 | Crate | Description | Documentation |
 |-------|-------------|---------------|
 | [vetis](./vetis) | Core HTTP server library | [![docs.rs](https://img.shields.io/docsrs/vetis/latest)](https://docs.rs/vetis) |
+| [vetis-smol](./vetis-smol) | Smol runtime support | [![docs.rs](https://img.shields.io/docsrs/vetis-smol/latest)](https://docs.rs/vetis-smol) |
+| [vetis-tokio](./vetis-tokio) | Tokio runtime support | [![docs.rs](https://img.shields.io/docsrs/vetis-tokio/latest)](https://docs.rs/vetis-tokio) |
 | [vetis-macros](./vetis-macros) | Macros for Vetis | [![docs.rs](https://img.shields.io/docsrs/vetis-macros/latest)](https://docs.rs/vetis-macros) |
 
 
@@ -208,10 +199,11 @@ Check out the [benchmarks](./benchmarks.md) for performance details.
 
 ## Other Projects
 
-- [deboa](https://crates.io/crates/deboa) - A HTTP client for Rust
-- [easyhttpmock](https://crates.io/crates/easyhttpmock) - A HTTP mock server for Rust
-- [sofie](https://crates.io/crates/sofie) - A fullstack web framework for Rust
-- [uget](https://crates.io/crates/uget) - A CLI HTTP client for Rust
+- [deboa](https://crates.io/crates/deboa) - HTTP client
+- [easyhttpmock](https://crates.io/crates/easyhttpmock) - HTTP mock server
+- [sofie](https://crates.io/crates/sofie) - Fullstack web framework
+- [uget](https://crates.io/crates/uget) - CLI HTTP client
+- [caramelo](https://crates.io/crates/caramelo) - Assertion based test framrwork
 
 ## License
 

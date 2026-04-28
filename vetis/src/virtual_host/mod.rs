@@ -1,7 +1,6 @@
-use std::{collections::HashMap, fs, future::Future, path::Path, pin::Pin};
+use std::{collections::HashMap, future::Future, path::Path, pin::Pin};
 
-use log::error;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 #[cfg(feature = "interface")]
 use crate::virtual_host::path::interface::InterfacePathConfig;
@@ -12,6 +11,7 @@ use crate::virtual_host::path::static_files::StaticPathConfig;
 
 use crate::{
     errors::{ConfigError, VetisError},
+    security::SecurityConfig,
     Request, Response,
 };
 
@@ -26,8 +26,8 @@ pub mod path;
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use vetis::server::virtual_host::BoxedHandlerClosure;
+/// ```rust,no_run
+/// use vetis::virtual_host::BoxedHandlerClosure;
 /// use vetis::{Request, Response, errors::VetisError};
 ///
 /// let handler: BoxedHandlerClosure = Box::new(|request: Request| {
@@ -56,25 +56,18 @@ pub type BoxedHandlerClosure = Box<
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::{
-///     virtual_host::{handler_fn, VirtualHost, VirtualHostConfig},
-///     Request, Response,
+///     virtual_host::{handler_fn, VirtualHostConfig},
 /// };
-///
-/// async fn hello_handler(request: Request) -> Result<Response, vetis::VetisError> {
-///     Ok(Response::builder()
-///         .status(http::StatusCode::OK)
-///         .body(http_body_util::Full::new(bytes::Bytes::from("Hello!"))))
-/// }
 ///
 /// let config = VirtualHostConfig::builder()
 ///     .hostname("example.com")
 ///     .port(80)
-///     .build()?;
+///     .build()
+///     .unwrap();
 ///
-/// let mut vhost = VirtualHost::new(config);
-/// vhost.set_handler(handler_fn(hello_handler));
+/// assert_eq!(80, config.port());
 /// ```
 pub fn handler_fn<F, Fut>(f: F) -> BoxedHandlerClosure
 where
@@ -91,19 +84,24 @@ where
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use vetis::config::{VirtualHostConfig, SecurityConfig};
+/// ```rust,no_run
+/// use vetis::{
+///     security::SecurityConfig,
+///     virtual_host::VirtualHostConfig
+/// };
 ///
 /// let security = SecurityConfig::builder()
 ///     .cert_from_bytes(vec![])
 ///     .key_from_bytes(vec![])
-///     .build();
+///     .build()
+///     .unwrap();
 ///
 /// let config = VirtualHostConfig::builder()
 ///     .hostname("example.com")
 ///     .port(443)
 ///     .security(security)
-///     .build()?;
+///     .build()
+///     .unwrap();
 /// ```
 pub struct VirtualHostConfigBuilder {
     hostname: String,
@@ -128,12 +126,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .hostname("api.example.com")
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn hostname(mut self, hostname: &str) -> Self {
         self.hostname = hostname.to_string();
@@ -146,12 +145,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .port(8443)
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn port(mut self, port: u16) -> Self {
         self.port = port;
@@ -164,12 +164,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .root_directory("/var/www")
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn root_directory(mut self, root_directory: &str) -> Self {
         self.root_directory = root_directory.to_string();
@@ -182,12 +183,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .header("X-Custom", "value")
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn header(mut self, key: &str, value: &str) -> Self {
         match self.default_headers {
@@ -208,17 +210,22 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::{VirtualHostConfig, SecurityConfig};
+    /// ```rust,no_run
+    /// use vetis::{
+    ///     security::SecurityConfig,
+    ///     virtual_host::VirtualHostConfig,
+    /// };
     ///
     /// let security = SecurityConfig::builder()
     ///     .cert_from_bytes(vec![])
     ///     .key_from_bytes(vec![])
-    ///     .build();
+    ///     .build()
+    ///     .unwrap();
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .security(security)
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn security(mut self, security: SecurityConfig) -> Self {
         self.security = Some(security);
@@ -231,12 +238,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .status_pages(vec![(404, "404.html".to_string())])
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn status_pages(mut self, status_pages: HashMap<u16, String>) -> Self {
         self.status_pages = Some(status_pages);
@@ -249,12 +257,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .enable_logging(true)
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn enable_logging(mut self, logging: bool) -> Self {
         self.enable_logging = logging;
@@ -268,12 +277,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .static_paths(vec![(404, "404.html".to_string())])
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn static_paths(mut self, static_paths: Vec<StaticPathConfig>) -> Self {
         self.static_paths = Some(static_paths);
@@ -287,12 +297,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .proxy_paths(vec![(404, "404.html".to_string())])
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn proxy_paths(mut self, proxy_paths: Vec<ProxyPathConfig>) -> Self {
         self.proxy_paths = Some(proxy_paths);
@@ -306,12 +317,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .proxy_paths(vec![(404, "404.html".to_string())])
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn interface_paths(mut self, interface_paths: Vec<InterfacePathConfig>) -> Self {
         self.interface_paths = Some(interface_paths);
@@ -326,14 +338,15 @@ impl VirtualHostConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use vetis::config::VirtualHostConfig;
+    /// ```rust,no_run
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .hostname("example.com")
     ///     .port(443)
     ///     .header("X-Custom", "value")
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn build(self) -> Result<VirtualHostConfig, VetisError> {
         if self
@@ -390,8 +403,8 @@ impl VirtualHostConfigBuilder {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use vetis::config::VirtualHostConfig;
+/// ```rust,no_run
+/// use vetis::virtual_host::VirtualHostConfig;
 ///
 /// let config = VirtualHostConfig::builder()
 ///     .hostname("api.example.com")
@@ -406,7 +419,7 @@ pub struct VirtualHostConfig {
     port: u16,
     root_directory: String,
     default_headers: Option<Vec<(String, String)>>,
-    #[serde(deserialize_with = "deserialize_security_from_file")]
+    #[serde(deserialize_with = "crate::security::deserialize_security_from_file")]
     security: Option<SecurityConfig>,
     status_pages: Option<HashMap<u16, String>>,
     enable_logging: bool,
@@ -428,7 +441,7 @@ impl VirtualHostConfig {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
@@ -546,337 +559,4 @@ impl VirtualHostConfig {
     pub fn interface_paths(&self) -> &Option<Vec<InterfacePathConfig>> {
         &self.interface_paths
     }
-}
-
-/// Builder for creating `SecurityConfig` instances.
-///
-/// Provides a fluent API for configuring TLS/SSL security settings,
-/// including certificates, private keys, and client authentication.
-///
-/// # Examples
-///
-/// ```rust,ignore
-/// use vetis::config::SecurityConfig;
-///
-/// let security = SecurityConfig::builder()
-///     .cert_from_bytes(include_bytes!("server.der").to_vec())
-///     .key_from_bytes(include_bytes!("server.key.der").to_vec())
-///     .ca_cert_from_bytes(include_bytes!("ca.der").to_vec())
-///     .client_auth(true)
-///     .build();
-/// ```
-#[derive(Clone)]
-pub struct SecurityConfigBuilder {
-    cert: Vec<u8>,
-    key: Vec<u8>,
-    ca_cert: Option<Vec<u8>>,
-    client_auth: bool,
-}
-
-impl SecurityConfigBuilder {
-    /// Sets the server certificate from bytes.
-    ///
-    /// The certificate should be in DER format.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .cert_from_bytes(include_bytes!("server.der").to_vec())
-    ///     .build();
-    /// ```
-    pub fn cert_from_bytes(mut self, cert: Vec<u8>) -> Self {
-        self.cert = cert;
-        self
-    }
-
-    /// Sets the server certificate from a file.
-    ///
-    /// Reads the certificate file in DER format.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the file cannot be read.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .cert_from_file("/path/to/server.der")
-    ///     .build();
-    /// ```
-    pub fn cert_from_file(mut self, path: &str) -> Self {
-        let cert = fs::read(path);
-        match cert {
-            Ok(cert) => self.cert = cert,
-            Err(e) => {
-                error!("Failed to read certificate file: {}", e);
-            }
-        }
-        self
-    }
-
-    /// Sets the private key from bytes.
-    ///
-    /// The key should be in DER format.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .key_from_bytes(include_bytes!("server.key.der").to_vec())
-    ///     .build();
-    /// ```
-    pub fn key_from_bytes(mut self, key: Vec<u8>) -> Self {
-        self.key = key;
-        self
-    }
-
-    /// Sets the private key from a file.
-    ///
-    /// Reads the key file in DER format.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the file cannot be read.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .key_from_file("/path/to/server.key.der")
-    ///     .build();
-    /// ```
-    pub fn key_from_file(mut self, path: &str) -> Self {
-        let key = fs::read(path);
-        match key {
-            Ok(key) => self.key = key,
-            Err(e) => {
-                error!("Failed to read key file: {}", e);
-            }
-        }
-        self
-    }
-
-    /// Sets the CA certificate from bytes.
-    ///
-    /// The CA certificate is used for client authentication and should be in DER format.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .ca_cert_from_bytes(include_bytes!("ca.der").to_vec())
-    ///     .build();
-    /// ```
-    pub fn ca_cert_from_bytes(mut self, ca_cert: Vec<u8>) -> Self {
-        self.ca_cert = Some(ca_cert);
-        self
-    }
-
-    /// Sets the CA certificate from a file.
-    ///
-    /// Reads the CA certificate file in DER format.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the file cannot be read.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .ca_cert_from_file("/path/to/ca.der")
-    ///     .build();
-    /// ```
-    pub fn ca_cert_from_file(mut self, path: &str) -> Self {
-        let ca_cert = fs::read(path);
-        match ca_cert {
-            Ok(ca_cert) => self.ca_cert = Some(ca_cert),
-            Err(e) => {
-                error!("Failed to read CA certificate file: {}", e);
-            }
-        }
-        self
-    }
-
-    /// Sets whether client authentication is required.
-    ///
-    /// When enabled, clients must present a valid certificate signed by the CA.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .client_auth(true)
-    ///     .build();
-    /// ```
-    pub fn client_auth(mut self, client_auth: bool) -> Self {
-        self.client_auth = client_auth;
-        self
-    }
-
-    /// Creates the `SecurityConfig` with the configured settings.
-    ///
-    /// # Returns
-    ///
-    /// * `Result<SecurityConfig, VetisError>` - The `SecurityConfig` with the configured settings.
-    pub fn build(self) -> Result<SecurityConfig, VetisError> {
-        if self.cert.is_empty() {
-            return Err(VetisError::Config(ConfigError::Security(
-                "Missing certificate".to_string(),
-            )));
-        }
-
-        if self.key.is_empty() {
-            return Err(VetisError::Config(ConfigError::Security("Missing key".to_string())));
-        }
-
-        Ok(SecurityConfig {
-            cert: self.cert,
-            key: self.key,
-            ca_cert: self.ca_cert,
-            client_auth: self.client_auth,
-        })
-    }
-}
-
-/// Security configuration for TLS/SSL.
-///
-/// Contains the certificates and keys needed to establish secure HTTPS connections.
-/// This configuration is used by virtual hosts to enable TLS.
-///
-/// # Examples
-///
-/// ```rust,ignore
-/// use vetis::config::SecurityConfig;
-///
-/// let security = SecurityConfig::builder()
-///     .cert_from_bytes(include_bytes!("server.der").to_vec())
-///     .key_from_bytes(include_bytes!("server.key.der").to_vec())
-///     .build();
-///
-/// println!("Certificate length: {} bytes", security.cert().len());
-/// ```
-#[derive(Clone, Deserialize)]
-pub struct SecurityConfig {
-    cert: Vec<u8>,
-    key: Vec<u8>,
-    ca_cert: Option<Vec<u8>>,
-    client_auth: bool,
-}
-
-impl SecurityConfig {
-    /// Creates a new `SecurityConfigBuilder` with default settings.
-    ///
-    /// Default values:
-    /// - cert: empty (must be set)
-    /// - key: empty (must be set)
-    /// - ca_cert: None
-    /// - client_auth: false
-    ///
-    /// # Examples
-    ///
-    /// ```rust,ignore
-    /// use vetis::config::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .cert_from_bytes(vec![])
-    ///     .key_from_bytes(vec![])
-    ///     .build();
-    /// ```
-    pub fn builder() -> SecurityConfigBuilder {
-        SecurityConfigBuilder {
-            cert: Vec::new(),
-            key: Vec::new(),
-            ca_cert: None,
-            client_auth: false,
-        }
-    }
-
-    /// Returns the server certificate bytes.
-    ///
-    /// # Returns
-    ///
-    /// * `&Vec<u8>` - The server certificate bytes.
-    pub fn cert(&self) -> &Vec<u8> {
-        &self.cert
-    }
-
-    /// Returns the private key bytes.
-    ///
-    /// # Returns
-    ///
-    /// * `&Vec<u8>` - The private key bytes.
-    pub fn key(&self) -> &Vec<u8> {
-        &self.key
-    }
-
-    /// Returns the CA certificate bytes if present.
-    ///
-    /// # Returns
-    ///
-    /// * `&Option<Vec<u8>>` - The CA certificate bytes if present.
-    pub fn ca_cert(&self) -> &Option<Vec<u8>> {
-        &self.ca_cert
-    }
-
-    /// Returns whether client authentication is enabled.
-    ///
-    /// # Returns
-    ///
-    /// * `bool` - Whether client authentication is enabled.
-    pub fn client_auth(&self) -> bool {
-        self.client_auth
-    }
-}
-
-/// Security configuration loaded from files.
-#[derive(Clone, Deserialize)]
-pub struct SecurityConfigFromFile {
-    cert_from_file: String,
-    key_from_file: String,
-    ca_cert_from_file: Option<String>,
-    client_auth: Option<bool>,
-}
-
-fn deserialize_security_from_file<'de, D>(
-    deserializer: D,
-) -> Result<Option<SecurityConfig>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let security =
-        SecurityConfigFromFile::deserialize(deserializer).map_err(serde::de::Error::custom)?;
-
-    let mut builder = SecurityConfig::builder()
-        .cert_from_file(&security.cert_from_file)
-        .key_from_file(&security.key_from_file);
-
-    if let Some(ca_cert_from_file) = security.ca_cert_from_file {
-        builder = builder.ca_cert_from_file(&ca_cert_from_file);
-    }
-
-    if let Some(client_auth) = security.client_auth {
-        builder = builder.client_auth(client_auth);
-    }
-
-    builder
-        .build()
-        .map_err(serde::de::Error::custom)
-        .map(Some)
 }

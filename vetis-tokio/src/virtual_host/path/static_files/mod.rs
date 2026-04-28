@@ -19,7 +19,7 @@ use std::os::unix::fs::MetadataExt;
 #[cfg(windows)]
 use std::os::windows::fs::MetadataExt;
 
-#[cfg(feature = "basic-auth")]
+#[cfg(feature = "auth")]
 use crate::server::virtual_host::path::auth::Auth;
 
 pub(crate) type VetisFileCache = Cache<String, StaticFile>;
@@ -473,7 +473,7 @@ impl Path for StaticPath {
                     .directory(),
             );
 
-            #[cfg(feature = "basic_auth")]
+            #[cfg(feature = "auth")]
             if let Some(auth) = self.config.auth() {
                 if !auth
                     .authenticate(request.headers())

@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 #[cfg(target_env = "musl")]
 use mimalloc::MiMalloc;
-use vetis::{virtual_host::VirtualHostConfig, ServerConfig};
+use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig};
 
 #[global_allocator]
 #[cfg(target_env = "musl")]

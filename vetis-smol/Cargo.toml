@@ -8,9 +8,12 @@ homepage = "https://github.com/ararog/vetis"
 description = "Very Tiny Server with smol runtime"
 readme = "README.md"
 license = "MIT"
-keywords = ["http", "networking", "server", "rest-server"]
+keywords = ["http", "networking", "smol", "rest-server"]
 publish = true
 rust-version = "1.75.0"
+
+[package.metadata.docs.rs]
+all-features = true
 
 [package.metadata.wix]
 upgrade-guid = "76DF79DF-E1F9-40A7-89D1-3190562C7851"
@@ -24,7 +27,7 @@ default = [
   "rust-tls",
 ]
 
-basic-auth = ["vetis/basic-auth"]
+auth = ["vetis/auth"]
 static-files = ["vetis/static-files"]
 reverse-proxy = ["vetis/reverse-proxy", "dep:deboa-smol"]
 

@@ -64,8 +64,8 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident) => {
         async move {
             use vetis::{
-                errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHostConfig,
-                ServerConfig,
+                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
+                virtual_host::VirtualHostConfig,
             };
 
             use $from_crate::{
@@ -111,8 +111,8 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident, security_config => $security_config:expr) => {
         async move {
             use vetis::{
-                errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHostConfig,
-                ServerConfig,
+                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
+                virtual_host::VirtualHostConfig,
             };
 
             use $from_crate::{
@@ -159,8 +159,8 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident, security_config => $security_config:expr) => {
         async move {
             use vetis::{
-                config::{virtual_host::VirtualHostConfig, ListenerConfig, ServerConfig},
-                errors::{ConfigError, VetisError},
+                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
+                virtual_host::VirtualHostConfig,
             };
 
             use $from_crate::{
@@ -205,8 +205,8 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident) => {
         async move {
             use vetis::{
-                config::{virtual_host::VirtualHostConfig, ListenerConfig, ServerConfig},
-                errors::{ConfigError, VetisError},
+                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
+                virtual_host::VirtualHostConfig,
             };
 
             use $from_crate::{
@@ -261,7 +261,7 @@ macro_rules! http {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::config::SecurityConfig;
 ///
 /// let security = security! {

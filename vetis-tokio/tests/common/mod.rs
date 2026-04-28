@@ -1,7 +1,7 @@
 #![allow(unreachable_code, dead_code)]
 
 use deboa_tokio::HttpVersion;
-use vetis::Protocol;
+use vetis::server::Protocol;
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../../../certs/ca.der");
 

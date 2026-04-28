@@ -3,9 +3,8 @@ use std::error::Error;
 use vetis::errors::{ConfigError, VetisError};
 
 use vetis::{
-    listener::ListenerConfig,
-    virtual_host::{SecurityConfig, VirtualHostConfig},
-    ServerConfig,
+    listener::ListenerConfig, security::SecurityConfig, server::ServerConfig,
+    virtual_host::VirtualHostConfig,
 };
 
 use crate::tests::vetis_default_protocol;
@@ -139,7 +138,7 @@ mod reverse_proxy_tests {
     }
 }
 
-#[cfg(feature = "basic-auth")]
+#[cfg(feature = "auth")]
 mod auth_tests {
     use vetis::virtual_host::path::auth::{Algorithm, BasicAuthConfig};
 

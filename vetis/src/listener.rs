@@ -4,7 +4,8 @@ use serde::Deserialize;
 
 use crate::{
     errors::{ConfigError, VetisError},
-    Protocol, VetisVirtualHosts,
+    server::Protocol,
+    VetisVirtualHosts,
 };
 
 /// A pinned future that resolves to a result of type T or a VetisError
@@ -36,7 +37,7 @@ pub trait Listener {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::config::{ListenerConfig, Protocol};
 ///
 /// let config = ListenerConfig::builder()
@@ -57,7 +58,7 @@ impl ListenerConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::ListenerConfig;
     ///
     /// let config = ListenerConfig::builder()
@@ -78,7 +79,7 @@ impl ListenerConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::ListenerConfig;
     ///
     /// let config = ListenerConfig::builder()
@@ -94,7 +95,7 @@ impl ListenerConfigBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::{ListenerConfig, Protocol};
     ///
     /// #[cfg(feature = "http1")]
@@ -131,7 +132,7 @@ impl ListenerConfigBuilder {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use vetis::config::{ListenerConfig, Protocol};
 ///
 /// let config = ListenerConfig::builder()
@@ -160,7 +161,7 @@ impl ListenerConfig {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::config::ListenerConfig;
     ///
     /// let builder = ListenerConfig::builder();

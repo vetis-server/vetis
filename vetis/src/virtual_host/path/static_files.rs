@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Deserializer};
 
-#[cfg(feature = "basic-auth")]
+#[cfg(feature = "auth")]
 use crate::auth::BasicAuthConfig;
 use crate::errors::{ConfigError, VetisError};
 
@@ -117,7 +117,7 @@ pub struct StaticPathConfigBuilder {
     extensions: String,
     directory: String,
     index_files: Option<Vec<String>>,
-    #[cfg(feature = "basic-auth")]
+    #[cfg(feature = "auth")]
     basic_auth: Option<BasicAuthConfig>,
     cache: Option<StaticPathCache>,
 }
@@ -163,7 +163,7 @@ impl StaticPathConfigBuilder {
         self
     }
 
-    #[cfg(feature = "basic-auth")]
+    #[cfg(feature = "auth")]
     /// Allow set the authentication of the static path.
     ///
     /// # Returns
@@ -215,7 +215,7 @@ impl StaticPathConfigBuilder {
             extensions: self.extensions,
             directory: self.directory,
             index_files: self.index_files,
-            #[cfg(feature = "basic-auth")]
+            #[cfg(feature = "auth")]
             basic_auth: self.basic_auth,
             cache: self.cache,
         })
@@ -229,7 +229,7 @@ pub struct StaticPathConfig {
     extensions: String,
     directory: String,
     index_files: Option<Vec<String>>,
-    #[cfg(feature = "basic-auth")]
+    #[cfg(feature = "auth")]
     basic_auth: Option<BasicAuthConfig>,
     cache: Option<StaticPathCache>,
 }
@@ -246,7 +246,7 @@ impl StaticPathConfig {
             extensions: ".html".to_string(),
             directory: ".".to_string(),
             index_files: None,
-            #[cfg(feature = "basic-auth")]
+            #[cfg(feature = "auth")]
             basic_auth: None,
             cache: Some(StaticPathCache::default()),
         }
@@ -288,7 +288,7 @@ impl StaticPathConfig {
         &self.index_files
     }
 
-    #[cfg(feature = "basic-auth")]
+    #[cfg(feature = "auth")]
     /// Returns basic_auth
     ///
     /// # Returns

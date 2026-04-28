@@ -4,8 +4,10 @@ use http::HeaderMap;
 
 use hyper_body_utils::HttpBody;
 use vetis::{
-    errors::VetisError, listener::Listener, Protocol, Server, ServerConfig, VetisRwLock,
-    VetisVirtualHosts,
+    errors::VetisError,
+    listener::Listener,
+    server::{Protocol, Server, ServerConfig},
+    VetisRwLock, VetisVirtualHosts,
 };
 
 use crate::{listener::ServerListener, virtual_host::VirtualHost};

@@ -8,7 +8,7 @@ use hyper_body_utils::HttpBody;
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use bytes::Bytes;
 /// use http_body_util::Full;
 /// use http::StatusCode;
@@ -38,7 +38,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     /// use http::StatusCode;
     ///
@@ -57,7 +57,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     /// use http::Version;
     ///
@@ -74,7 +74,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let response = Response::builder()
@@ -104,7 +104,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let mut headers = http::HeaderMap::new();
@@ -123,7 +123,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let response = Response::builder()
@@ -141,7 +141,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let response = Response::builder()
@@ -159,7 +159,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let response = Response::builder()
@@ -177,7 +177,7 @@ impl ResponseBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let response = Response::builder()
@@ -206,7 +206,7 @@ impl ResponseBuilder {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,no_run
 /// use bytes::Bytes;
 /// use http_body_util::Full;
 /// use http::StatusCode;
@@ -234,7 +234,7 @@ impl Response {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let builder = Response::builder();
@@ -255,7 +255,7 @@ impl Response {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust,no_run
     /// use vetis::Response;
     ///
     /// let response = Response::builder()

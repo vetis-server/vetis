@@ -6,11 +6,12 @@ use http::StatusCode;
 use vetis::{
     errors::{ConfigError, VetisError},
     listener::ListenerConfig,
-    virtual_host::{path::static_files::StaticPathConfig, SecurityConfig, VirtualHostConfig},
-    ServerConfig,
+    security::SecurityConfig,
+    server::ServerConfig,
+    virtual_host::{path::static_files::StaticPathConfig, VirtualHostConfig},
 };
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "auth")]
 use crate::server::virtual_host::path::auth::BasicAuthConfig;
 
 use crate::{
@@ -225,7 +226,7 @@ async fn test_not_found() -> Result<(), Box<dyn Error>> {
     do_not_found().await
 }
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "auth")]
 async fn do_basic_auth(
     username: Option<String>,
     password: Option<String>,
@@ -322,13 +323,13 @@ async fn do_basic_auth(
     Ok(())
 }
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "auth")]
 #[tokio::test]
 async fn test_invalid_basic_auth() -> Result<(), Box<dyn Error>> {
     do_basic_auth(None, None).await
 }
 
-#[cfg(feature = "basic_auth")]
+#[cfg(feature = "auth")]
 #[tokio::test]
 async fn test_valid_basic_auth() -> Result<(), Box<dyn Error>> {
     do_basic_auth(Some("rogerio".to_string()), Some("rpa78@rio!".to_string())).await

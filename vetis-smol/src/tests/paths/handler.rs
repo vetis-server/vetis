@@ -8,8 +8,10 @@ use macro_rules_attribute::apply;
 use smol_macros::test;
 use vetis::{
     listener::ListenerConfig,
-    virtual_host::{handler_fn, SecurityConfig, VirtualHostConfig},
-    Response, ServerConfig,
+    security::SecurityConfig,
+    server::ServerConfig,
+    virtual_host::{handler_fn, VirtualHostConfig},
+    Response,
 };
 
 use crate::{

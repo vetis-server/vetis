@@ -2,12 +2,13 @@ use hyper::StatusCode;
 
 use vetis::{
     listener::ListenerConfig,
+    security::SecurityConfig,
+    server::{Protocol, ServerConfig},
     virtual_host::{
         handler_fn,
         path::{proxy::ProxyPathConfig, static_files::StaticPathConfig},
-        SecurityConfig, VirtualHostConfig,
+        VirtualHostConfig,
     },
-    Protocol, ServerConfig,
 };
 
 use vetis_tokio::{
