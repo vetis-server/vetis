@@ -17,7 +17,6 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 ## Why VeTiS?
 
 - **Minimalist Design**: Focus on what matters - serving HTTP requests efficiently
-- **Flexible Runtime**: Choose between Tokio or Smol async runtimes
 - **Protocol Support**: Full HTTP/1, HTTP/2, and HTTP/3 implementation
 - **Secure by Default**: Built-in TLS support with modern cryptography
 - **Zero-Cost Abstractions**: Leverage Rust's performance without overhead
@@ -28,22 +27,15 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 Add VeTiS to your `Cargo.toml`:
 
 ```toml
-vetis = { version = "0.1.0", features = ["tokio-rt", "http2", "tokio-rust-tls"] }
+vetis = { version = "0.1.0", features = ["http2", "rust-tls"] }
 ```
-
-## Runtimes
-
-- [tokio](https://github.com/tokio-rs/tokio)
-- [smol](https://github.com/smol-rs/smol)
 
 ## Crate features
 
-- tokio-rt (default)
-- smol-rt
 - http1
 - http2 (default)
 - http3
-- tokio-rust-tls (default)
+- rust-tls (default)
 - static-files
 - reverse-proxy
 - auth
@@ -56,11 +48,6 @@ Here's how simple it is to create a web server with VeTiS:
 
 ```rust
 use hyper::StatusCode;
-
-#[cfg(feature = "smol")]
-use macro_rules_attribute::apply;
-#[cfg(feature = "smol")]
-use smol_macros::main;
 
 use vetis::{
     config::server::{
@@ -79,18 +66,10 @@ use vetis::{
 };
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
-
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
 
-#[cfg(feature = "tokio")]
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-#[cfg(feature = "smol")]
-#[apply(main!)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     run().await
 }
