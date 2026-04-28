@@ -8,8 +8,8 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "**" ]
-    # paths-ignore:
-    #   - ".github/workflows/**"
+    paths-ignore:
+      - ".github/workflows/**"
 
 jobs:
   build:

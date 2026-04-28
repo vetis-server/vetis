@@ -21,156 +21,21 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6
-
-    - name: Setup Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.12'
-
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      if: matrix.os != 'windows-latest'
-      with:
-        ruby-version: '3.1'
-
-    - name: Setup Ruby (Windows)
-      uses: oxidize-rb/actions/setup-ruby-and-rust@v1
-      if: matrix.os == 'windows-latest'
-      with:
-        ruby-version: '3.1'
-
-    - name: Setup PHP
-      # Use the shivammathur/setup-php action to install a specific PHP version and extensions
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.4'
-        extensions: fpm
-
+    
     - uses: Swatinem/rust-cache@v2
 
-    - name: Run vetis tests (tokio)
+    - name: Run vetis-tokio tests
       run: |
-        cd vetis
-        cargo test --features "http1 tokio-rt tokio-rust-tls static-files reverse-proxy auth __interface_wsgi" --no-default-features
-        cargo test --features "http2 tokio-rt tokio-rust-tls static-files reverse-proxy auth __interface_wsgi" --no-default-features
-        cargo test --features "http3 tokio-rt tokio-rust-tls static-files reverse-proxy auth __interface_wsgi" --no-default-features
+        cd vetis-tokio
+        cargo test --features "http1 rust-tls static-files reverse-proxy auth" --no-default-features
         cd ..
 
     - name: Run vetis tests (smol)
       run: |
-        cd vetis
-        cargo test --features "http1 smol-rt smol-rust-tls static-files reverse-proxy auth __interface_wsgi_smol" --no-default-features
-        cargo test --features "http2 smol-rt smol-rust-tls static-files reverse-proxy auth __interface_wsgi_smol" --no-default-features
-        cargo test --features "http3 smol-rt smol-rust-tls static-files reverse-proxy auth __interface_wsgi_smol" --no-default-features
+        cd vetis-smol
+        cargo test --features "http1 rust-tls static-files reverse-proxy auth" --no-default-features
         cd ..
-
-    - name: Run vetis-macros tests (tokio)
-      run: |
-        cd vetis-macros
-        cargo test --features "tokio-rt" --no-default-features
-        cd ..
-        
-    - name: Run vetis-macros tests (smol)
-      run: |
-        cd vetis-macros
-        cargo test --features "smol-rt" --no-default-features
-        cd ..
-        
-    - name: Run vetis-core tests (tokio)
-      run: |
-        cd vetis-core
-        cargo test --features "tokio-rt" --no-default-features
-        cd .. 
-
-    - name: Run vetis-core tests (smol)
-      run: |
-        cd vetis-core
-        cargo test --features "smol-rt" --no-default-features
-        cd .. 
-        
-    - name: Run vetis-asgi tests (tokio)
-      run: |
-        cd vetis-asgi
-        cargo test --features "tokio-rt" --no-default-features
-        cd ..
-
-    - name: Run vetis-asgi tests (smol)
-      run: |
-        cd vetis-asgi
-        cargo test --features "smol-rt" --no-default-features
-        cd ..
-
-    - name: Run vetis-fcgi tests (tokio)
-      run: |
-        cd vetis-fcgi
-        cargo test --features "tokio-rt" --no-default-features
-        cd ..
-        
-    - name: Run vetis-fcgi tests (smol)
-      run: |
-        cd vetis-fcgi
-        cargo test --features "smol-rt" --no-default-features
-        cd ..        
-    - name: Run vetis-rack tests (tokio)
-      run: |
-        cd vetis-rack
-        cargo test --features "tokio-rt" --no-default-features
-        cd ..
-
-    - name: Run vetis-rack tests (smol)
-      run: |
-        cd vetis-rack
-        cargo test --features "smol-rt" --no-default-features
-        cd ..
-        
-    - name: Run vetis-rsgi tests (tokio)
-      run: |
-        cd vetis-rsgi
-        cargo test --features "tokio-rt" --no-default-features
-        cd ..
-
-    - name: Run vetis-rsgi tests (smol)
-      run: |
-        cd vetis-rsgi
-        cargo test --features "smol-rt" --no-default-features
-        cd ..
-
-    - name: Run vetis-scgi tests (tokio)
-      run: |
-        cd vetis-scgi
-        cargo test --features "tokio-rt" --no-default-features
-        cd ..
-        
-    - name: Run vetis-scgi tests (smol)
-      run: |
-        cd vetis-scgi
-        cargo test --features "smol-rt" --no-default-features
-        cd ..
-        
-    # - name: Run vetis-sapi tests (tokio)
-    #   run: |
-    #     cd vetis-sapi
-    #     cargo test --features "tokio-rt" --no-default-features
-    #     cd ..
-        
-    # - name: Run vetis-sapi tests (smol)
-    #   run: |
-    #     cd vetis-sapi
-    #     cargo test --features "smol-rt" --no-default-features
-    #     cd ..
-
-    - name: Run vetis-wsgi tests (tokio)
-      run: |
-        cd vetis-wsgi
-        cargo test --features "tokio-rt" --no-default-features
-        cd ..
-        
-    - name: Run vetis-wsgi tests (smol)
-      run: |
-        cd vetis-wsgi
-        cargo test --features "smol-rt" --no-default-features
-        cd ..
-
+                        
   test-matrix:
     name: Test ${{ matrix.platform.os-name }} with rust ${{ matrix.toolchain }}
     runs-on: ${{ matrix.platform.runs-on }}
@@ -181,54 +46,54 @@ jobs:
           - os-name: FreeBSD-x86_64
             runs-on: ubuntu-24.04
             target: x86_64-unknown-freebsd
-            features: tokio-rt tokio-rust-tls http1            
+            features: rust-tls http1            
             skip-tests: true
           - os-name: Linux-x86_64
             runs-on: ubuntu-24.04
             target: x86_64-unknown-linux-musl
-            features: tokio-rt tokio-rust-tls http1            
+            features: rust-tls http1            
           - os-name: Linux-aarch64
             runs-on: ubuntu-24.04
             target: aarch64-unknown-linux-musl
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: Linux-arm
             runs-on: ubuntu-24.04
             target: arm-unknown-linux-musleabi
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: Linux-i686
             runs-on: ubuntu-24.04
             target: i686-unknown-linux-musl
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
             skip-tests: true
           - os-name: Linux-powerpc
             runs-on: ubuntu-24.04
             target: powerpc-unknown-linux-gnu
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
             skip-tests: true
           - os-name: Linux-powerpc64
             runs-on: ubuntu-24.04
             target: powerpc64-unknown-linux-gnu
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
             skip-tests: true
           - os-name: Linux-powerpc64le
             runs-on: ubuntu-24.04
             target: powerpc64le-unknown-linux-gnu
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
             skip-tests: true
           - os-name: Linux-riscv64
             runs-on: ubuntu-24.04
             target: riscv64gc-unknown-linux-gnu
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: Linux-s390x
             runs-on: ubuntu-24.04
             target: s390x-unknown-linux-gnu
             skip-tests: true
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: NetBSD-x86_64
             runs-on: ubuntu-24.04
             target: x86_64-unknown-netbsd
             skip-tests: true
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
             # Use a cross git commit that includes the fix for -lexecinfo on NetBSD
             # (not yet in a released version of cross).
             cross-version: 588b3c99db52b5a9c5906fab96cfadcf1bde7863
@@ -236,24 +101,24 @@ jobs:
             runs-on: windows-latest
             target: aarch64-pc-windows-msvc
             skip-tests: true
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: Windows-i686
             runs-on: windows-latest
             target: i686-pc-windows-msvc
             skip-tests: true
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: Windows-x86_64
             runs-on: windows-latest
             target: x86_64-pc-windows-msvc
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: macOS-x86_64
             runs-on: macOS-latest
             target: x86_64-apple-darwin
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
           - os-name: macOS-aarch64
             runs-on: macOS-latest
             target: aarch64-apple-darwin
-            features: tokio-rt tokio-rust-tls http1
+            features: rust-tls http1
         toolchain:
           - stable
         include:
