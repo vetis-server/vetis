@@ -26,6 +26,9 @@ pub mod utils;
 /// Virtual host configuration and management module
 pub mod virtual_host;
 
+/// A type alias for Result returned by vetis functions
+pub type VetisResult<T> = Result<T, crate::errors::VetisError>;
+
 /// A type alias for a read-write lock wrapping a value
 pub type VetisRwLock<T> = RwLock<T>;
 

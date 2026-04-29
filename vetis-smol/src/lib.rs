@@ -9,7 +9,10 @@ use async_signal::{Signal, Signals};
 use futures_lite::prelude::*;
 use log::{error, info};
 use signal_hook::low_level;
-use vetis::errors::{VetisError, VirtualHostError};
+use vetis::{
+    errors::{VetisError, VirtualHostError},
+    VetisResult,
+};
 
 use crate::{http::HttpServer, virtual_host::VirtualHost};
 /// HTTP server module
@@ -46,11 +49,14 @@ pub use vetis::{
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::{Vetis, config::ServerConfig};
+/// use macro_rules_attribute::apply;
+/// use smol_macros::main;
+/// use vetis::server::ServerConfig;
+/// use vetis_smol::Vetis;
 ///
-/// #[tokio::main]
+/// #[apply(main!)]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let config = ServerConfig::builder().build();
+///     let config = ServerConfig::builder().build()?;
 ///     let mut server = Vetis::new(config);
 ///     
 ///     // Add virtual hosts...
@@ -75,10 +81,15 @@ impl Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// use vetis::server::ServerConfig;
+    /// use vetis_smol::Vetis;
     ///
-    /// let config = ServerConfig::builder().build();
-    /// let server = Vetis::new(config);
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let config = ServerConfig::builder().build()?;
+    ///     let server = Vetis::new(config);
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn new(config: ServerConfig) -> Vetis {
         Vetis { config, virtual_hosts: Arc::new(VetisRwLock::new(HashMap::new())), instance: None }
@@ -96,32 +107,46 @@ impl Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
+    /// use http::StatusCode;
+    ///
+    /// use macro_rules_attribute::apply;
+    /// use smol_macros::main;
+    ///
     /// use vetis::{
-    ///     Vetis,
-    ///     config::{ServerConfig, VirtualHostConfig},
-    ///     server::virtual_host::{VirtualHost, handler_fn},
+    ///     server::ServerConfig,
+    ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
     /// };
     ///
-    /// let config = ServerConfig::builder().build();
-    /// let mut server = Vetis::new(config);
+    /// use vetis_smol::{Vetis, virtual_host::{VirtualHost, path::HandlerPath}};
     ///
-    /// let vhost_config = VirtualHostConfig::builder()
-    ///     .hostname("example.com")
-    ///     .port(80)
-    ///     .build()?;
+    /// #[apply(main!)]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let config = ServerConfig::builder().build()?;
+    ///     let mut server = Vetis::new(config);
     ///
-    /// let mut vhost = VirtualHost::new(vhost_config);
+    ///     let vhost_config = VirtualHostConfig::builder()
+    ///         .hostname("example.com")
+    ///         .port(80)
+    ///         .build()?;
     ///
-    /// let mut root_path = HandlerPath::new("/", handler_fn(|request| async move {
-    ///     let response = vetis::Response::builder()
-    ///         .status(StatusCode::OK)
-    ///         .text("Hello, World!");
-    ///     Ok(response)
-    /// }));
+    ///     let mut vhost = VirtualHost::new(vhost_config);
     ///
-    /// vhost.add_path(root_path);
+    ///     let mut root_path = HandlerPath::builder()
+    ///         .uri("/")
+    ///         .handler(handler_fn(|request| async move {
+    ///             let response = vetis::Response::builder()
+    ///                 .status(StatusCode::OK)
+    ///                 .text("Hello, World!");
+    ///             Ok(response)
+    ///         }))
+    ///         .build()?;
     ///
-    /// server.add_virtual_host(vhost).await;
+    ///     vhost.add_path(root_path);
+    ///
+    ///     server.add_virtual_host(vhost).await;
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub async fn add_virtual_host(&mut self, virtual_host: VirtualHost) {
         let key = (Arc::from(virtual_host.hostname()), virtual_host.port());
@@ -164,11 +189,14 @@ impl Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// use macro_rules_attribute::apply;
+    /// use smol_macros::main;
+    /// use vetis::server::ServerConfig;
+    /// use vetis_smol::Vetis;
     ///
-    /// #[tokio::main]
+    /// #[apply(main!)]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
+    ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///     
     ///     // Add virtual hosts...
@@ -177,7 +205,7 @@ impl Vetis {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn run(&mut self) -> Result<(), VetisError> {
+    pub async fn run(&mut self) -> VetisResult<()> {
         self.start().await?;
 
         for listener in self
@@ -214,11 +242,14 @@ impl Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// use macro_rules_attribute::apply;
+    /// use smol_macros::main;    
+    /// use vetis::server::ServerConfig;
+    /// use vetis_smol::Vetis;
     ///
-    /// #[tokio::main]
+    /// #[apply(main!)]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
+    ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///     
     ///     // Add virtual hosts...
@@ -231,7 +262,7 @@ impl Vetis {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn start(&mut self) -> Result<(), VetisError> {
+    pub async fn start(&mut self) -> VetisResult<()> {
         if self
             .virtual_hosts
             .read()
@@ -271,11 +302,14 @@ impl Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::{Vetis, config::ServerConfig};
+    /// use macro_rules_attribute::apply;
+    /// use smol_macros::main;
+    /// use vetis::server::ServerConfig;
+    /// use vetis_smol::Vetis;
     ///
-    /// #[tokio::main]
+    /// #[apply(main!)]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
+    ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///     
     ///     server.start().await?;
@@ -284,7 +318,7 @@ impl Vetis {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn stop(&mut self) -> Result<(), VetisError> {
+    pub async fn stop(&mut self) -> VetisResult<()> {
         if let Some(instance) = &mut self.instance {
             instance
                 .stop()

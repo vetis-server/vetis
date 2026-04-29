@@ -130,7 +130,7 @@ impl ResponseBuilder {
     ///     .empty();
     /// ```    
     pub fn empty(self) -> Response {
-        self.body(HttpBody::from_text(""))
+        self.body(HttpBody::empty())
     }
 
     /// Sets the body from a text string and creates the final `Response`.

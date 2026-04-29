@@ -206,7 +206,7 @@ fn handle_http_request(
     resolver: RequestResolver<QuinnConnection, Bytes>,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
     client_addr: SocketAddr,
-) -> Result<(), VetisError> {
+) -> VetisResult<()> {
     let virtual_hosts = virtual_hosts.clone();
     smol::spawn(async move {
         let result = resolver

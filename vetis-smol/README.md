@@ -2,13 +2,13 @@
 
 [![Crates.io downloads](https://img.shields.io/crates/d/vetis-smol)](https://crates.io/crates/vetis-smol) [![crates.io](https://img.shields.io/crates/v/vetis-smol?style=flat-square)](https://crates.io/crates/vetis-smol) [![Build Status](https://github.com/ararog/vetis/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/ararog/vetis/actions/workflows/rust.yml) ![Crates.io MSRV](https://img.shields.io/crates/msrv/vetis-smol) [![Documentation](https://docs.rs/vetis-smol/badge.svg)](https://docs.rs/vetis-smol/latest/vetis-smol) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ararog/vetis/blob/main/LICENSE.md)  [![codecov](https://codecov.io/gh/ararog/vetis/graph/badge.svg?token=T0HSBAPVSI)](https://codecov.io/gh/ararog/vetis)
 
-**A blazingly fast, minimalist HTTP server built for modern Rust applications**
+## Smol Runtime Support for Vetis
 
-VeTiS is a lightweight yet powerful web server that brings simplicity and performance together. Designed with Rust's safety guarantees in mind, it delivers HTTP/1, HTTP/2, and HTTP/3 support with a clean, intuitive API that makes building web services a breeze.
+The goal of this crate is provide smol runtime support for Vetis.
 
 ## Quick Start
 
-Add VeTiS to your `Cargo.toml`:
+Add VeTiS and VeTiS-Smol to your `Cargo.toml`:
 
 ```toml
 vetis = { version = "0.1.0" }
@@ -29,7 +29,7 @@ vetis-smol = { version = "0.1.0", features = ["http2", "rust-tls"] }
 
 Here's how simple it is to create a web server with VeTiS:
 
-```rust
+```rust,no_run
 use hyper::StatusCode;
 
 use macro_rules_attribute::apply;
@@ -37,21 +37,19 @@ use smol_macros::main;
 
 use vetis::{
     listener::ListenerConfig,
+    security::SecurityConfig,
     server::{Protocol, ServerConfig},
-    virtual_host::{
-        handler_fn,
-        SecurityConfig, VirtualHostConfig,
-    },
+    virtual_host::{handler_fn, VirtualHostConfig},
 };
 
-use vetis_tokio::{
+use vetis_smol::{
     virtual_host::{path::HandlerPath, VirtualHost},
     Vetis,
 };
 
-pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
-pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
-pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
+pub(crate) const CA_CERT: &[u8] = include_bytes!("../../certs/ca.der");
+pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../../certs/server.der");
+pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../certs/server.key.der");
 
 #[apply(main!)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

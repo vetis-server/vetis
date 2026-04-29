@@ -8,7 +8,7 @@ use http::header;
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
-use vetis::{errors::VetisError, listener::ListenerConfig, server::Protocol, Request};
+use vetis::{errors::VetisError, listener::ListenerConfig, server::Protocol, Request, VetisResult};
 
 use peekable::tokio::AsyncPeekable;
 
@@ -38,7 +38,7 @@ use crate::{
 
 /// TCP listener
 pub struct TcpListener {
-    task: Option<JoinHandle<Result<(), VetisError>>>,
+    task: Option<JoinHandle<VetisResult<()>>>,
     config: ListenerConfig,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
 }
@@ -140,7 +140,7 @@ impl TcpListener {
         protocol: Protocol,
         listener: tokio::net::TcpListener,
         virtual_hosts: VetisVirtualHosts<VirtualHost>,
-    ) -> Result<JoinHandle<Result<(), VetisError>>, VetisError> {
+    ) -> Result<JoinHandle<VetisResult<()>>, VetisError> {
         let alpn = vec![
             #[cfg(feature = "http1")]
             b"http/1.1".to_vec(),
@@ -382,7 +382,7 @@ fn handle_http1_request<T>(
     io: TokioIo<T>,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
     client_addr: SocketAddr,
-) -> Result<(), VetisError>
+) -> VetisResult<()>
 where
     T: AsyncRead + AsyncWrite + Unpin + Send + 'static,
 {
@@ -412,7 +412,7 @@ pub fn handle_http2_request<T>(
     io: TokioIo<T>,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
     client_addr: SocketAddr,
-) -> Result<(), VetisError>
+) -> VetisResult<()>
 where
     T: AsyncRead + AsyncWrite + Unpin + Send + 'static,
 {

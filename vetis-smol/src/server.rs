@@ -54,7 +54,7 @@ use crate::{VirtualHost, VetisVirtualHosts};
 /// let mut server = Vetis::new(config);
 ///
 /// // Start the server
-/// async fn run_server() -> Result<(), VetisError> {
+/// async fn run_server() -> VetisResult<()> {
 ///     server.start().await?;
 ///     // Server is running...
 ///     server.stop().await?;
@@ -84,7 +84,7 @@ pub trait Server {
     ///
     /// Returns an error if the server fails to start, bind to addresses,
     /// or initialize TLS.
-    fn start(&mut self) -> impl Future<Output = Result<(), VetisError>>;
+    fn start(&mut self) -> impl Future<Output = VetisResult<()>>;
 
     /// Stops the server gracefully.
     ///
@@ -94,5 +94,5 @@ pub trait Server {
     /// # Errors
     ///
     /// Returns an error if the server fails to stop properly.
-    fn stop(&mut self) -> impl Future<Output = Result<(), VetisError>>;
+    fn stop(&mut self) -> impl Future<Output = VetisResult<()>>;
 }

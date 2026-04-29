@@ -2,11 +2,7 @@ use std::future::Future;
 
 use serde::Deserialize;
 
-use crate::{
-    errors::{ConfigError, VetisError},
-    listener::ListenerConfig,
-    VetisVirtualHosts,
-};
+use crate::{errors::ConfigError, listener::ListenerConfig, VetisResult, VetisVirtualHosts};
 
 /// Supported HTTP protocols.
 ///
@@ -67,7 +63,7 @@ pub trait Server {
     ///
     /// Returns an error if the server fails to start, bind to addresses,
     /// or initialize TLS.
-    fn start(&mut self) -> impl Future<Output = Result<(), VetisError>>;
+    fn start(&mut self) -> impl Future<Output = VetisResult<()>>;
 
     /// Stops the server gracefully.
     ///
@@ -77,7 +73,7 @@ pub trait Server {
     /// # Errors
     ///
     /// Returns an error if the server fails to stop properly.
-    fn stop(&mut self) -> impl Future<Output = Result<(), VetisError>>;
+    fn stop(&mut self) -> impl Future<Output = VetisResult<()>>;
 }
 
 /// Builder for creating `ServerConfig` instances.
@@ -162,13 +158,15 @@ impl ServerConfigBuilder {
 /// ```rust,no_run
 /// use vetis::{listener::ListenerConfig, server::ServerConfig};
 ///
-/// let config = ServerConfig::builder()
-///     .add_listener(ListenerConfig::builder().port(80).build().unwrap())
-///     .add_listener(ListenerConfig::builder().port(443).ssl(true).build().unwrap())
-///     .build()
-///     .unwrap();
+/// fn main() -> Result<(), Box<dyn Error>> {
+///     let config = ServerConfig::builder()
+///         .add_listener(ListenerConfig::builder().port(80).build()?)
+///         .add_listener(ListenerConfig::builder().port(443).build()?)
+///         .build()?;
 ///
-/// println!("Server has {} listeners", config.listeners().len());
+///     println!("Server has {} listeners", config.listeners().len());
+///     Ok(())
+/// }
 /// ```
 #[derive(Clone, Default, Deserialize)]
 pub struct ServerConfig {
@@ -183,9 +181,13 @@ impl ServerConfig {
     /// ```rust,no_run
     /// use vetis::{listener::ListenerConfig, server::ServerConfig};
     ///
-    /// let config = ServerConfig::builder()
-    ///     .add_listener(ListenerConfig::builder().port(8080).build())
-    ///     .build();
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let listener_config = ListenerConfig::builder().port(8080).build()?;
+    ///     let server_config = ServerConfig::builder()
+    ///         .add_listener(listener_config)
+    ///         .build()?;
+    ///     Ok(())
+    /// }
     /// ```
     pub fn builder() -> ServerConfigBuilder {
         ServerConfigBuilder { listeners: vec![] }
@@ -198,14 +200,14 @@ impl ServerConfig {
     /// ```rust,no_run
     /// use vetis::{listener::ListenerConfig, server::ServerConfig};
     ///
-    /// let config = ServerConfig::builder()
-    ///     .add_listener(ListenerConfig::builder().port(80).build())
-    ///     .build()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Box<dyn std::error:Error>> {
+    ///     let config = ServerConfig::builder()
+    ///         .add_listener(ListenerConfig::builder().port(80).build()?)
+    ///         .build()?;
     ///
-    /// for listener in config.listeners() {
-    ///     println!("Listening on port {}", listener.port());
-    /// }
+    ///     for listener in config.listeners() {
+    ///         println!("Listening on port {}", listener.port());
+    ///     }
     /// ```
     pub fn listeners(&self) -> &Vec<ListenerConfig> {
         &self.listeners

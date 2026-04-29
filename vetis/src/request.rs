@@ -81,7 +81,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use vetis::Request;
+    /// use vetis::{Request, VetisResult>;
     ///
     /// async fn handler(mut request: Request) -> VetisResult<vetis::Response> {
     ///     request.headers_mut().insert("x-custom-header", "value".parse()?);

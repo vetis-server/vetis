@@ -29,7 +29,7 @@ vetis-tokio = { version = "0.1.0", features = ["http2", "rust-tls"] }
 
 Here's how simple it is to create a web server with VeTiS:
 
-```rust
+```rust,no_run
 use hyper::StatusCode;
 
 use vetis::{

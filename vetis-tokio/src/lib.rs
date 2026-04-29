@@ -5,7 +5,10 @@ compile_error!("http2 and http3 requires rust-tls!");
 
 use log::{error, info};
 use std::{collections::HashMap, sync::Arc};
-use vetis::errors::{VetisError, VirtualHostError};
+use vetis::{
+    errors::{VetisError, VirtualHostError},
+    VetisResult,
+};
 
 use crate::{http::HttpServer, virtual_host::VirtualHost};
 /// HTTP module
@@ -45,7 +48,7 @@ pub use vetis::{
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let config = ServerConfig::builder().build().unwrap();
+///     let config = ServerConfig::builder().build()?;
 ///     let mut server = Vetis::new(config);
 ///
 ///     // Add virtual hosts...
@@ -73,8 +76,10 @@ impl Vetis {
     /// use vetis::server::ServerConfig;
     /// use vetis_tokio::Vetis;
     ///
-    /// let config = ServerConfig::builder().build().unwrap();
+    /// let config = ServerConfig::builder().build()?;
     /// let server = Vetis::new(config);
+    ///
+    /// Ok(())
     /// ```
     pub fn new(config: ServerConfig) -> Vetis {
         Vetis { config, virtual_hosts: Arc::new(VetisRwLock::new(HashMap::new())), instance: None }
@@ -101,14 +106,13 @@ impl Vetis {
     ///
     /// use vetis_tokio::{Vetis, virtual_host::{VirtualHost, path::HandlerPath}};
     ///
-    /// let config = ServerConfig::builder().build().unwrap();
+    /// let config = ServerConfig::builder().build()?;
     /// let mut server = Vetis::new(config);
     ///
     /// let vhost_config = VirtualHostConfig::builder()
     ///     .hostname("example.com")
     ///     .port(80)
-    ///     .build()
-    ///     .unwrap();
+    ///     .build()?;
     ///
     /// let mut vhost = VirtualHost::new(vhost_config);
     ///
@@ -120,13 +124,15 @@ impl Vetis {
     ///             .text("Hello, World!");
     ///         Ok(response)
     ///     }))
-    ///     .build()
-    ///     .unwrap();
+    ///     .build()?;
     ///
     /// vhost.add_path(root_path);
+    ///
     /// async move {
-    ///   server.add_virtual_host(vhost).await;
+    ///     server.add_virtual_host(vhost).await;
     /// };
+    ///
+    /// Ok(())
     /// ```
     pub async fn add_virtual_host(&mut self, virtual_host: VirtualHost) {
         let key = (Arc::from(virtual_host.hostname()), virtual_host.port());
@@ -174,7 +180,7 @@ impl Vetis {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build().unwrap();
+    ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///
     ///     // Add virtual hosts...
@@ -183,7 +189,7 @@ impl Vetis {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn run(&mut self) -> Result<(), VetisError> {
+    pub async fn run(&mut self) -> VetisResult<()> {
         self.start().await?;
 
         for listener in self
@@ -222,7 +228,7 @@ impl Vetis {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
+    ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///
     ///     // Add virtual hosts...
@@ -235,7 +241,7 @@ impl Vetis {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn start(&mut self) -> Result<(), VetisError> {
+    pub async fn start(&mut self) -> VetisResult<()> {
         if self
             .virtual_hosts
             .read()
@@ -280,7 +286,7 @@ impl Vetis {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let config = ServerConfig::builder().build();
+    ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///
     ///     server.start().await?;
@@ -289,7 +295,7 @@ impl Vetis {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn stop(&mut self) -> Result<(), VetisError> {
+    pub async fn stop(&mut self) -> VetisResult<()> {
         if let Some(instance) = &mut self.instance {
             instance
                 .stop()

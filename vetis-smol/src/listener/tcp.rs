@@ -10,7 +10,7 @@ use hyper_body_utils::HttpBody;
 #[cfg(feature = "http1")]
 use hyper_util::rt::TokioIo;
 use log::{debug, error, info};
-use vetis::{errors::VetisError, listener::ListenerConfig, server::Protocol, Request};
+use vetis::{errors::VetisError, listener::ListenerConfig, server::Protocol, Request, VetisResult};
 
 use peekable::future::AsyncPeekable;
 
@@ -141,7 +141,7 @@ impl TcpListener {
         protocol: Protocol,
         listener: smol::net::TcpListener,
         virtual_hosts: VetisVirtualHosts<VirtualHost>,
-    ) -> Result<Task<()>, VetisError> {
+    ) -> VetisResult<Task<()>> {
         let alpn = vec![
             #[cfg(feature = "http1")]
             b"http/1.1".to_vec(),
@@ -275,7 +275,7 @@ async fn process_request(
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
     port: Arc<u16>,
     client_addr: SocketAddr,
-) -> Result<http::Response<HttpBody>, VetisError> {
+) -> VetisResult<http::Response<HttpBody>> {
     let host = req
         .headers()
         .get(header::HOST);
@@ -379,7 +379,7 @@ fn handle_http1_request<T>(
     io: FuturesIo<T>,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
     client_addr: SocketAddr,
-) -> Result<(), VetisError>
+) -> VetisResult<()>
 where
     T: AsyncRead + AsyncWrite + Unpin + Send + 'static,
 {
@@ -409,7 +409,7 @@ pub fn handle_http2_request<T>(
     io: FuturesIo<T>,
     virtual_hosts: VetisVirtualHosts<VirtualHost>,
     client_addr: SocketAddr,
-) -> Result<(), VetisError>
+) -> VetisResult<()>
 where
     T: AsyncRead + AsyncWrite + Unpin + Send + 'static,
 {

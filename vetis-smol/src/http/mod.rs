@@ -4,6 +4,7 @@ use vetis::{
     errors::VetisError,
     listener::Listener,
     server::{Protocol, Server, ServerConfig},
+    VetisResult,
 };
 
 use crate::{listener::ServerListener, virtual_host::VirtualHost, VetisRwLock, VetisVirtualHosts};
@@ -49,8 +50,8 @@ impl Server for HttpServer {
     ///
     /// # Returns
     ///
-    /// * `Result<(), VetisError>` - A result containing `()` if the server started successfully, or a `VetisError` if the server failed to start.
-    async fn start(&mut self) -> Result<(), VetisError> {
+    /// * `VetisResult<()>` - A result containing `()` if the server started successfully, or a `VetisError` if the server failed to start.
+    async fn start(&mut self) -> VetisResult<()> {
         let mut listeners: Vec<ServerListener> = self
             .config
             .listeners()
@@ -104,8 +105,8 @@ impl Server for HttpServer {
     ///
     /// # Returns
     ///
-    /// * `Result<(), VetisError>` - A result containing `()` if the server stopped successfully, or a `VetisError` if the server failed to stop.
-    async fn stop(&mut self) -> Result<(), VetisError> {
+    /// * `VetisResult<()>` - A result containing `()` if the server stopped successfully, or a `VetisError` if the server failed to stop.
+    async fn stop(&mut self) -> VetisResult<()> {
         for listener in self
             .listeners
             .iter_mut()
