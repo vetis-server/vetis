@@ -15,11 +15,11 @@ mod tls_tests {
     use crate::{
         tests::{CA_CERT, SERVER_CERT, SERVER_KEY},
         tls::TlsFactory,
-        virtual_host::{path::HandlerPath, VirtualHost},
+        virtual_host::{path::HandlerPath, VirtualHostImpl},
         VetisVirtualHosts,
     };
 
-    fn create_test_virtual_hosts() -> VetisVirtualHosts<VirtualHost> {
+    fn create_test_virtual_hosts() -> VetisVirtualHosts<VirtualHostImpl> {
         let security_config = SecurityConfig::builder()
             .cert_from_bytes(SERVER_CERT.to_vec())
             .key_from_bytes(SERVER_KEY.to_vec())
@@ -35,20 +35,19 @@ mod tls_tests {
             .build()
             .expect("Failed to create virtual host config");
 
-        let mut virtual_host = VirtualHost::new(vhost_config);
-        virtual_host.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_req| async move {
-                    Ok::<_, VetisError>(
-                        Response::builder()
-                            .status(http::StatusCode::OK)
-                            .text("Test response"),
-                    )
-                }))
-                .build()
-                .unwrap(),
-        );
+        let mut virtual_host = VirtualHostImpl::new(vhost_config);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_req| async move {
+                Ok::<_, VetisError>(
+                    Response::builder()
+                        .status(http::StatusCode::OK)
+                        .text("Test response"),
+                )
+            }))
+            .build()
+            .unwrap();
+        virtual_host.add_path(handler_path);
 
         let mut hosts = std::collections::HashMap::new();
         hosts.insert((Arc::from("localhost"), 8443u16), virtual_host);
@@ -56,7 +55,7 @@ mod tls_tests {
         Arc::new(RwLock::new(hosts))
     }
 
-    fn create_test_virtual_hosts_no_security() -> VetisVirtualHosts<VirtualHost> {
+    fn create_test_virtual_hosts_no_security() -> VetisVirtualHosts<VirtualHostImpl> {
         let vhost_config = VirtualHostConfig::builder()
             .hostname("localhost")
             .port(8443)
@@ -64,20 +63,19 @@ mod tls_tests {
             .build()
             .expect("Failed to create virtual host config");
 
-        let mut virtual_host = VirtualHost::new(vhost_config);
-        virtual_host.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_req| async move {
-                    Ok::<_, VetisError>(
-                        Response::builder()
-                            .status(http::StatusCode::OK)
-                            .text("Test response"),
-                    )
-                }))
-                .build()
-                .unwrap(),
-        );
+        let mut virtual_host = VirtualHostImpl::new(vhost_config);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_req| async move {
+                Ok::<_, VetisError>(
+                    Response::builder()
+                        .status(http::StatusCode::OK)
+                        .text("Test response"),
+                )
+            }))
+            .build()
+            .unwrap();
+        virtual_host.add_path(handler_path);
 
         let mut hosts = std::collections::HashMap::new();
         hosts.insert((Arc::from("localhost"), 8443u16), virtual_host);
@@ -85,7 +83,7 @@ mod tls_tests {
         Arc::new(RwLock::new(hosts))
     }
 
-    fn create_test_virtual_hosts_invalid_key() -> VetisVirtualHosts<VirtualHost> {
+    fn create_test_virtual_hosts_invalid_key() -> VetisVirtualHosts<VirtualHostImpl> {
         let security_config = SecurityConfig::builder()
             .cert_from_bytes(SERVER_CERT.to_vec())
             .key_from_bytes(vec![0x01, 0x02, 0x03]) // Invalid key
@@ -100,20 +98,19 @@ mod tls_tests {
             .build()
             .expect("Failed to create virtual host config");
 
-        let mut virtual_host = VirtualHost::new(vhost_config);
-        virtual_host.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_req| async move {
-                    Ok::<_, VetisError>(
-                        Response::builder()
-                            .status(http::StatusCode::OK)
-                            .text("Test response"),
-                    )
-                }))
-                .build()
-                .unwrap(),
-        );
+        let mut virtual_host = VirtualHostImpl::new(vhost_config);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_req| async move {
+                Ok::<_, VetisError>(
+                    Response::builder()
+                        .status(http::StatusCode::OK)
+                        .text("Test response"),
+                )
+            }))
+            .build()
+            .unwrap();
+        virtual_host.add_path(handler_path);
 
         let mut hosts = std::collections::HashMap::new();
         hosts.insert((Arc::from("localhost"), 8443u16), virtual_host);
@@ -222,20 +219,19 @@ mod tls_tests {
             .build()
             .expect("Failed to create virtual host config");
 
-        let mut virtual_host1 = VirtualHost::new(vhost_config1);
-        virtual_host1.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_req| async move {
-                    Ok::<_, VetisError>(
-                        Response::builder()
-                            .status(http::StatusCode::OK)
-                            .text("Test response"),
-                    )
-                }))
-                .build()
-                .unwrap(),
-        );
+        let mut virtual_host1 = VirtualHostImpl::new(vhost_config1);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_req| async move {
+                Ok::<_, VetisError>(
+                    Response::builder()
+                        .status(http::StatusCode::OK)
+                        .text("Test response"),
+                )
+            }))
+            .build()
+            .unwrap();
+        virtual_host1.add_path(handler_path);
 
         // Create second virtual host without security
         let vhost_config2 = VirtualHostConfig::builder()
@@ -245,20 +241,19 @@ mod tls_tests {
             .build()
             .expect("Failed to create virtual host config");
 
-        let mut virtual_host2 = VirtualHost::new(vhost_config2);
-        virtual_host2.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_req| async move {
-                    Ok::<_, VetisError>(
-                        Response::builder()
-                            .status(http::StatusCode::OK)
-                            .text("Test response"),
-                    )
-                }))
-                .build()
-                .unwrap(),
-        );
+        let mut virtual_host2 = VirtualHostImpl::new(vhost_config2);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_req| async move {
+                Ok::<_, VetisError>(
+                    Response::builder()
+                        .status(http::StatusCode::OK)
+                        .text("Test response"),
+                )
+            }))
+            .build()
+            .unwrap();
+        virtual_host2.add_path(handler_path);
 
         hosts.insert((Arc::from("localhost"), 8443), virtual_host1);
         hosts.insert((Arc::from("test.com"), 8443), virtual_host2);

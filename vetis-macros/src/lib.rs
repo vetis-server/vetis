@@ -64,12 +64,14 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident) => {
         async move {
             use vetis::{
-                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
-                virtual_host::VirtualHostConfig,
+                errors::VetisError,
+                listener::ListenerConfig,
+                server::ServerConfig,
+                virtual_host::{VirtualHost, VirtualHostConfig},
             };
 
             use $from_crate::{
-                virtual_host::{path::HandlerPath, VirtualHost},
+                virtual_host::{path::HandlerPath, VirtualHostImpl},
                 Vetis,
             };
 
@@ -89,7 +91,7 @@ macro_rules! http {
                 .port($port)
                 .build()?;
 
-            let mut virtual_host = VirtualHost::new(virtual_host_config);
+            let mut virtual_host = VirtualHostImpl::new(virtual_host_config);
 
             let root_path = HandlerPath::builder()
                 .uri("/")
@@ -111,12 +113,14 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident, security_config => $security_config:expr) => {
         async move {
             use vetis::{
-                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
-                virtual_host::VirtualHostConfig,
+                errors::VetisError,
+                listener::ListenerConfig,
+                server::ServerConfig,
+                virtual_host::{VirtualHost, VirtualHostConfig},
             };
 
             use $from_crate::{
-                virtual_host::{path::HandlerPath, VirtualHost},
+                virtual_host::{path::HandlerPath, VirtualHostImpl},
                 Vetis,
             };
 
@@ -137,7 +141,7 @@ macro_rules! http {
                 .security($security_config)
                 .build()?;
 
-            let mut virtual_host = VirtualHost::new(virtual_host_config);
+            let mut virtual_host = VirtualHostImpl::new(virtual_host_config);
 
             let root_path = HandlerPath::builder()
                 .uri("/")
@@ -159,12 +163,14 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident, security_config => $security_config:expr) => {
         async move {
             use vetis::{
-                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
-                virtual_host::VirtualHostConfig,
+                errors::VetisError,
+                listener::ListenerConfig,
+                server::ServerConfig,
+                virtual_host::{VirtualHost, VirtualHostConfig},
             };
 
             use $from_crate::{
-                virtual_host::{path::HandlerPath, VirtualHost},
+                virtual_host::{path::HandlerPath, VirtualHostImpl},
                 Vetis,
             };
 
@@ -183,7 +189,7 @@ macro_rules! http {
                 .port($port)
                 .build()?;
 
-            let mut virtual_host = VirtualHost::new(virtual_host_config);
+            let mut virtual_host = VirtualHostImpl::new(virtual_host_config);
 
             let root_path = HandlerPath::builder()
                 .uri("/")
@@ -205,12 +211,14 @@ macro_rules! http {
     (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident) => {
         async move {
             use vetis::{
-                errors::VetisError, listener::ListenerConfig, server::ServerConfig,
-                virtual_host::VirtualHostConfig,
+                errors::VetisError,
+                listener::ListenerConfig,
+                server::ServerConfig,
+                virtual_host::{VirtualHost, VirtualHostConfig},
             };
 
             use $from_crate::{
-                virtual_host::{path::HandlerPath, VirtualHost},
+                virtual_host::{path::HandlerPath, VirtualHostImpl},
                 Vetis,
             };
 
@@ -229,7 +237,7 @@ macro_rules! http {
                 .port($port)
                 .build()?;
 
-            let mut virtual_host = VirtualHost::new(virtual_host_config);
+            let mut virtual_host = VirtualHostImpl::new(virtual_host_config);
 
             let root_path = HandlerPath::builder()
                 .uri("/")
@@ -262,7 +270,7 @@ macro_rules! http {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::config::SecurityConfig;
+/// use vetis::security::SecurityConfig;
 ///
 /// let security = security! {
 ///     cert => "/path/to/server.der",

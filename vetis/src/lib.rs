@@ -28,10 +28,8 @@ pub mod virtual_host;
 
 /// A type alias for Result returned by vetis functions
 pub type VetisResult<T> = Result<T, crate::errors::VetisError>;
-
 /// A type alias for a read-write lock wrapping a value
 pub type VetisRwLock<T> = RwLock<T>;
-
 /// A type alias for a vector of virtual hosts
 pub type VetisVirtualHosts<T> = Arc<VetisRwLock<HashMap<(Arc<str>, u16), T>>>;
 

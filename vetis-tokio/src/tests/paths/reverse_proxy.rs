@@ -9,7 +9,7 @@ use http::StatusCode;
 use http_body_util::BodyExt;
 
 #[cfg(any(feature = "http1", feature = "http2"))]
-use vetis::virtual_host::handler_fn;
+use vetis::virtual_host::{VirtualHost, handler_fn};
 use vetis::{
     errors::{ConfigError, VetisError},
     listener::ListenerConfig,
@@ -23,7 +23,7 @@ use crate::{
     tests::{deboa_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
     virtual_host::{
         path::{proxy::ProxyPath, HandlerPath},
-        VirtualHost,
+        VirtualHostImpl,
     },
 };
 
@@ -106,7 +106,7 @@ async fn do_get_proxy_to_target() -> Result<(), Box<dyn Error>> {
         .security(security_config.clone())
         .build()?;
 
-    let mut source_virtual_host = VirtualHost::new(source_config);
+    let mut source_virtual_host = VirtualHostImpl::new(source_config);
     source_virtual_host.add_path(ProxyPath::new(
         ProxyPathConfig::builder()
             .uri("/")
@@ -214,7 +214,7 @@ async fn do_post_proxy_to_target() -> Result<(), Box<dyn Error>> {
         .security(security_config.clone())
         .build()?;
 
-    let mut source_virtual_host = VirtualHost::new(source_config);
+    let mut source_virtual_host = VirtualHostImpl::new(source_config);
     source_virtual_host.add_path(ProxyPath::new(
         ProxyPathConfig::builder()
             .uri("/")
@@ -228,7 +228,7 @@ async fn do_post_proxy_to_target() -> Result<(), Box<dyn Error>> {
         .root_directory("src/tests")
         .build()?;
 
-    let mut target_virtual_host = VirtualHost::new(target_config);
+    let mut target_virtual_host = VirtualHostImpl::new(target_config);
     target_virtual_host.add_path(
         HandlerPath::builder()
             .uri("/")

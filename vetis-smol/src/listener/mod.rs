@@ -8,7 +8,7 @@ use crate::listener::tcp::TcpListener;
 #[cfg(feature = "http3")]
 use crate::listener::udp::UdpListener;
 
-use crate::{virtual_host::VirtualHost, VetisVirtualHosts};
+use crate::{virtual_host::VirtualHostImpl, VetisVirtualHosts};
 
 #[cfg(any(feature = "http1", feature = "http2"))]
 pub(crate) mod tcp;
@@ -27,7 +27,7 @@ pub enum ServerListener {
 }
 
 impl Listener for ServerListener {
-    type VirtualHost = VirtualHost;
+    type VirtualHost = VirtualHostImpl;
 
     fn new(config: ListenerConfig) -> Self
     where
@@ -45,7 +45,7 @@ impl Listener for ServerListener {
     }
 
     /// Set the virtual hosts
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>) {
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
         match self {
             #[cfg(any(feature = "http1", feature = "http2"))]
             ServerListener::Tcp(tcp_listener) => {

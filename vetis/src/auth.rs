@@ -163,6 +163,9 @@ impl BasicAuthConfigBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
+/// use std::collections::HashMap;
+/// use vetis::auth::{Algorithm, BasicAuthConfig};
+///
 /// let auth = BasicAuthConfig::builder()
 ///     .users(HashMap::new())
 ///     .algorithm(Algorithm::BCrypt)

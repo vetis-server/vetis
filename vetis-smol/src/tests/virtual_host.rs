@@ -6,9 +6,9 @@ mod virtual_host_tests {
     use macro_rules_attribute::apply;
     use smol_macros::test;
 
-    use vetis::virtual_host::{handler_fn, VirtualHostConfig};
+    use vetis::virtual_host::{handler_fn, VirtualHost, VirtualHostConfig};
 
-    use crate::virtual_host::{path::HandlerPath, VirtualHost};
+    use crate::virtual_host::{path::HandlerPath, VirtualHostImpl};
 
     async fn do_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
         let config = VirtualHostConfig::builder()
@@ -17,18 +17,17 @@ mod virtual_host_tests {
             .build()
             .unwrap();
 
-        let mut virtual_host = VirtualHost::new(config);
-        virtual_host.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_request| async move {
-                    Ok(vetis::Response::builder()
-                        .status(StatusCode::OK)
-                        .text("Hello, world!"))
-                }))
-                .build()
-                .unwrap(),
-        );
+        let mut virtual_host = VirtualHostImpl::new(config);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_request| async move {
+                Ok(vetis::Response::builder()
+                    .status(StatusCode::OK)
+                    .text("Hello, world!"))
+            }))
+            .build()
+            .unwrap();
+        virtual_host.add_path(handler_path);
 
         assert_eq!(
             virtual_host
@@ -51,18 +50,17 @@ mod virtual_host_tests {
             .build()
             .unwrap();
 
-        let mut virtual_host = VirtualHost::new(config);
-        virtual_host.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_request| async move {
-                    Ok(vetis::Response::builder()
-                        .status(StatusCode::OK)
-                        .text("Hello, world!"))
-                }))
-                .build()
-                .unwrap(),
-        );
+        let mut virtual_host = VirtualHostImpl::new(config);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_request| async move {
+                Ok(vetis::Response::builder()
+                    .status(StatusCode::OK)
+                    .text("Hello, world!"))
+            }))
+            .build()
+            .unwrap();
+        virtual_host.add_path(handler_path);
 
         assert_eq!(
             virtual_host

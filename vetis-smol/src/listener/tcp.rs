@@ -10,7 +10,10 @@ use hyper_body_utils::HttpBody;
 #[cfg(feature = "http1")]
 use hyper_util::rt::TokioIo;
 use log::{debug, error, info};
-use vetis::{errors::VetisError, listener::ListenerConfig, server::Protocol, Request, VetisResult};
+use vetis::{
+    errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
+    Request, VetisResult,
+};
 
 use peekable::future::AsyncPeekable;
 
@@ -24,7 +27,7 @@ use crate::rt::SmolExecutor;
 
 use smol::{
     io::{AsyncRead, AsyncWrite},
-    Task,
+    Async, Task,
 };
 
 use futures_rustls::TlsAcceptor;
@@ -34,7 +37,7 @@ use smol_hyper::rt::FuturesIo;
 use crate::{
     listener::{Listener, ListenerResult},
     tls::TlsFactory,
-    virtual_host::VirtualHost,
+    virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
 };
 
@@ -42,11 +45,11 @@ use crate::{
 pub struct TcpListener {
     task: Option<Task<()>>,
     config: ListenerConfig,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
 impl Listener for TcpListener {
-    type VirtualHost = VirtualHost;
+    type VirtualHost = VirtualHostImpl;
     /// Create a new listener
     ///
     /// # Arguments
@@ -65,7 +68,7 @@ impl Listener for TcpListener {
     /// # Arguments
     ///
     /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual hosts.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>) {
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
         self.virtual_hosts = virtual_hosts;
     }
 
@@ -94,8 +97,7 @@ impl Listener for TcpListener {
                 }
             };
 
-            let listener = smol::net::TcpListener::bind(addr)
-                .await
+            let listener = Async::<std::net::TcpListener>::bind(addr)
                 .map_err(|e| VetisError::Bind(e.to_string()))?;
 
             let task = self
@@ -103,7 +105,7 @@ impl Listener for TcpListener {
                     self.config
                         .protocol()
                         .clone(),
-                    listener,
+                    listener.into(),
                     self.virtual_hosts
                         .clone(),
                 )
@@ -140,7 +142,7 @@ impl TcpListener {
         &mut self,
         protocol: Protocol,
         listener: smol::net::TcpListener,
-        virtual_hosts: VetisVirtualHosts<VirtualHost>,
+        virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     ) -> VetisResult<Task<()>> {
         let alpn = vec![
             #[cfg(feature = "http1")]
@@ -272,7 +274,7 @@ impl TcpListener {
 
 async fn process_request(
     req: http::Request<Incoming>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     port: Arc<u16>,
     client_addr: SocketAddr,
 ) -> VetisResult<http::Response<HttpBody>> {
@@ -407,7 +409,7 @@ where
 pub fn handle_http2_request<T>(
     port: Arc<u16>,
     io: FuturesIo<T>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where

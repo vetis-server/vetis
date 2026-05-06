@@ -1,17 +1,12 @@
-use std::{collections::HashMap, future::Future, path::Path, pin::Pin};
+use std::{collections::HashMap, future::Future, path::Path, pin::Pin, sync::Arc};
 
+use radix_trie::Trie;
 use serde::Deserialize;
 
-#[cfg(feature = "interface")]
-use crate::virtual_host::path::interface::InterfacePathConfig;
-#[cfg(feature = "reverse-proxy")]
-use crate::virtual_host::path::proxy::ProxyPathConfig;
-#[cfg(feature = "static-files")]
-use crate::virtual_host::path::static_files::StaticPathConfig;
-
 use crate::{
-    errors::{ConfigError, VetisError},
+    errors::{ConfigError, FileError, VetisError, VirtualHostError},
     security::SecurityConfig,
+    virtual_host::path::PathConfig,
     Request, Response,
 };
 
@@ -40,7 +35,7 @@ pub mod path;
 /// });
 /// ```
 pub type BoxedHandlerClosure = Box<
-    dyn Fn(Request) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>
+    dyn Fn(Request) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync>>
         + Send
         + Sync,
 >;
@@ -111,12 +106,7 @@ pub struct VirtualHostConfigBuilder {
     security: Option<SecurityConfig>,
     status_pages: Option<HashMap<u16, String>>,
     enable_logging: bool,
-    #[cfg(feature = "static-files")]
-    static_paths: Option<Vec<StaticPathConfig>>,
-    #[cfg(feature = "reverse-proxy")]
-    proxy_paths: Option<Vec<ProxyPathConfig>>,
-    #[cfg(feature = "interface")]
-    interface_paths: Option<Vec<InterfacePathConfig>>,
+    paths: Option<Vec<Box<dyn path::PathConfig>>>,
 }
 
 impl VirtualHostConfigBuilder {
@@ -270,66 +260,6 @@ impl VirtualHostConfigBuilder {
         self
     }
 
-    #[cfg(feature = "static-files")]
-    /// Sets the status pages for the virtual host.
-    ///
-    /// These status pages will be used to serve custom error pages.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
-    ///
-    /// let config = VirtualHostConfig::builder()
-    ///     .static_paths(vec![(404, "404.html".to_string())])
-    ///     .build()
-    ///     .unwrap();
-    /// ```
-    pub fn static_paths(mut self, static_paths: Vec<StaticPathConfig>) -> Self {
-        self.static_paths = Some(static_paths);
-        self
-    }
-
-    #[cfg(feature = "reverse-proxy")]
-    /// Sets the reverse proxy paths for the virtual host.
-    ///
-    /// These reverse proxy paths will be used to serve custom error pages.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
-    ///
-    /// let config = VirtualHostConfig::builder()
-    ///     .proxy_paths(vec![(404, "404.html".to_string())])
-    ///     .build()
-    ///     .unwrap();
-    /// ```
-    pub fn proxy_paths(mut self, proxy_paths: Vec<ProxyPathConfig>) -> Self {
-        self.proxy_paths = Some(proxy_paths);
-        self
-    }
-
-    #[cfg(feature = "interface")]
-    /// Sets the interface paths for the virtual host.
-    ///
-    /// These interface paths will be used to serve custom error pages.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
-    ///
-    /// let config = VirtualHostConfig::builder()
-    ///     .proxy_paths(vec![(404, "404.html".to_string())])
-    ///     .build()
-    ///     .unwrap();
-    /// ```
-    pub fn interface_paths(mut self, interface_paths: Vec<InterfacePathConfig>) -> Self {
-        self.interface_paths = Some(interface_paths);
-        self
-    }
-
     /// Creates the `VirtualHostConfig` with the configured settings.
     ///
     /// # Errors
@@ -383,12 +313,7 @@ impl VirtualHostConfigBuilder {
             security: self.security,
             status_pages: self.status_pages,
             enable_logging: self.enable_logging,
-            #[cfg(feature = "static-files")]
-            static_paths: self.static_paths,
-            #[cfg(feature = "reverse-proxy")]
-            proxy_paths: self.proxy_paths,
-            #[cfg(feature = "interface")]
-            interface_paths: self.interface_paths,
+            paths: self.paths,
         })
     }
 }
@@ -409,11 +334,12 @@ impl VirtualHostConfigBuilder {
 /// let config = VirtualHostConfig::builder()
 ///     .hostname("api.example.com")
 ///     .port(443)
-///     .build()?;
+///     .build()
+///     .unwrap();
 ///
 /// println!("Virtual host: {}:{}", config.hostname(), config.port());
 /// ```
-#[derive(Clone, Deserialize)]
+#[derive(Deserialize)]
 pub struct VirtualHostConfig {
     hostname: String,
     port: u16,
@@ -423,12 +349,7 @@ pub struct VirtualHostConfig {
     security: Option<SecurityConfig>,
     status_pages: Option<HashMap<u16, String>>,
     enable_logging: bool,
-    #[cfg(feature = "static-files")]
-    static_paths: Option<Vec<StaticPathConfig>>,
-    #[cfg(feature = "reverse-proxy")]
-    proxy_paths: Option<Vec<ProxyPathConfig>>,
-    #[cfg(feature = "interface")]
-    interface_paths: Option<Vec<InterfacePathConfig>>,
+    paths: Option<Vec<Box<dyn path::PathConfig>>>,
 }
 
 impl VirtualHostConfig {
@@ -442,12 +363,13 @@ impl VirtualHostConfig {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::VirtualHostConfig;
+    /// use vetis::virtual_host::VirtualHostConfig;
     ///
     /// let config = VirtualHostConfig::builder()
     ///     .hostname("example.com")
     ///     .port(443)
-    ///     .build()?;
+    ///     .build()
+    ///     .unwrap();
     /// ```
     pub fn builder() -> VirtualHostConfigBuilder {
         VirtualHostConfigBuilder {
@@ -458,12 +380,7 @@ impl VirtualHostConfig {
             security: None,
             status_pages: None,
             enable_logging: true,
-            #[cfg(feature = "static-files")]
-            static_paths: None,
-            #[cfg(feature = "reverse-proxy")]
-            proxy_paths: None,
-            #[cfg(feature = "interface")]
-            interface_paths: None,
+            paths: None,
         }
     }
 
@@ -530,33 +447,152 @@ impl VirtualHostConfig {
         self.enable_logging
     }
 
-    #[cfg(feature = "static-files")]
-    /// Returns the static paths.
+    /// Returns the paths.
     ///
     /// # Returns
     ///
-    /// * `&Option<Vec<StaticPathConfig>>` - The static paths.
-    pub fn static_paths(&self) -> &Option<Vec<StaticPathConfig>> {
-        &self.static_paths
+    /// * `&Option<Vec<Box<dyn PathConfig>>>` - The static paths.
+    pub fn paths(&self) -> &Option<Vec<Box<dyn PathConfig>>> {
+        &self.paths
+    }
+}
+
+/// Virtual host trait
+pub trait VirtualHost {
+    /// Returns the paths trie
+    ///
+    /// # Returns
+    ///
+    /// * `Trie<String, Box<dyn path::Path>>` - The paths trie.
+    fn paths(&self) -> Trie<String, Arc<Box<dyn path::Path>>>;
+
+    /// Returns virtual host configuration
+    ///
+    /// # Returns
+    ///
+    /// * `&VirtualHostConfig` - A reference to the virtual host configuration.
+    fn config(&self) -> &VirtualHostConfig;
+
+    /// Returns virtual host hostname
+    ///
+    /// # Returns
+    ///
+    /// * `&str` - A reference to the virtual host hostname.
+    fn hostname(&self) -> &str {
+        self.config()
+            .hostname()
     }
 
-    #[cfg(feature = "reverse-proxy")]
-    /// Returns the proxy paths.
+    /// Returns virtual host port number
     ///
     /// # Returns
     ///
-    /// * `&Option<Vec<ProxyPathConfig>>` - The proxy paths.
-    pub fn proxy_paths(&self) -> &Option<Vec<ProxyPathConfig>> {
-        &self.proxy_paths
+    /// * `u16` - The virtual host port number.
+    fn port(&self) -> u16 {
+        self.config().port()
     }
 
-    #[cfg(feature = "interface")]
-    /// Returns the interface paths.
+    /// Returns virtual host security configuration
     ///
     /// # Returns
     ///
-    /// * `&Option<Vec<InterfacePathConfig>>` - The interface paths.
-    pub fn interface_paths(&self) -> &Option<Vec<InterfacePathConfig>> {
-        &self.interface_paths
+    /// * `bool` - Whether the virtual host is secure or not.
+    fn is_secure(&self) -> bool {
+        self.config()
+            .security()
+            .is_some()
+    }
+
+    /// Serve a status page
+    ///
+    /// # Arguments
+    ///
+    /// * `status` - The status code to serve.
+    ///
+    /// # Returns
+    ///
+    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn serve_status_page(
+        &self,
+        status: u16,
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>;
+
+    /// Route request to the appropriate handler
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - A `Request` instance containing the request information.
+    ///
+    /// # Returns
+    ///
+    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn route(
+        &self,
+        request: Request,
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>
+    where
+        Self: Sync,
+    {
+        let uri_path: String = request
+            .uri()
+            .path()
+            .into();
+
+        if uri_path.starts_with("..") {
+            return Box::pin(async move {
+                self.serve_status_page(http::StatusCode::FORBIDDEN.as_u16())
+                    .await
+            });
+        }
+
+        let paths = self.paths();
+
+        let matches = paths.get_ancestor_value(&uri_path);
+
+        let Some(path) = matches else {
+            return Box::pin(async move {
+                self.serve_status_page(http::StatusCode::NOT_FOUND.as_u16())
+                    .await
+            });
+        };
+
+        let path = path.clone();
+
+        let target_path: String = uri_path
+            .strip_prefix(path.uri())
+            .unwrap_or(&uri_path)
+            .into();
+
+        Box::pin(async move {
+            let result = path.handle(request, Arc::from(target_path));
+            match result.await {
+                Ok(response) => Ok(response),
+                Err(error) => {
+                    match error {
+                        VetisError::VirtualHost(VirtualHostError::File(FileError::NotFound)) => {
+                            log::error!("Invalid path: {}", error);
+                            return self
+                                .serve_status_page(http::StatusCode::NOT_FOUND.as_u16())
+                                .await;
+                        }
+                        VetisError::VirtualHost(VirtualHostError::Proxy(ref error)) => {
+                            log::error!("Proxy error: {}", error);
+                            return self
+                                .serve_status_page(http::StatusCode::BAD_GATEWAY.as_u16())
+                                .await;
+                        }
+                        VetisError::VirtualHost(VirtualHostError::Auth(e)) => {
+                            log::error!("Auth error: {}", e);
+                            return self
+                                .serve_status_page(http::StatusCode::UNAUTHORIZED.as_u16())
+                                .await;
+                        }
+                        _ => {}
+                    }
+
+                    Err(error)
+                }
+            }
+        })
     }
 }

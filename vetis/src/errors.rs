@@ -3,19 +3,6 @@
 //! This module defines the comprehensive error types used throughout
 //! the VeTiS server, providing detailed error information for
 //! configuration, runtime, and TLS-related issues.
-//!
-//! # Examples
-//!
-//! ```rust,no_run
-//! use vetis::errors::{VetisError, ConfigError};
-//!
-//! match some_operation() {
-//!     Ok(result) => println!("Success: {:?}", result),
-//!     Err(VetisError::Config(ConfigError::VirtualHost(msg))) => {
-//!         eprintln!("Virtual host configuration error: {}", msg);
-//!     }
-//!     Err(other) => eprintln!("Other error: {}", other),
-//! }
 //! ```
 
 use thiserror::Error;
@@ -25,23 +12,6 @@ use thiserror::Error;
 /// This enum encompasses all possible errors that can occur during
 /// server configuration, startup, and operation. Each variant provides
 /// specific context about what went wrong.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::errors::VetisError;
-///
-/// match result {
-///     Err(VetisError::Config(config_err)) => {
-///         println!("Configuration issue: {}", config_err);
-///     }
-///     Err(VetisError::Bind(addr)) => {
-///         println!("Failed to bind to address: {}", addr);
-///     }
-///     Err(other) => println!("Error: {}", other),
-///     Ok(_) => println!("Success!"),
-/// }
-/// ```
 #[derive(Debug, Error, PartialEq)]
 pub enum VetisError {
     /// Configuration-related errors
@@ -81,18 +51,6 @@ pub enum VetisError {
 ///
 /// These errors occur during the parsing and validation of
 /// server and virtual host configurations.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::errors::ConfigError;
-///
-/// match error {
-///     ConfigError::VirtualHost(msg) => {
-///         println!("Virtual host configuration failed: {}", msg);
-///     }
-/// }
-/// ```
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum ConfigError {
     /// Invalid auth configuration
@@ -119,18 +77,6 @@ pub enum ConfigError {
 ///
 /// These errors occur when the server fails to start properly,
 /// typically due to TLS initialization issues.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::errors::StartError;
-///
-/// match error {
-///     StartError::Tls(msg) => {
-///         println!("TLS initialization failed: {}", msg);
-///     }
-/// }
-/// ```
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum StartError {
     /// TLS/SSL initialization errors
@@ -142,18 +88,6 @@ pub enum StartError {
 ///
 /// These errors occur when working with virtual hosts,
 /// such as missing handlers or configuration issues.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::errors::VirtualHostError;
-///
-/// match error {
-///     VirtualHostError::NoVirtualHosts => {
-///         println!("No virtual hosts have been configured");
-///     }
-/// }
-/// ```
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum VirtualHostError {
     /// No virtual hosts have been added to the server
@@ -185,21 +119,6 @@ pub enum VirtualHostError {
 ///
 /// These errors occur when working with request handlers,
 /// such as URI parsing or handler execution failures.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::errors::HandlerError;
-///
-/// match error {
-///     HandlerError::Uri(msg) => {
-///         println!("URI parsing failed: {}", msg);
-///     }
-///     HandlerError::Handler(msg) => {
-///         println!("Handler execution failed: {}", msg);
-///     }
-/// }
-/// ```
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum HandlerError {
     /// URI parsing errors
@@ -215,18 +134,6 @@ pub enum HandlerError {
 ///
 /// These errors occur when working with files,
 /// such as missing files or invalid metadata.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::errors::FileError;
-///
-/// match error {
-///     FileError::NotFound => {
-///         println!("File not found");
-///     }
-/// }
-/// ```
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum FileError {
     /// File not found

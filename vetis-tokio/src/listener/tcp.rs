@@ -8,7 +8,10 @@ use http::header;
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
-use vetis::{errors::VetisError, listener::ListenerConfig, server::Protocol, Request, VetisResult};
+use vetis::{
+    errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
+    Request, VetisResult,
+};
 
 use peekable::tokio::AsyncPeekable;
 
@@ -32,7 +35,7 @@ use crate::{
     http::static_response,
     listener::{Listener, ListenerResult},
     tls::TlsFactory,
-    virtual_host::VirtualHost,
+    virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
 };
 
@@ -40,11 +43,11 @@ use crate::{
 pub struct TcpListener {
     task: Option<JoinHandle<VetisResult<()>>>,
     config: ListenerConfig,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
 impl Listener for TcpListener {
-    type VirtualHost = VirtualHost;
+    type VirtualHost = VirtualHostImpl;
 
     /// Create a new listener
     ///
@@ -139,7 +142,7 @@ impl TcpListener {
         &mut self,
         protocol: Protocol,
         listener: tokio::net::TcpListener,
-        virtual_hosts: VetisVirtualHosts<VirtualHost>,
+        virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     ) -> Result<JoinHandle<VetisResult<()>>, VetisError> {
         let alpn = vec![
             #[cfg(feature = "http1")]
@@ -271,7 +274,7 @@ impl TcpListener {
 
 async fn process_request(
     req: http::Request<Incoming>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     port: Arc<u16>,
     client_addr: SocketAddr,
 ) -> Result<http::Response<HttpBody>, VetisError> {
@@ -380,7 +383,7 @@ async fn process_request(
 fn handle_http1_request<T>(
     port: Arc<u16>,
     io: TokioIo<T>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where
@@ -410,7 +413,7 @@ where
 pub fn handle_http2_request<T>(
     port: Arc<u16>,
     io: TokioIo<T>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where

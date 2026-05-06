@@ -12,7 +12,7 @@ use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig};
 static GLOBAL: MiMalloc = MiMalloc;
 
 use std::{error::Error, fs::read_to_string, path::Path};
-use vetis_smol::{virtual_host::VirtualHost, Vetis};
+use vetis_smol::{virtual_host::VirtualHostImpl, Vetis};
 
 #[derive(Deserialize)]
 pub struct VetisServerConfig {
@@ -52,7 +52,7 @@ async fn run(
     let mut server = Vetis::new(server_config);
 
     for virtual_host in virtual_hosts_config {
-        let virtual_host = VirtualHost::new(virtual_host);
+        let virtual_host = VirtualHostImpl::new(virtual_host);
 
         server
             .add_virtual_host(virtual_host)

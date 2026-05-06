@@ -41,9 +41,9 @@ impl Request {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::Request;
+    /// use vetis::{errors::VetisError, Request, Response};
     ///
-    /// async fn handler(request: Request) -> Result<vetis::Response, vetis::VetisError> {
+    /// async fn handler(request: Request) -> Result<Response, VetisError> {
     ///     let path = request.uri().path();
     ///     let query = request.uri().query();
     ///     Ok(/* response */)
@@ -61,9 +61,9 @@ impl Request {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::Request;
+    /// use vetis::{Request, Response, VetisResult};
     ///
-    /// async fn handler(request: Request) -> VetisResult<vetis::Response> {
+    /// async fn handler(request: Request) -> VetisResult<Response> {
     ///     let content_type = request.headers().get("content-type");
     ///     let user_agent = request.headers().get("user-agent");
     ///     Ok(/* response */)
@@ -100,7 +100,7 @@ impl Request {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::Request;
+    /// use vetis::{Request, VetisResult};
     ///
     /// async fn handler(request: Request) -> VetisResult<vetis::Response> {
     ///     match request.method() {

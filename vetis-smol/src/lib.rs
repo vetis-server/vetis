@@ -11,10 +11,11 @@ use log::{error, info};
 use signal_hook::low_level;
 use vetis::{
     errors::{VetisError, VirtualHostError},
+    virtual_host::VirtualHost,
     VetisResult,
 };
 
-use crate::{http::HttpServer, virtual_host::VirtualHost};
+use crate::{http::HttpServer, virtual_host::VirtualHostImpl};
 /// HTTP server module
 pub mod http;
 /// Listener module
@@ -67,7 +68,7 @@ pub use vetis::{
 /// ```
 pub struct Vetis {
     config: ServerConfig,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     instance: Option<http::HttpServer>,
 }
 
@@ -148,7 +149,7 @@ impl Vetis {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn add_virtual_host(&mut self, virtual_host: VirtualHost) {
+    pub async fn add_virtual_host(&mut self, virtual_host: VirtualHostImpl) {
         let key = (Arc::from(virtual_host.hostname()), virtual_host.port());
 
         self.virtual_hosts
@@ -168,7 +169,7 @@ impl Vetis {
     /// Returns a reference to the virtual hosts.
     ///
     /// This provides access to the virtual hosts configured when the server was created.
-    pub fn virtual_hosts(&self) -> &VetisVirtualHosts<VirtualHost> {
+    pub fn virtual_hosts(&self) -> &VetisVirtualHosts<VirtualHostImpl> {
         &self.virtual_hosts
     }
 

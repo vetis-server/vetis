@@ -14,7 +14,7 @@ pub mod proxy;
 pub mod static_files;
 
 /// Trait for handling different types of paths in the server
-pub trait Path {
+pub trait Path: Sync + Send {
     /// Returns the URI of the path
     ///
     /// # Returns
@@ -36,5 +36,16 @@ pub trait Path {
         &self,
         request: Request,
         uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>;
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>;
+}
+
+#[typetag::serde(tag = "type")]
+/// A trait which describe path configuration
+pub trait PathConfig: Send + Sync {
+    /// Sets the URI for the path
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The URI to set
+    fn uri(&mut self, value: &str);
 }

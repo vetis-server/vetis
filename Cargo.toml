@@ -8,13 +8,13 @@ members = [
   "vetis-smol",
   "vetis-tokio",
   "examples/simple", 
-  "interfaces/vetis-asgi",
-  "interfaces/vetis-fcgi",
-  "interfaces/vetis-rack",
-  "interfaces/vetis-rsgi",
-  "interfaces/vetis-sapi",
-  "interfaces/vetis-scgi",
-  "interfaces/vetis-wsgi",
+#   "interfaces/vetis-asgi",
+#   "interfaces/vetis-fcgi",
+#   "interfaces/vetis-rack",
+#   "interfaces/vetis-rsgi",
+#   "interfaces/vetis-sapi",
+#   "interfaces/vetis-scgi",
+#   "interfaces/vetis-wsgi",
 ]
 
 [profile.release]

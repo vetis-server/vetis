@@ -1,13 +1,14 @@
 use std::{collections::HashMap, sync::Arc};
 
 use vetis::{
-    errors::VetisError,
     listener::Listener,
     server::{Protocol, Server, ServerConfig},
     VetisResult,
 };
 
-use crate::{listener::ServerListener, virtual_host::VirtualHost, VetisRwLock, VetisVirtualHosts};
+use crate::{
+    listener::ServerListener, virtual_host::VirtualHostImpl, VetisRwLock, VetisVirtualHosts,
+};
 
 pub use vetis::{Request, Response};
 
@@ -15,11 +16,11 @@ pub use vetis::{Request, Response};
 pub struct HttpServer {
     config: ServerConfig,
     listeners: Vec<ServerListener>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
 impl Server for HttpServer {
-    type VirtualHost = VirtualHost;
+    type VirtualHost = VirtualHostImpl;
     /// Create a new server instance
     ///
     /// # Arguments
@@ -42,7 +43,7 @@ impl Server for HttpServer {
     /// # Arguments
     ///
     /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual host registry.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>) {
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
         self.virtual_hosts = virtual_hosts;
     }
 

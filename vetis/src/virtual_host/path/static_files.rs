@@ -1,10 +1,13 @@
 use std::time::Duration;
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[cfg(feature = "auth")]
 use crate::auth::BasicAuthConfig;
-use crate::errors::{ConfigError, VetisError};
+use crate::{
+    errors::{ConfigError, VetisError},
+    virtual_host::path::PathConfig,
+};
 
 const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10MB
 const DEFAULT_TTL: Duration = Duration::from_secs(60);
@@ -12,12 +15,20 @@ const DEFAULT_TTI: Duration = Duration::from_secs(10);
 const DEFAULT_CAPACITY: u64 = 1000;
 
 /// Builder for creating `StaticPathCache` instances.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct StaticPathCacheBuilder {
+    uri: String,
     max_file_size: usize,
     ttl: Duration,
     tti: Duration,
     capacity: u64,
+}
+
+#[typetag::serde]
+impl PathConfig for StaticPathCacheBuilder {
+    fn uri(&mut self, value: &str) {
+        self.uri = value.to_string();
+    }
 }
 
 impl StaticPathCacheBuilder {
@@ -83,6 +94,7 @@ impl StaticPathCache {
     /// Create a new builder for `StaticPathCache`.
     pub fn builder() -> StaticPathCacheBuilder {
         StaticPathCacheBuilder {
+            uri: String::new(),
             max_file_size: MAX_FILE_SIZE,
             ttl: DEFAULT_TTL,
             tti: DEFAULT_TTI,

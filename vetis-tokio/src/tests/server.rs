@@ -5,7 +5,7 @@ mod server_tests {
         listener::ListenerConfig,
         security::SecurityConfig,
         server::ServerConfig,
-        virtual_host::{handler_fn, VirtualHostConfig},
+        virtual_host::{handler_fn, VirtualHost, VirtualHostConfig},
     };
 
     use crate::{
@@ -14,7 +14,7 @@ mod server_tests {
             vetis_default_protocol, CA_CERT, IP6_SERVER_CERT, IP6_SERVER_KEY, SERVER_CERT,
             SERVER_KEY,
         },
-        virtual_host::{path::HandlerPath, VirtualHost},
+        virtual_host::{path::HandlerPath, VirtualHostImpl},
     };
 
     async fn do_multiple_interfaces() -> Result<(), Box<dyn Error>> {
@@ -71,8 +71,8 @@ mod server_tests {
             .security(ip6_security_config)
             .build()?;
 
-        let mut localhost_virtual_host = VirtualHost::new(localhost_config);
-        let mut ip6_localhost_virtual_host = VirtualHost::new(ip6_localhost_config);
+        let mut localhost_virtual_host = VirtualHostImpl::new(localhost_config);
+        let mut ip6_localhost_virtual_host = VirtualHostImpl::new(ip6_localhost_config);
 
         let ip4_root_path = HandlerPath::builder()
             .uri("/hello")

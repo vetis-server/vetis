@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{virtual_host::VirtualHost, VetisVirtualHosts};
+use crate::{virtual_host::VirtualHostImpl, VetisVirtualHosts};
 
 use rustls::{
     pki_types::{CertificateDer, PrivateKeyDer},
@@ -8,13 +8,16 @@ use rustls::{
     sign::CertifiedKey,
     ServerConfig,
 };
-use vetis::errors::{StartError, VetisError};
+use vetis::{
+    errors::{StartError, VetisError},
+    virtual_host::VirtualHost,
+};
 
 pub struct TlsFactory {}
 
 impl TlsFactory {
     pub async fn create_tls_config(
-        virtual_hosts: VetisVirtualHosts<VirtualHost>,
+        virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
         alpn_protocols: Vec<Vec<u8>>,
     ) -> Result<Option<ServerConfig>, VetisError> {
         let virtual_hosts = virtual_hosts.clone();

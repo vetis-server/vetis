@@ -7,10 +7,11 @@ use log::{error, info};
 use std::{collections::HashMap, sync::Arc};
 use vetis::{
     errors::{VetisError, VirtualHostError},
+    virtual_host::VirtualHost,
     VetisResult,
 };
 
-use crate::{http::HttpServer, virtual_host::VirtualHost};
+use crate::{http::HttpServer, virtual_host::VirtualHostImpl};
 /// HTTP module
 pub mod http;
 /// Listener module
@@ -59,7 +60,7 @@ pub use vetis::{
 /// ```
 pub struct Vetis {
     config: ServerConfig,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     instance: Option<HttpServer>,
 }
 
@@ -104,7 +105,7 @@ impl Vetis {
     ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
     /// };
     ///
-    /// use vetis_tokio::{Vetis, virtual_host::{VirtualHost, path::HandlerPath}};
+    /// use vetis_tokio::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
     ///
     /// let config = ServerConfig::builder().build()?;
     /// let mut server = Vetis::new(config);
@@ -114,7 +115,7 @@ impl Vetis {
     ///     .port(80)
     ///     .build()?;
     ///
-    /// let mut vhost = VirtualHost::new(vhost_config);
+    /// let mut vhost = VirtualHostImpl::new(vhost_config);
     ///
     /// let mut root_path = HandlerPath::builder()
     ///     .uri("/")
@@ -134,7 +135,7 @@ impl Vetis {
     ///
     /// Ok(())
     /// ```
-    pub async fn add_virtual_host(&mut self, virtual_host: VirtualHost) {
+    pub async fn add_virtual_host(&mut self, virtual_host: VirtualHostImpl) {
         let key = (Arc::from(virtual_host.hostname()), virtual_host.port());
 
         self.virtual_hosts
@@ -154,7 +155,7 @@ impl Vetis {
     /// Returns a reference to the virtual hosts.
     ///
     /// This provides access to the virtual hosts configured when the server was created.
-    pub fn virtual_hosts(&self) -> &VetisVirtualHosts<VirtualHost> {
+    pub fn virtual_hosts(&self) -> &VetisVirtualHosts<VirtualHostImpl> {
         &self.virtual_hosts
     }
 

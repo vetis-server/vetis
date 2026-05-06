@@ -158,7 +158,7 @@ impl ServerConfigBuilder {
 /// ```rust,no_run
 /// use vetis::{listener::ListenerConfig, server::ServerConfig};
 ///
-/// fn main() -> Result<(), Box<dyn Error>> {
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let config = ServerConfig::builder()
 ///         .add_listener(ListenerConfig::builder().port(80).build()?)
 ///         .add_listener(ListenerConfig::builder().port(443).build()?)

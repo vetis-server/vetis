@@ -11,8 +11,11 @@ use mimalloc::MiMalloc;
 static GLOBAL: MiMalloc = MiMalloc;
 
 use std::{error::Error, fs::read_to_string, path::Path};
-use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig};
-use vetis_tokio::{virtual_host::VirtualHost, Vetis};
+use vetis::{
+    server::ServerConfig,
+    virtual_host::{VirtualHost, VirtualHostConfig},
+};
+use vetis_tokio::{virtual_host::VirtualHostImpl, Vetis};
 
 #[derive(Deserialize)]
 pub struct VetisServerConfig {
@@ -52,7 +55,7 @@ async fn run(
     let mut server = Vetis::new(server_config);
 
     for virtual_host in virtual_hosts_config {
-        let virtual_host = VirtualHost::new(virtual_host);
+        let virtual_host = VirtualHostImpl::new(virtual_host);
 
         server
             .add_virtual_host(virtual_host)

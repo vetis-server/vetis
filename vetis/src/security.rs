@@ -13,7 +13,7 @@ use crate::errors::{ConfigError, VetisError};
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::config::SecurityConfig;
+/// use vetis::security::SecurityConfig;
 ///
 /// let security = SecurityConfig::builder()
 ///     .cert_from_bytes(include_bytes!("server.der").to_vec())
@@ -38,7 +38,7 @@ impl SecurityConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
     ///     .cert_from_bytes(include_bytes!("server.der").to_vec())
@@ -60,7 +60,7 @@ impl SecurityConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
     ///     .cert_from_file("/path/to/server.der")
@@ -84,10 +84,10 @@ impl SecurityConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .key_from_bytes(include_bytes!("server.key.der").to_vec())
+    ///     .key_from_bytes(include_bytes!("../../../certs/server.key.der").to_vec())
     ///     .build();
     /// ```
     pub fn key_from_bytes(mut self, key: Vec<u8>) -> Self {
@@ -106,7 +106,7 @@ impl SecurityConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
     ///     .key_from_file("/path/to/server.key.der")
@@ -130,10 +130,10 @@ impl SecurityConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .ca_cert_from_bytes(include_bytes!("ca.der").to_vec())
+    ///     .ca_cert_from_bytes(include_bytes!("../../../certs/ca.der").to_vec())
     ///     .build();
     /// ```
     pub fn ca_cert_from_bytes(mut self, ca_cert: Vec<u8>) -> Self {
@@ -152,7 +152,7 @@ impl SecurityConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
     ///     .ca_cert_from_file("/path/to/ca.der")
@@ -176,7 +176,7 @@ impl SecurityConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
     ///     .client_auth(true)
@@ -220,11 +220,11 @@ impl SecurityConfigBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::config::SecurityConfig;
+/// use vetis::security::SecurityConfig;
 ///
 /// let security = SecurityConfig::builder()
-///     .cert_from_bytes(include_bytes!("server.der").to_vec())
-///     .key_from_bytes(include_bytes!("server.key.der").to_vec())
+///     .cert_from_bytes(include_bytes!("../../certs/server.der").to_vec())
+///     .key_from_bytes(include_bytes!("../../certs/server.key.der").to_vec())
 ///     .build();
 ///
 /// println!("Certificate length: {} bytes", security.cert().len());
@@ -249,7 +249,7 @@ impl SecurityConfig {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::SecurityConfig;
+    /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
     ///     .cert_from_bytes(vec![])

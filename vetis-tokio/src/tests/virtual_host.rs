@@ -3,11 +3,11 @@ mod virtual_host_tests {
     use http::StatusCode;
     use http_body_util::BodyExt;
     use hyper_body_utils::HttpBody;
-    use vetis::virtual_host::{handler_fn, VirtualHostConfig};
+    use vetis::virtual_host::{handler_fn, VirtualHost, VirtualHostConfig};
 
     use crate::{
         http::Request,
-        virtual_host::{path::HandlerPath, VirtualHost},
+        virtual_host::{path::HandlerPath, VirtualHostImpl},
     };
 
     async fn do_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
@@ -17,7 +17,7 @@ mod virtual_host_tests {
             .build()
             .unwrap();
 
-        let mut virtual_host = VirtualHost::new(config);
+        let mut virtual_host = VirtualHostImpl::new(config);
         virtual_host.add_path(
             HandlerPath::builder()
                 .uri("/")
@@ -52,7 +52,7 @@ mod virtual_host_tests {
             .build()
             .unwrap();
 
-        let mut virtual_host = VirtualHost::new(config);
+        let mut virtual_host = VirtualHostImpl::new(config);
         virtual_host.add_path(
             HandlerPath::builder()
                 .uri("/")

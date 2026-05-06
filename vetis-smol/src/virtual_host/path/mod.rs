@@ -10,87 +10,9 @@ use vetis::{
     Request, Response,
 };
 
-#[cfg(feature = "interface")]
-use crate::virtual_host::path::interface::InterfacePath;
-#[cfg(feature = "reverse-proxy")]
-use crate::virtual_host::path::proxy::ProxyPath;
-#[cfg(feature = "static-files")]
-use crate::virtual_host::path::static_files::StaticPath;
-
 /// Basic auth module
 #[cfg(feature = "auth")]
 pub mod auth;
-/// Interface module
-#[cfg(feature = "interface")]
-pub mod interface;
-///
-/// Proxy module
-#[cfg(feature = "reverse-proxy")]
-pub mod proxy;
-///
-/// Static files module
-#[cfg(feature = "static-files")]
-pub mod static_files;
-
-/// Enum for different types of paths in the server
-pub enum HostPath {
-    /// Handler path
-    Handler(HandlerPath),
-    #[cfg(feature = "reverse-proxy")]
-    /// Proxy path
-    Proxy(ProxyPath),
-    #[cfg(feature = "static-files")]
-    /// Static path
-    Static(StaticPath),
-    #[cfg(feature = "interface")]
-    /// Interface path
-    Interface(InterfacePath),
-}
-
-impl Path for HostPath {
-    /// Returns the URI of the path
-    ///
-    /// # Returns
-    ///
-    /// * `&str` - The URI of the path
-    fn uri(&self) -> &str {
-        match self {
-            HostPath::Handler(handler) => handler.uri(),
-            #[cfg(feature = "reverse-proxy")]
-            HostPath::Proxy(proxy) => proxy.uri(),
-            #[cfg(feature = "static-files")]
-            HostPath::Static(static_path) => static_path.uri(),
-            #[cfg(feature = "interface")]
-            HostPath::Interface(interface_path) => interface_path.uri(),
-        }
-    }
-
-    /// Handles the request for the path
-    ///
-    /// # Arguments
-    ///
-    /// * `request` - The request to handle
-    /// * `uri` - The URI of the path
-    ///
-    /// # Returns
-    ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
-    fn handle(
-        &self,
-        request: Request,
-        uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>> {
-        match self {
-            HostPath::Handler(handler) => handler.handle(request, uri),
-            #[cfg(feature = "reverse-proxy")]
-            HostPath::Proxy(proxy) => proxy.handle(request, uri),
-            #[cfg(feature = "static-files")]
-            HostPath::Static(static_path) => static_path.handle(request, uri),
-            #[cfg(feature = "interface")]
-            HostPath::Interface(interface_path) => interface_path.handle(request, uri),
-        }
-    }
-}
 
 /// Builder for handler path
 pub struct HandlerPathBuilder {
@@ -132,7 +54,7 @@ impl HandlerPathBuilder {
     /// # Returns
     ///
     /// * `Result<HostPath, VetisError>` - The handler path or error
-    pub fn build(self) -> Result<HostPath, VetisError> {
+    pub fn build(self) -> Result<HandlerPath, VetisError> {
         if self.uri.is_empty() {
             return Err(VetisError::VirtualHost(VirtualHostError::Handler(HandlerError::Uri(
                 "URI cannot be empty".to_string(),
@@ -148,7 +70,7 @@ impl HandlerPathBuilder {
             }
         };
 
-        Ok(HostPath::Handler(HandlerPath { uri: self.uri, handler }))
+        Ok(HandlerPath { uri: self.uri, handler })
     }
 }
 
@@ -193,7 +115,7 @@ impl Path for HandlerPath {
         &self,
         request: Request,
         _uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>> {
         (self.handler)(request)
     }
 }

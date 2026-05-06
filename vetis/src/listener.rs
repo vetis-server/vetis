@@ -9,7 +9,8 @@ use crate::{
 };
 
 /// A pinned future that resolves to a result of type T or a VetisError
-pub type ListenerResult<'a, T> = Pin<Box<dyn Future<Output = Result<T, VetisError>> + Send + 'a>>;
+pub type ListenerResult<'a, T> =
+    Pin<Box<dyn Future<Output = Result<T, VetisError>> + Send + Sync + 'a>>;
 
 /// A trait for defining server listeners that can handle HTTP requests
 pub trait Listener {
@@ -38,7 +39,7 @@ pub trait Listener {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::config::{ListenerConfig, Protocol};
+/// use vetis::{listener::ListenerConfig, server::Protocol};
 ///
 /// let config = ListenerConfig::builder()
 ///     .port(8080)
@@ -59,7 +60,7 @@ impl ListenerConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::ListenerConfig;
+    /// use vetis::listener::ListenerConfig;
     ///
     /// let config = ListenerConfig::builder()
     ///     .port(8443)
@@ -80,7 +81,7 @@ impl ListenerConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::ListenerConfig;
+    /// use vetis::listener::ListenerConfig;
     ///
     /// let config = ListenerConfig::builder()
     ///     .interface("127.0.0.1")
@@ -96,7 +97,7 @@ impl ListenerConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::{ListenerConfig, Protocol};
+    /// use vetis::{listener::ListenerConfig, server::Protocol};
     ///
     /// #[cfg(feature = "http1")]
     /// let config = ListenerConfig::builder()
@@ -133,7 +134,7 @@ impl ListenerConfigBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::config::{ListenerConfig, Protocol};
+/// use vetis::{listener::ListenerConfig, server::Protocol};
 ///
 /// let config = ListenerConfig::builder()
 ///     .port(8443)
@@ -162,7 +163,7 @@ impl ListenerConfig {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::config::ListenerConfig;
+    /// use vetis::listener::ListenerConfig;
     ///
     /// let builder = ListenerConfig::builder();
     /// let config = builder.port(8080).build();

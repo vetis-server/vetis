@@ -9,7 +9,7 @@ use vetis::{
     VetisResult, VetisRwLock, VetisVirtualHosts,
 };
 
-use crate::{listener::ServerListener, virtual_host::VirtualHost};
+use crate::{listener::ServerListener, virtual_host::VirtualHostImpl};
 
 pub use vetis::{Request, Response};
 
@@ -17,11 +17,11 @@ pub use vetis::{Request, Response};
 pub struct HttpServer {
     config: ServerConfig,
     listeners: Vec<ServerListener>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
 impl Server for HttpServer {
-    type VirtualHost = VirtualHost;
+    type VirtualHost = VirtualHostImpl;
     /// Create a new server instance
     ///
     /// # Arguments
@@ -44,7 +44,7 @@ impl Server for HttpServer {
     /// # Arguments
     ///
     /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual host registry.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>) {
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
         self.virtual_hosts = virtual_hosts;
     }
 

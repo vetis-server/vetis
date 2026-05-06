@@ -8,7 +8,7 @@ use vetis::{
 use crate::listener::tcp::TcpListener;
 #[cfg(feature = "http3")]
 use crate::listener::udp::UdpListener;
-use crate::virtual_host::VirtualHost;
+use crate::virtual_host::VirtualHostImpl;
 
 #[cfg(any(feature = "http1", feature = "http2"))]
 pub(crate) mod tcp;
@@ -27,7 +27,7 @@ pub enum ServerListener {
 }
 
 impl Listener for ServerListener {
-    type VirtualHost = VirtualHost;
+    type VirtualHost = VirtualHostImpl;
 
     fn new(config: ListenerConfig) -> Self
     where

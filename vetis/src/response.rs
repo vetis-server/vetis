@@ -181,7 +181,7 @@ impl ResponseBuilder {
     /// use vetis::Response;
     ///
     /// let response = Response::builder()
-    ///     .body(b"Hello, World!");
+    ///     .bytes(b"Hello, World!");
     /// ```
     pub fn body(self, body: HttpBody) -> Response {
         let response = http::Response::new(body);

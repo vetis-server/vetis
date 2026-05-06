@@ -4,18 +4,11 @@ use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
-    virtual_host::{
-        handler_fn,
-        path::{proxy::ProxyPathConfig, static_files::StaticPathConfig},
-        VirtualHostConfig,
-    },
+    virtual_host::{handler_fn, VirtualHostConfig},
 };
 
 use vetis_tokio::{
-    virtual_host::{
-        path::{proxy::ProxyPath, static_files::StaticPath, HandlerPath},
-        VirtualHost,
-    },
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
 };
 
@@ -59,7 +52,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         })
         .build()?;
 
-    let mut localhost_virtual_host = VirtualHost::new(localhost_config);
+    let mut localhost_virtual_host = VirtualHostImpl::new(localhost_config);
 
     let root_path = HandlerPath::builder()
         .uri("/hello")
@@ -85,6 +78,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     localhost_virtual_host.add_path(health_path);
 
+    /*
     let proxy_path = ProxyPathConfig::builder()
         .uri("/proxy")
         .target("http://localhost:5230")
@@ -100,6 +94,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     localhost_virtual_host.add_path(StaticPath::new(images_path));
+    */
 
     let mut server = Vetis::new(config);
     server

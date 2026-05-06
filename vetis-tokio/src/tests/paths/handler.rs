@@ -5,12 +5,12 @@ use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::ServerConfig,
-    virtual_host::{handler_fn, VirtualHostConfig},
+    virtual_host::{handler_fn, VirtualHost, VirtualHostConfig},
 };
 
 use crate::{
     tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::HandlerPath, VirtualHost},
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 
 async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,7 +37,7 @@ async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
         .security(security_config)
         .build()?;
 
-    let mut localhost_virtual_host = VirtualHost::new(localhost_config);
+    let mut localhost_virtual_host = VirtualHostImpl::new(localhost_config);
 
     let root_path = HandlerPath::builder()
         .uri("/hello")

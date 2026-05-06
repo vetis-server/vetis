@@ -86,4 +86,5 @@ signal-hook = { version = "0.4.3", optional = true, default-features = false }
 socket2 = "0.6.3"
 thiserror = "2.0.17"
 time = { version = "0.3.41", features = ["formatting"] }
+typetag = "0.2.21"
 url = "2.5.7"

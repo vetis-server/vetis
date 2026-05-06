@@ -8,7 +8,7 @@ use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::ServerConfig,
-    virtual_host::{path::static_files::StaticPathConfig, VirtualHostConfig},
+    virtual_host::{VirtualHost, VirtualHostConfig, path::static_files::StaticPathConfig},
 };
 
 #[cfg(feature = "auth")]
@@ -16,7 +16,7 @@ use crate::server::virtual_host::path::auth::BasicAuthConfig;
 
 use crate::{
     tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::static_files::StaticPath, VirtualHost},
+    virtual_host::{path::static_files::StaticPath, VirtualHostImpl},
 };
 
 #[test]
@@ -100,7 +100,7 @@ async fn do_index() -> Result<(), Box<dyn Error>> {
         .security(security_config.clone())
         .build()?;
 
-    let mut virtual_host = VirtualHost::new(host_config);
+    let mut virtual_host = VirtualHostImpl::new(host_config);
     virtual_host.add_path(StaticPath::new(
         StaticPathConfig::builder()
             .uri("/")
@@ -181,7 +181,7 @@ async fn do_not_found() -> Result<(), Box<dyn Error>> {
         .status_pages(status_pages)
         .build()?;
 
-    let mut virtual_host = VirtualHost::new(host_config);
+    let mut virtual_host = VirtualHostImpl::new(host_config);
     virtual_host.add_path(StaticPath::new(
         StaticPathConfig::builder()
             .uri("/")
