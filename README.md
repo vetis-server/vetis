@@ -2,7 +2,6 @@
 
 [![Crates.io downloads](https://img.shields.io/crates/d/vetis)](https://crates.io/crates/vetis) [![crates.io](https://img.shields.io/crates/v/vetis?style=flat-square)](https://crates.io/crates/vetis) [![Build Status](https://github.com/ararog/vetis/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/ararog/vetis/actions/workflows/rust.yml) ![Crates.io MSRV](https://img.shields.io/crates/msrv/vetis) [![Documentation](https://docs.rs/vetis/badge.svg)](https://docs.rs/vetis/latest/vetis) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ararog/vetis/blob/main/LICENSE.md)  [![codecov](https://codecov.io/gh/ararog/vetis/graph/badge.svg?token=T0HSBAPVSI)](https://codecov.io/gh/ararog/vetis)
 
-
 **A blazingly fast, minimalist HTTP server built for modern Rust applications**
 
 VeTiS is a lightweight yet powerful web server that brings simplicity and performance together. Designed with Rust's safety guarantees in mind, it delivers HTTP/1, HTTP/2, and HTTP/3 support with a clean, intuitive API that makes building web services a breeze.
@@ -58,11 +57,6 @@ Here's how simple it is to create a web server with VeTiS:
 ```rust
 use hyper::StatusCode;
 
-#[cfg(feature = "smol")]
-use macro_rules_attribute::apply;
-#[cfg(feature = "smol")]
-use smol_macros::main;
-
 use vetis::{
     config::server::{
         virtual_host::{
@@ -84,19 +78,8 @@ pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
 
-#[cfg(feature = "tokio")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-#[cfg(feature = "smol")]
-#[apply(main!)]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 
     let https = ListenerConfig::builder()
