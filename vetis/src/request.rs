@@ -9,19 +9,19 @@ use hyper_body_utils::HttpBody;
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::Request;
+/// use vetis::{Request, Response, errors::VetisError};
 ///
 /// // In a request handler:
-/// async fn handler(request: Request) -> Result<vetis::Response, vetis::VetisError> {
+/// async fn handler(request: Request) -> Result<Response, VetisError> {
 ///     let method = request.method();
 ///     let uri = request.uri();
 ///     let user_agent = request.headers().get("user-agent");
 ///     
 ///     // Process request...
 ///     
-///     Ok(vetis::Response::builder()
+///     Ok(Response::builder()
 ///         .status(http::StatusCode::OK)
-///         .text("Hello")))
+///         .text("Hello"))
 /// }
 /// ```
 pub struct Request {
@@ -81,10 +81,10 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use vetis::{Request, VetisResult>;
+    /// use vetis::{Request, VetisResult};
     ///
     /// async fn handler(mut request: Request) -> VetisResult<vetis::Response> {
-    ///     request.headers_mut().insert("x-custom-header", "value".parse()?);
+    ///     request.headers_mut().insert("x-custom-header", "value".parse().unwrap());
     ///     Ok(vetis::Response::builder().status(http::StatusCode::OK).text("Hello"))
     /// }
     /// ```

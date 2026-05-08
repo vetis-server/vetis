@@ -30,7 +30,7 @@ pub mod path;
 ///         // Process request...
 ///         Ok(Response::builder()
 ///             .status(http::StatusCode::OK)
-///             .body(http_body_util::Full::new(bytes::Bytes::from("OK"))))
+///             .text("OK"))
 ///     })
 /// });
 /// ```

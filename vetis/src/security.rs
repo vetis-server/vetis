@@ -16,9 +16,9 @@ use crate::errors::{ConfigError, VetisError};
 /// use vetis::security::SecurityConfig;
 ///
 /// let security = SecurityConfig::builder()
-///     .cert_from_bytes(include_bytes!("server.der").to_vec())
-///     .key_from_bytes(include_bytes!("server.key.der").to_vec())
-///     .ca_cert_from_bytes(include_bytes!("ca.der").to_vec())
+///     .cert_from_bytes(include_bytes!("../../certs/server.der").to_vec())
+///     .key_from_bytes(include_bytes!("../../certs/server.key.der").to_vec())
+///     .ca_cert_from_bytes(include_bytes!("../../certs/ca.der").to_vec())
 ///     .client_auth(true)
 ///     .build();
 /// ```
@@ -41,7 +41,7 @@ impl SecurityConfigBuilder {
     /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .cert_from_bytes(include_bytes!("server.der").to_vec())
+    ///     .cert_from_bytes(include_bytes!("../../certs/server.der").to_vec())
     ///     .build();
     /// ```
     pub fn cert_from_bytes(mut self, cert: Vec<u8>) -> Self {
@@ -87,7 +87,7 @@ impl SecurityConfigBuilder {
     /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .key_from_bytes(include_bytes!("../../../certs/server.key.der").to_vec())
+    ///     .key_from_bytes(include_bytes!("../../certs/server.key.der").to_vec())
     ///     .build();
     /// ```
     pub fn key_from_bytes(mut self, key: Vec<u8>) -> Self {
@@ -133,7 +133,7 @@ impl SecurityConfigBuilder {
     /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .ca_cert_from_bytes(include_bytes!("../../../certs/ca.der").to_vec())
+    ///     .ca_cert_from_bytes(include_bytes!("../../certs/ca.der").to_vec())
     ///     .build();
     /// ```
     pub fn ca_cert_from_bytes(mut self, ca_cert: Vec<u8>) -> Self {
@@ -225,7 +225,8 @@ impl SecurityConfigBuilder {
 /// let security = SecurityConfig::builder()
 ///     .cert_from_bytes(include_bytes!("../../certs/server.der").to_vec())
 ///     .key_from_bytes(include_bytes!("../../certs/server.key.der").to_vec())
-///     .build();
+///     .build()
+///     .unwrap();
 ///
 /// println!("Certificate length: {} bytes", security.cert().len());
 /// ```

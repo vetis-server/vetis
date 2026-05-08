@@ -200,7 +200,7 @@ impl ServerConfig {
     /// ```rust,no_run
     /// use vetis::{listener::ListenerConfig, server::ServerConfig};
     ///
-    /// fn main() -> Result<(), Box<dyn std::error:Error>> {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder()
     ///         .add_listener(ListenerConfig::builder().port(80).build()?)
     ///         .build()?;
@@ -208,6 +208,8 @@ impl ServerConfig {
     ///     for listener in config.listeners() {
     ///         println!("Listening on port {}", listener.port());
     ///     }
+    ///     Ok(())
+    /// }
     /// ```
     pub fn listeners(&self) -> &Vec<ListenerConfig> {
         &self.listeners

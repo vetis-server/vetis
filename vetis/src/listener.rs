@@ -140,7 +140,8 @@ impl ListenerConfigBuilder {
 ///     .port(8443)
 ///     .protocol(Protocol::Http1)
 ///     .interface("0.0.0.0")
-///     .build();
+///     .build()
+///     .unwrap();
 ///
 /// println!("Listening on port {}", config.port());
 /// ```
