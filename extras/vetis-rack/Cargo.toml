@@ -24,7 +24,7 @@ log = "0.4.29"
 magnus = { version = "0.8.2" }
 smol = { version = "2.0.2", default-features = false, optional = true }
 tokio = { version = "1.50.0", default-features = false, optional = true }
-vetis = { path = "../../vetis", default-features = false }
+vetis = { workspace = true }
 
 [target.'cfg(target_env = "musl")'.dependencies]
 bindgen = { version = "*", optional = true, default-features = false, features = [

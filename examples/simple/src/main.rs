@@ -19,10 +19,6 @@ pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../../certs/server.key.d
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 
     let https = ListenerConfig::builder()
@@ -77,24 +73,6 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     localhost_virtual_host.add_path(health_path);
-
-    /*
-    let proxy_path = ProxyPathConfig::builder()
-        .uri("/proxy")
-        .target("http://localhost:5230")
-        .build()?;
-
-    localhost_virtual_host.add_path(ProxyPath::new(proxy_path));
-
-    let images_path = StaticPathConfig::builder()
-        .uri("/images")
-        .directory("/home/rogerio/Downloads")
-        .extensions("\\.(jpg|png|gif|html)$")
-        .index_files(vec!["index.html".to_string()])
-        .build()?;
-
-    localhost_virtual_host.add_path(StaticPath::new(images_path));
-    */
 
     let mut server = Vetis::new(config);
     server

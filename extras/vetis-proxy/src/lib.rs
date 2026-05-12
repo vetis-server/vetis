@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::errors::{ConfigError, VetisError};
+use vetis::errors::{ConfigError, VetisError};
 
 /// Builder for creating `ProxyPathConfig` instances.
 #[derive(Deserialize)]

@@ -6,13 +6,6 @@ use crate::{errors::VetisError, Request, Response};
 
 /// Interface for path configuration.
 pub mod interface;
-/// Proxy path configuration.
-#[cfg(feature = "reverse-proxy")]
-pub mod proxy;
-/// Static files path configuration.
-#[cfg(feature = "static-files")]
-pub mod static_files;
-
 /// Trait for handling different types of paths in the server
 pub trait Path: Sync + Send {
     /// Returns the URI of the path

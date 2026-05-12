@@ -55,29 +55,6 @@ Note: To avoid build issues, do not disable http1.
 Here's how simple it is to create a web server with VeTiS:
 
 ```rust
-use hyper::StatusCode;
-
-use vetis::{
-    config::server::{
-        virtual_host::{
-            path::proxy::ProxyPathConfig, path::static_files::StaticPathConfig, SecurityConfig,
-            VirtualHostConfig,
-        },
-        ListenerConfig, Protocol, ServerConfig,
-    },
-    server::virtual_host::{
-        handler_fn,
-        path::{proxy::ProxyPath, static_files::StaticPath, HandlerPath},
-        VirtualHost,
-    },
-    Vetis,
-};
-
-pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
-
-pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
-pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
@@ -109,11 +86,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .build()?;
 
-    let mut localhost_virtual_host = VirtualHost::new(localhost_config);
+    let mut localhost_virtual_host = VirtualHostImpl::new(localhost_config);
 
     let root_path = HandlerPath::builder()
         .uri("/hello")
-        .handler(handler_fn(|request| async move {
+        .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
                 .text("Hello from localhost");
@@ -125,7 +102,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let health_path = HandlerPath::builder()
         .uri("/health")
-        .handler(handler_fn(|request| async move {
+        .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
                 .text("Health check");
@@ -134,22 +111,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     localhost_virtual_host.add_path(health_path);
-
-    let proxy_path = ProxyPathConfig::builder()
-        .uri("/proxy")
-        .target("http://localhost:5230")
-        .build()?;
-
-    localhost_virtual_host.add_path(ProxyPath::new(proxy_path));
-
-    let images_path = StaticPathConfig::builder()
-        .uri("/images")
-        .directory("/home/rogerio/Downloads")
-        .extensions("\\.(jpg|png|gif|html)$")
-        .index_files(vec!["index.html".to_string()])
-        .build()?;
-
-    localhost_virtual_host.add_path(StaticPath::new(images_path));
 
     let mut server = Vetis::new(config);
     server

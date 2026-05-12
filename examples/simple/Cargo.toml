@@ -30,8 +30,8 @@ tokio = { version = "1.50.0", features = [
   "macros",
   "rt-multi-thread",
 ], default-features = false }
-vetis = { path = "../../vetis" }
-vetis-tokio = { path = "../../vetis-tokio", features = [
+vetis = { workspace = true }
+vetis-tokio = { workspace = true, features = [
   "http2",
   "rust-tls",
   "static-files",

@@ -4212,6 +4212,14 @@ name = "vetis-macros"
 version = "0.1.0-beta.1"
 
 [[package]]
+name = "vetis-proxy"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "vetis",
+]
+
+[[package]]
 name = "vetis-rack"
 version = "0.1.0"
 dependencies = [
@@ -4319,11 +4327,23 @@ dependencies = [
  "vetis-asgi",
  "vetis-fcgi",
  "vetis-macros",
+ "vetis-proxy",
  "vetis-rack",
  "vetis-rsgi",
  "vetis-sapi",
  "vetis-scgi",
+ "vetis-static",
  "vetis-wsgi",
+]
+
+[[package]]
+name = "vetis-static"
+version = "0.1.0"
+dependencies = [
+ "parse_duration",
+ "serde",
+ "typetag",
+ "vetis",
 ]
 
 [[package]]
@@ -4375,10 +4395,12 @@ dependencies = [
  "vetis-asgi",
  "vetis-fcgi",
  "vetis-macros",
+ "vetis-proxy",
  "vetis-rack",
  "vetis-rsgi",
  "vetis-sapi",
  "vetis-scgi",
+ "vetis-static",
  "vetis-wsgi",
 ]
 

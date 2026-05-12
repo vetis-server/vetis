@@ -25,23 +25,11 @@ eula = false
 default = [
   "auth",
   "interface",
-  "reverse-proxy",
-  "static-files",
 ]
 
 auth = ["argon2/password-hash", "argon2/alloc", "bcrypt/std", "base64"]
 
 interface = []
-
-reverse-proxy = []
-
-static-files = [
-  "dep:mime",
-  "dep:minimime",
-  "dep:regex",
-  "moka/future",
-  "dep:parse_duration",
-]
 
 [dependencies]
 argon2 = { version = "0.5.3", optional = true, default-features = false }

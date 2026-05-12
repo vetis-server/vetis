@@ -4,7 +4,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 #[cfg(feature = "auth")]
 use crate::auth::BasicAuthConfig;
-use crate::{
+use vetis::{
     errors::{ConfigError, VetisError},
     virtual_host::path::PathConfig,
 };

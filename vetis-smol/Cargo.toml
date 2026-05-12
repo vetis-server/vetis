@@ -28,8 +28,8 @@ default = [
 ]
 
 auth = ["vetis/auth"]
-static-files = ["vetis/static-files"]
-reverse-proxy = ["vetis/reverse-proxy", "dep:deboa-smol"]
+static-files = ["dep:vetis-static"]
+reverse-proxy = ["dep:vetis-proxy", "dep:deboa-smol"]
 
 rust-tls = ["futures-rustls", "rustls", "rustls-provider"]
 
@@ -126,14 +126,16 @@ socket2 = "0.6.3"
 thiserror = "2.0.17"
 time = { version = "0.3.41", features = ["formatting"] }
 url = "2.5.7"
-vetis = { path = "../vetis", default-features = false }
-vetis-asgi = { version = "0.1.0", path = "../interfaces/vetis-asgi", optional = true, default-features = false }
-vetis-fcgi = { version = "0.1.0", path = "../interfaces/vetis-fcgi", optional = true, default-features = false }
-vetis-rack = { version = "0.1.0", path = "../interfaces/vetis-rack", optional = true, default-features = false }
-vetis-rsgi = { version = "0.1.0", path = "../interfaces/vetis-rsgi", optional = true, default-features = false }
-vetis-sapi = { version = "0.1.0", path = "../interfaces/vetis-sapi", optional = true, default-features = false }
-vetis-scgi = { version = "0.1.0", path = "../interfaces/vetis-scgi", optional = true, default-features = false }
-vetis-wsgi = { version = "0.1.0", path = "../interfaces/vetis-wsgi", optional = true, default-features = false }
+vetis = { workspace = true, default-features = false }
+vetis-asgi = { workspace = true, optional = true, default-features = false }
+vetis-fcgi = { workspace = true, optional = true, default-features = false }
+vetis-proxy = { workspace = true, optional = true, default-features = false }
+vetis-rack = { workspace = true, optional = true, default-features = false }
+vetis-rsgi = { workspace = true, optional = true, default-features = false }
+vetis-sapi = { workspace = true, optional = true, default-features = false }
+vetis-scgi = { workspace = true, optional = true, default-features = false }
+vetis-static = { workspace = true, optional = true, default-features = false }
+vetis-wsgi = { workspace = true, optional = true, default-features = false }
 
 [dev-dependencies]
 deboa = { path = "../../deboa/deboa" }
@@ -142,4 +144,4 @@ macro_rules_attribute = { version = "0.2.2", default-features = false }
 smol = { version = "2.0.2", default-features = false }
 smol-hyper = { version = "0.1.1", default-features = false }
 smol-macros = { version = "0.1.1", default-features = false }
-vetis-macros = { path = "../vetis-macros" }
+vetis-macros = { workspace = true }
