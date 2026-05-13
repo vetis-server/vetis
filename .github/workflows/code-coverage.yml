@@ -31,6 +31,6 @@ jobs:
         run: |
           cargo +nightly tarpaulin --verbose --workspace --timeout 120 --out xml
       - name: Upload To codecov.io
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{secrets.CODECOV_TOKEN}}
