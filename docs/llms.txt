@@ -15,10 +15,10 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 
 ```toml
 [dependencies]
-vetis = { version = "0.0.1", features = ["http1", "tokio-rt", "tokio-rust-tls"] }
+vetis = { version = "0.1.0" }
 ```
 
-## quickstart
+## Quickstart
 
 ```rust
 use hyper::StatusCode;

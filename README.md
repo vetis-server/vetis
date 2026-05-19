@@ -27,8 +27,8 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 
 Add VeTiS to your `Cargo.toml`:
 
-```rust
-vetis = { version = "0.1.0", features = ["tokio-rt", "http2", "tokio-rust-tls"] }
+```toml
+vetis = { version = "0.1.0" }
 ```
 
 ## Runtimes
