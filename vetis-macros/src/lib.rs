@@ -21,17 +21,17 @@
 /// # Examples
 ///
 /// ```
-/// use vetis::{http::Response, virtual_host::handler_fn};
+/// use vetis::{Response, virtual_host::handler_fn};
 /// use vetis_macros::http;
 ///
 /// async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
 ///     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 ///
 ///     let mut server = http!(
-///         crate_name => vetis_smol,
+///         from_crate => vetis_smol,
 ///         hostname => "localhost",
 ///         root_directory => "src",
-///         protocol => vetis_default_protocol(),
+///         protocol => vetis::server::Protocol::Http1,
 ///         port => 8080,
 ///         interface => "0.0.0.0",
 ///         handler => handler
@@ -42,16 +42,7 @@
 ///         .start()
 ///         .await?;
 ///
-///     let client = Client::builder()
-///         .protocol(deboa_default_protocol())
-///         .build()?;
-///
-///     let response = client
-///         .send(get("http://localhost:8080/"))
-///         .await?;
-///
-///     assert_eq!(response.status(), 200);
-///     assert_eq!(response.body(), "Hello, World!");
+///     // Issue a request to the server
 ///
 ///     server
 ///         .stop()
@@ -271,6 +262,7 @@ macro_rules! http {
 ///
 /// ```rust,no_run
 /// use vetis::security::SecurityConfig;
+/// use vetis_macros::security;
 ///
 /// let security = security! {
 ///     cert => "/path/to/server.der",

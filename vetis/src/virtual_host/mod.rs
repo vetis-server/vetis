@@ -230,9 +230,13 @@ impl VirtualHostConfigBuilder {
     ///
     /// ```rust,no_run
     /// use vetis::virtual_host::VirtualHostConfig;
+    /// use std::collections::HashMap;
+    ///
+    /// let mut status_pages = HashMap::new();
+    /// status_pages.insert(404, "404.html".to_string());
     ///
     /// let config = VirtualHostConfig::builder()
-    ///     .status_pages(vec![(404, "404.html".to_string())])
+    ///     .status_pages(status_pages)
     ///     .build()
     ///     .unwrap();
     /// ```

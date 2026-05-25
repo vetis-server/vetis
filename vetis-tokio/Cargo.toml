@@ -28,27 +28,8 @@ default = [
 ]
 
 auth = ["vetis/auth"]
-static-files = ["dep:vetis-static"]
-reverse-proxy = ["dep:vetis-proxy", "dep:deboa-tokio"]
 
 rust-tls = ["tokio-rustls", "rustls", "rustls-provider"]
-
-interface = []
-__interface_asgi = ["interface", "asgi", "vetis-asgi/tokio-rt"]
-__interface_fcgi = ["interface", "fcgi", "vetis-fcgi/tokio-rt"]
-__interface_sapi = ["interface", "sapi", "vetis-sapi/tokio-rt"]
-__interface_scgi = ["interface", "scgi", "vetis-scgi/tokio-rt"]
-__interface_rack = ["interface", "rack", "vetis-rack/tokio-rt"]
-__interface_rsgi = ["interface", "rsgi", "vetis-rsgi/tokio-rt"]
-__interface_wsgi = ["interface", "wsgi", "vetis-wsgi/tokio-rt"]
-
-asgi = []
-fcgi = []
-rack = []
-rsgi = []
-sapi = []
-scgi = []
-wsgi = []
 
 rustls-provider = ["__rustls_awc_lc_rs"]
 __rustls_awc_lc_rs = ["futures-rustls/aws-lc-rs", "quinn/rustls-aws-lc-rs"]
@@ -118,15 +99,6 @@ tokio-rustls = { version = "0.26.0", optional = true, default-features = false }
 tokio-util = { version = "0.7.18", default-features = false }
 url = "2.5.7"
 vetis = { workspace = true, default-features = false }
-vetis-asgi = { workspace = true, optional = true, default-features = false }
-vetis-fcgi = { workspace = true, optional = true, default-features = false }
-vetis-proxy = { workspace = true, optional = true, default-features = false }
-vetis-rack = { workspace = true, optional = true, default-features = false }
-vetis-rsgi = { workspace = true, optional = true, default-features = false }
-vetis-sapi = { workspace = true, optional = true, default-features = false }
-vetis-scgi = { workspace = true, optional = true, default-features = false }
-vetis-static = { workspace = true, optional = true, default-features = false }
-vetis-wsgi = { workspace = true, optional = true, default-features = false }
 
 [dev-dependencies]
 deboa = { path = "../../deboa/deboa" }

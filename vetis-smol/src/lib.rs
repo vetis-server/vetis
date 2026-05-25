@@ -118,7 +118,7 @@ impl Vetis {
     ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
     /// };
     ///
-    /// use vetis_smol::{Vetis, virtual_host::{VirtualHost, path::HandlerPath}};
+    /// use vetis_smol::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
     ///
     /// #[apply(main!)]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -130,7 +130,7 @@ impl Vetis {
     ///         .port(80)
     ///         .build()?;
     ///
-    ///     let mut vhost = VirtualHost::new(vhost_config);
+    ///     let mut vhost = VirtualHostImpl::new(vhost_config);
     ///
     ///     let mut root_path = HandlerPath::builder()
     ///         .uri("/")

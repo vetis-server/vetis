@@ -8,15 +8,16 @@ members = [
   "vetis-smol",
   "vetis-tokio",
   "examples/simple",
-  "extras/vetis-proxy",
-  "extras/vetis-static",
-  "extras/vetis-asgi",
-  "extras/vetis-fcgi",
-  "extras/vetis-rack",
-  "extras/vetis-rsgi",
-  "extras/vetis-sapi",
-  "extras/vetis-scgi",
-  "extras/vetis-wsgi",
+  # "extras/vetis-interface",
+  # "extras/vetis-proxy",
+  # "extras/vetis-static",
+  # "extras/vetis-asgi",
+  # "extras/vetis-fcgi",
+  # "extras/vetis-rack",
+  # "extras/vetis-rsgi",
+  # "extras/vetis-sapi",
+  # "extras/vetis-scgi",
+  # "extras/vetis-wsgi",
 ]
 
 [workspace.dependencies]
@@ -24,15 +25,16 @@ vetis = { path = "vetis" }
 vetis-macros = { path = "vetis-macros" }
 vetis-smol = { path = "vetis-smol" }
 vetis-tokio = { path = "vetis-tokio" }
-vetis-proxy = { path = "extras/vetis-proxy" }
-vetis-static = { path = "extras/vetis-static" }
-vetis-asgi = { path = "extras/vetis-asgi" }
-vetis-fcgi = { path = "extras/vetis-fcgi" }
-vetis-rack = { path = "extras/vetis-rack" }
-vetis-rsgi = { path = "extras/vetis-rsgi" }
-vetis-sapi = { path = "extras/vetis-sapi" }
-vetis-scgi = { path = "extras/vetis-scgi" }
-vetis-wsgi = { path = "extras/vetis-wsgi" }
+# vetis-interface = { path = "extras/vetis-interface" }
+# vetis-proxy = { path = "extras/vetis-proxy" }
+# vetis-static = { path = "extras/vetis-static" }
+# vetis-asgi = { path = "extras/vetis-asgi" }
+# vetis-fcgi = { path = "extras/vetis-fcgi" }
+# vetis-rack = { path = "extras/vetis-rack" }
+# vetis-rsgi = { path = "extras/vetis-rsgi" }
+# vetis-sapi = { path = "extras/vetis-sapi" }
+# vetis-scgi = { path = "extras/vetis-scgi" }
+# vetis-wsgi = { path = "extras/vetis-wsgi" }
 
 [profile.release]
 strip = true

@@ -4,8 +4,6 @@ use std::{future::Future, pin::Pin, sync::Arc};
 
 use crate::{errors::VetisError, Request, Response};
 
-/// Interface for path configuration.
-pub mod interface;
 /// Trait for handling different types of paths in the server
 pub trait Path: Sync + Send {
     /// Returns the URI of the path

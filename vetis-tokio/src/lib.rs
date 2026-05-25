@@ -80,7 +80,7 @@ impl Vetis {
     /// let config = ServerConfig::builder().build()?;
     /// let server = Vetis::new(config);
     ///
-    /// Ok(())
+    /// Ok::<(), vetis::errors::VetisError>(())
     /// ```
     pub fn new(config: ServerConfig) -> Vetis {
         Vetis { config, virtual_hosts: Arc::new(VetisRwLock::new(HashMap::new())), instance: None }
@@ -133,7 +133,7 @@ impl Vetis {
     ///     server.add_virtual_host(vhost).await;
     /// };
     ///
-    /// Ok(())
+    /// Ok::<(), vetis::errors::VetisError>(())
     /// ```
     pub async fn add_virtual_host(&mut self, virtual_host: VirtualHostImpl) {
         let key = (Arc::from(virtual_host.hostname()), virtual_host.port());

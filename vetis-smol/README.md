@@ -21,9 +21,6 @@ vetis-smol = { version = "0.1.0", features = ["http2", "rust-tls"] }
 - http2 (default)
 - http3
 - rust-tls (default)
-- static-files
-- reverse-proxy
-- auth
 
 ## Usage Example
 
@@ -43,7 +40,7 @@ use vetis::{
 };
 
 use vetis_smol::{
-    virtual_host::{path::HandlerPath, VirtualHost},
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
 };
 
@@ -82,7 +79,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .root_directory("/home/rogerio/Downloads")
         .build()?;
 
-    let mut localhost_virtual_host = VirtualHost::new(localhost_config);
+    let mut localhost_virtual_host = VirtualHostImpl::new(localhost_config);
 
     let root_path = HandlerPath::builder()
         .uri("/hello")
