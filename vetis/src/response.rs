@@ -10,7 +10,6 @@ use hyper_body_utils::HttpBody;
 ///
 /// ```rust,no_run
 /// use bytes::Bytes;
-/// use http_body_util::Full;
 /// use http::StatusCode;
 /// use vetis::Response;
 ///
