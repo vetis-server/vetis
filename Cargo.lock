@@ -1531,7 +1531,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-body-utils"
-version = "0.1.6-beta.7"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6119ecb58bafa9e02715d3ad46be58c769065082e8bf92291cc8a6e1dabc01ca"
 dependencies = [
  "bytes",
  "futures",
@@ -1539,11 +1541,6 @@ dependencies = [
  "h3-quinn",
  "http-body-util",
  "hyper",
- "macro_rules_attribute",
- "smol",
- "smol-macros",
- "tokio",
- "tokio-util",
 ]
 
 [[package]]
@@ -3765,6 +3762,7 @@ dependencies = [
  "http",
  "http-body-util",
  "hyper",
+ "hyper-body-utils",
  "hyper-util",
  "log",
  "macro_rules_attribute",
