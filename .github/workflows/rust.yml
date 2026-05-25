@@ -27,13 +27,13 @@ jobs:
     - name: Run vetis-tokio tests
       run: |
         cd vetis-tokio
-        cargo test --features "http1 rust-tls static-files reverse-proxy auth" --no-default-features
+        cargo test --features "http1 rust-tls" --no-default-features
         cd ..
 
     - name: Run vetis tests (smol)
       run: |
         cd vetis-smol
-        cargo test --features "http1 rust-tls static-files reverse-proxy auth" --no-default-features
+        cargo test --features "http1 rust-tls" --no-default-features
         cd ..
                         
   test-matrix:
