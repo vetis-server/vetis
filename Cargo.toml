@@ -20,6 +20,15 @@ members = [
   # "extras/vetis-wsgi",
 ]
 
+[workspace.package]
+authors = ["Rogerio Araújo <rogerio.araujo@gmail.com>"]
+edition = "2021"
+repository = "https://github.com/ararog/vetis"
+homepage = "https://github.com/ararog/vetis"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+rust-version = "1.75.0"
+
 [workspace.dependencies]
 vetis = { path = "vetis" }
 vetis-macros = { path = "vetis-macros" }
