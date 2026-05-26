@@ -108,8 +108,8 @@ url = "2.5.7"
 vetis = { workspace = true, default-features = false }
 
 [dev-dependencies]
-deboa = { path = "../../deboa/deboa" }
-deboa-smol = { path = "../../deboa/deboa-smol" }
+deboa = { version = "0.1.0-beta.17" }
+deboa-smol = { version = "0.1.0-beta.2" }
 macro_rules_attribute = { version = "0.2.2", default-features = false }
 smol = { version = "2.0.2", default-features = false }
 smol-hyper = { version = "0.1.1", default-features = false }

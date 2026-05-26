@@ -741,37 +741,9 @@ checksum = "a4ae5f15dda3c708c0ade84bfee31ccab44a3da4f88015ed22f63732abe300c8"
 
 [[package]]
 name = "deboa"
-version = "0.1.0-beta.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "142d241e88f31c2beb8996839a3d00ae8adaa9ee06c9994563cacbbf25c3fa14"
-dependencies = [
- "async-trait",
- "base64",
- "bytes",
- "cfg-if",
- "cookie",
- "futures",
- "http",
- "http-body",
- "http-body-util",
- "hyper",
- "hyper-util",
- "indexmap",
- "log",
- "minimime",
- "mockall",
- "rand 0.9.4",
- "regex",
- "serde",
- "thiserror 2.0.18",
- "time 0.2.27",
- "url",
- "urlencoding",
-]
-
-[[package]]
-name = "deboa"
 version = "0.1.0-beta.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6018bfa3a4c5d3b1ebaa221246dda5e4b3ceab030e870364c4c5f9f52445b326"
 dependencies = [
  "async-trait",
  "base64",
@@ -803,13 +775,15 @@ dependencies = [
 [[package]]
 name = "deboa-smol"
 version = "0.1.0-beta.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e441ad89a711036ea190cf82c955d375ffb1e6d5e04e79fadecf7ef35899ca59"
 dependencies = [
  "async-std-resolver",
  "async-trait",
  "base64",
  "bytes",
  "cookie",
- "deboa 0.1.0-beta.17",
+ "deboa",
  "futures",
  "futures-rustls",
  "http",
@@ -844,12 +818,14 @@ dependencies = [
 [[package]]
 name = "deboa-tokio"
 version = "0.1.0-beta.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2b430f889429c261b3463388a710563011d10d7a49e79e02bf7e83d392b991a"
 dependencies = [
  "async-trait",
  "base64",
  "bytes",
  "cookie",
- "deboa 0.1.0-beta.17",
+ "deboa",
  "futures",
  "futures-rustls",
  "http",
@@ -3753,7 +3729,7 @@ dependencies = [
  "cfg-if",
  "clap",
  "crossfire",
- "deboa 0.1.0-beta.15",
+ "deboa",
  "env_logger",
  "futures-lite",
  "futures-util",
@@ -3807,7 +3783,7 @@ dependencies = [
  "bytes",
  "clap",
  "crossfire",
- "deboa 0.1.0-beta.17",
+ "deboa",
  "deboa-smol",
  "env_logger",
  "futures-lite",
@@ -3858,7 +3834,7 @@ dependencies = [
  "bytes",
  "clap",
  "crossfire",
- "deboa 0.1.0-beta.17",
+ "deboa",
  "deboa-tokio",
  "env_logger",
  "futures-lite",
