@@ -3788,7 +3788,7 @@ dependencies = [
 
 [[package]]
 name = "vetis-macros"
-version = "0.1.0-beta.2"
+version = "0.1.1-beta.2"
 dependencies = [
  "vetis",
  "vetis-smol",

@@ -38,17 +38,16 @@ vetis = { version = "0.1.0" }
 
 ## Crate features
 
-- tokio-rt (default)
-- smol-rt
 - http1 (default)
 - http2
 - http3
-- tokio-rust-tls (default)
+- rust-tls (default)
+
+## External crates
+
 - static-files
 - reverse-proxy
 - auth
-
-Note: To avoid build issues, do not disable http1.
 
 ## Usage Example
 
@@ -169,6 +168,26 @@ The core create of http server.
 ### [vetis-macros](https://github.com/ararog/vetis/tree/main/vetis-macros)
 
 Macros for VeTiS, make easy to create small http server.
+
+### [vetis-interface](https://github.com/ararog/vetis/tree/main/vetis-interface)
+
+Interface for VeTiS, make easy to create small http server.
+
+### [vetis-proxy](https://github.com/ararog/vetis/tree/main/vetis-proxy)
+
+Reverse proxy support for VeTiS.
+
+### [vetis-static](https://github.com/ararog/vetis/tree/main/vetis-static)
+
+Static files support for VeTiS.
+
+### [vetis-smol](https://github.com/ararog/vetis/tree/main/vetis-smol)
+
+Smol runtime for VeTiS.
+
+### [vetis-tokio](https://github.com/ararog/vetis/tree/main/vetis-tokio)
+
+Tokio runtime for VeTiS.
 
 ## Benchmarks
 

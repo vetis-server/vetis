@@ -6,7 +6,7 @@ authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 description = "Very Tiny Server with tokio runtime"
-readme.workspace = true
+readme = "README.md"
 license.workspace = true
 keywords = ["http", "networking", "tokio", "rest-server"]
 publish = true
@@ -92,6 +92,7 @@ tokio = { version = "1.50.0", features = [
   "fs",
   "signal",
   "net",
+  "rt-multi-thread",
 ], default-features = false }
 tokio-rustls = { version = "0.26.0", optional = true, default-features = false }
 tokio-util = { version = "0.7.18", default-features = false }
@@ -101,5 +102,5 @@ vetis = { workspace = true, default-features = false }
 [dev-dependencies]
 deboa = { path = "../../deboa/deboa" }
 deboa-tokio = { path = "../../deboa/deboa-tokio" }
-tokio = { version = "1.50.0", default-features = false, features = ["macros"] }
+tokio = { version = "1.50.0", default-features = false, features = ["macros", "rt-multi-thread"] }
 vetis-macros = { workspace = true }

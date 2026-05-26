@@ -11,10 +11,7 @@ use mimalloc::MiMalloc;
 static GLOBAL: MiMalloc = MiMalloc;
 
 use std::{error::Error, fs::read_to_string, path::Path};
-use vetis::{
-    server::ServerConfig,
-    virtual_host::{VirtualHost, VirtualHostConfig},
-};
+use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig};
 use vetis_tokio::{virtual_host::VirtualHostImpl, Vetis};
 
 #[derive(Deserialize)]

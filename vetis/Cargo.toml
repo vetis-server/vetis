@@ -6,7 +6,7 @@ authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 description = "Very Tiny Server"
-readme.workspace = true
+readme = "README.md"
 license.workspace = true
 keywords = ["http", "networking", "server", "rest-server"]
 publish = true
@@ -63,7 +63,7 @@ minimime = { version = "1.0.0", optional = true, default-features = false }
 moka = { version = "0.12.14", optional = true, default-features = false }
 parse_duration = { version = "2.1.1", optional = true, default-features = false }
 peekable = { version = "0.4.1", optional = true, default-features = false }
-quinn = { version = "*", optional = true, default-features = false }
+quinn = { version = "0.11.9", optional = true, default-features = false }
 radix_trie = "0.3.0"
 rand = "0.9.2"
 regex = { version = "1.12.3", optional = true, default-features = false }

@@ -1,12 +1,12 @@
 [package]
 name = "vetis-macros"
-version = "0.1.0-beta.2"
+version = "0.1.1-beta.2"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 description = "Very Tiny Server macros"
-readme.workspace = true
+readme = "README.md"
 license.workspace = true
 keywords = ["http", "networking", "macros"]
 publish = true

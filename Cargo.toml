@@ -25,13 +25,12 @@ authors = ["Rogerio Araújo <rogerio.araujo@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/ararog/vetis"
 homepage = "https://github.com/ararog/vetis"
-readme = "README.md"
 license = "MIT OR Apache-2.0"
 rust-version = "1.75.0"
 
 [workspace.dependencies]
-vetis = { path = "vetis" }
-vetis-macros = { path = "vetis-macros" }
+vetis = { path = "vetis", version = "0.1.4-beta.7" }
+vetis-macros = { path = "vetis-macros", version = "0.1.1-beta.2" }
 vetis-smol = { path = "vetis-smol" }
 vetis-tokio = { path = "vetis-tokio" }
 # vetis-interface = { path = "extras/vetis-interface" }
