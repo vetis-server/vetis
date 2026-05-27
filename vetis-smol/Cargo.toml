@@ -77,7 +77,7 @@ mime = { version = "0.3.17", optional = true, default-features = false }
 minimime = { version = "1.0.0", optional = true, default-features = false }
 moka = { version = "0.12.14", optional = true, default-features = false }
 parse_duration = { version = "2.1.1", optional = true, default-features = false }
-peekable = { version = "0.4.1", features = [
+peekable = { version = "0.6.1", features = [
   "future",
 ], default-features = false }
 quinn = { version = "0.11.9", optional = true, default-features = false }
