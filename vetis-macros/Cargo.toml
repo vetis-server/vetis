@@ -16,4 +16,5 @@ rust-version.workspace = true
 vetis = { workspace = true }
 
 [dev-dependencies]
-vetis-smol = { workspace = true }
+tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
+vetis-tokio.workspace = true

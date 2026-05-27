@@ -14,7 +14,7 @@ vetis-smol  = { version = "0.1.0" }
 
 ## Usage Example
 
-```rust
+```rust, ignore
 use vetis::{virtual_host::handler_fn, Response};
 use vetis_macros::http;
 
@@ -23,10 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 
     let mut server = http!(
-        from_crate => vetis_smol,
+        from_crate => vetis_tokio,
         hostname => "localhost",
         root_directory => "src",
-        protocol => vetis_default_protocol(),
+        protocol => vetis::server::Protocol::Http1,
         port => 8080,
         interface => "0.0.0.0",
         handler => handler

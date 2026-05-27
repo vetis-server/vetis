@@ -1,3 +1,6 @@
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
+
 #[macro_export]
 /// Create an HTTP server
 ///
@@ -20,7 +23,7 @@
 ///
 /// # Examples
 ///
-/// ```rust, no_run
+/// ```rust, ignore
 /// use vetis::{Response, virtual_host::handler_fn};
 /// use vetis_macros::http;
 ///
@@ -30,7 +33,7 @@
 ///     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 ///
 ///     let mut server = http!(
-///         from_crate => vetis_smol,
+///         from_crate => vetis_tokio,
 ///         hostname => "localhost",
 ///         root_directory => "src",
 ///         protocol => vetis::server::Protocol::Http1,
@@ -295,15 +298,19 @@ macro_rules! http {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::security::SecurityConfig;
 /// use vetis_macros::security;
 ///
-/// let security = security! {
-///     cert => "/path/to/server.der",
-///     key => "/path/to/server.key.der",
-///     ca_cert => "/path/to/ca.der",
-///     client_auth => true
-/// };
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let security = security! {
+///         cert => "/path/to/server.der",
+///         key => "/path/to/server.key.der",
+///         ca_cert => "/path/to/ca.der",
+///         client_auth => true
+///     };
+///
+///     Ok(())
+/// }
 /// ```
 macro_rules! security {
     (

@@ -1,5 +1,8 @@
 use deboa::request::get;
-use deboa_tokio::Client;
+use deboa_tokio::{
+    cert::{Certificate, ContentEncoding},
+    Client,
+};
 use vetis::{virtual_host::handler_fn, Response};
 use vetis_macros::{http, security};
 
@@ -17,9 +20,9 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         interface => "0.0.0.0",
         handler => handler,
         security_config => security! {
-            cert => "../../../certs/server.der",
-            key => "../../../certs/server.key.der",
-            ca_cert => "../../../certs/ca.der",
+            cert => "../certs/server.der",
+            key => "../certs/server.key.der",
+            ca_cert => "../certs/ca.der",
             client_auth => false
         }
     )
@@ -29,8 +32,11 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         .start()
         .await?;
 
+    let certificate = Certificate::from_file("../certs/ca.der", ContentEncoding::DER)?;
+
     let client = Client::builder()
         .protocol(deboa_default_protocol())
+        .certificate(certificate)
         .build();
 
     let response = get("http://localhost:8080")?

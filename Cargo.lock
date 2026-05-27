@@ -3771,8 +3771,9 @@ dependencies = [
 name = "vetis-macros"
 version = "0.1.1-beta.2"
 dependencies = [
+ "tokio",
  "vetis",
- "vetis-smol",
+ "vetis-tokio",
 ]
 
 [[package]]
