@@ -32,6 +32,7 @@ tokio = { version = "1.50.0", features = [
 ], default-features = false }
 vetis = { workspace = true }
 vetis-tokio = { workspace = true, features = [
-  "http2",
+  "http3",
   "rust-tls"
 ], default-features = false }
+vetis-macros = { workspace = true }

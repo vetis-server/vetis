@@ -786,6 +786,8 @@ dependencies = [
  "deboa",
  "futures",
  "futures-rustls",
+ "h3",
+ "h3-quinn",
  "http",
  "http-body",
  "http-body-util",
@@ -828,6 +830,8 @@ dependencies = [
  "deboa",
  "futures",
  "futures-rustls",
+ "h3",
+ "h3-quinn",
  "http",
  "http-body",
  "http-body-util",
@@ -3068,6 +3072,7 @@ dependencies = [
  "maplit",
  "tokio",
  "vetis",
+ "vetis-macros",
  "vetis-tokio",
 ]
 

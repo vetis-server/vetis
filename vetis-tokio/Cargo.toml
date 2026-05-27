@@ -22,10 +22,7 @@ license = false
 eula = false
 
 [features]
-default = [
-  "http2",
-  "rust-tls"
-]
+default = ["http3", "rust-tls"]
 
 auth = ["vetis/auth"]
 
@@ -95,12 +92,20 @@ tokio = { version = "1.50.0", features = [
   "rt-multi-thread",
 ], default-features = false }
 tokio-rustls = { version = "0.26.0", optional = true, default-features = false }
-tokio-util = { version = "0.7.18", default-features = false }
+tokio-util = { version = "0.7.18", features = ["io"], default-features = false }
 url = "2.5.7"
 vetis = { workspace = true, default-features = false }
 
 [dev-dependencies]
 deboa = { version = "0.1.0-beta.17" }
-deboa-tokio = { version = "0.1.0-beta.2" }
-tokio = { version = "1.50.0", default-features = false, features = ["macros", "rt-multi-thread"] }
+deboa-tokio = { version = "0.1.0-beta.2", default-features = false, features = [
+  "http3",
+  "rust-tls",
+  "default-rustls-provider",
+  "default-rustls-verifier",
+] }
+tokio = { version = "1.50.0", default-features = false, features = [
+  "macros",
+  "rt-multi-thread",
+] }
 vetis-macros = { workspace = true }

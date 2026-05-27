@@ -20,11 +20,13 @@
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust, no_run
 /// use vetis::{Response, virtual_host::handler_fn};
 /// use vetis_macros::http;
 ///
-/// async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
+/// /// Main function to start the server
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 ///
 ///     let mut server = http!(
@@ -52,7 +54,15 @@
 /// }
 /// ```
 macro_rules! http {
-    (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident) => {
+    (
+      from_crate => $from_crate:ident,
+      hostname => $hostname:expr,
+      root_directory => $root_directory:expr,
+      protocol => $protocol:expr,
+      port => $port:expr,
+      interface => $interface:expr,
+      handler => $handler:ident
+    ) => {
         async move {
             use vetis::{
                 errors::VetisError,
@@ -101,7 +111,16 @@ macro_rules! http {
         }
     };
 
-    (from_crate => $from_crate:ident, hostname => $hostname:expr, root_directory => $root_directory:expr, protocol => $protocol:expr, port => $port:expr, interface => $interface:expr, handler => $handler:ident, security_config => $security_config:expr) => {
+    (
+      from_crate => $from_crate:ident,
+      hostname => $hostname:expr,
+      root_directory => $root_directory:expr,
+      protocol => $protocol:expr,
+      port => $port:expr,
+      interface => $interface:expr,
+      handler => $handler:ident,
+      security_config => $security_config:expr
+    ) => {
         async move {
             use vetis::{
                 errors::VetisError,
@@ -151,7 +170,15 @@ macro_rules! http {
         }
     };
 
-    (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident, security_config => $security_config:expr) => {
+    (
+      from_crate => $from_crate:ident,
+      hostname => $hostname:literal,
+      protocol => $protocol:expr,
+      port => $port:literal,
+      interface => $interface:literal,
+      handler => $handler:ident,
+      security_config => $security_config:expr
+    ) => {
         async move {
             use vetis::{
                 errors::VetisError,
@@ -199,7 +226,14 @@ macro_rules! http {
         }
     };
 
-    (from_crate => $from_crate:ident, hostname => $hostname:literal, protocol => $protocol:expr, port => $port:literal, interface => $interface:literal, handler => $handler:ident) => {
+    (
+      from_crate => $from_crate:ident,
+      hostname => $hostname:literal,
+      protocol => $protocol:expr,
+      port => $port:literal,
+      interface => $interface:literal,
+      handler => $handler:ident
+    ) => {
         async move {
             use vetis::{
                 errors::VetisError,
@@ -272,12 +306,45 @@ macro_rules! http {
 /// };
 /// ```
 macro_rules! security {
-    (cert => $cert:expr, key => $key:expr, ca_cert => $ca_cert:expr, client_auth => $client_auth:expr) => {
-        SecurityConfig::builder()
+    (
+      cert => $cert:expr,
+      key => $key:expr,
+      ca_cert => $ca_cert:expr,
+      client_auth => $client_auth:expr
+    ) => {{
+        vetis::security::SecurityConfig::builder()
             .cert_from_file($cert)
             .key_from_file($key)
             .ca_cert_from_file($ca_cert)
             .client_auth($client_auth)
-            .build()
+            .build()?
+    }};
+}
+
+#[macro_export]
+/// Creates a `HashMap` of status codes to file paths.
+///
+/// # Arguments
+///
+/// * `$($code:literal => $path:expr),*` - A list of status codes and file paths.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use std::collections::HashMap;
+/// use vetis_macros::status_pages;
+///
+/// let pages = status_pages! {
+///     404 => "404.html",
+///     500 => "500.html"
+/// };
+/// ```
+macro_rules! status_pages {
+    ($($code:literal => $path:expr),*) => {
+        {
+            let mut pages = std::collections::HashMap::new();
+            $( pages.insert($code, $path); )*
+            pages
+        }
     };
 }

@@ -7,6 +7,8 @@ use vetis::{
     virtual_host::{handler_fn, VirtualHostConfig},
 };
 
+use vetis_macros::status_pages;
+
 use vetis_tokio::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
@@ -42,9 +44,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .port(8443)
         .security(security_config)
         .root_directory("/home/rogerio/Downloads")
-        .status_pages(maplit::hashmap! {
+        .status_pages(status_pages! {
             404 => "404.html".to_string(),
-            500 => "500.html".to_string(),
+            500 => "500.html".to_string()
         })
         .build()?;
 

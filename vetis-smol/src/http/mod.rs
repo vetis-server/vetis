@@ -1,5 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
+use http::HeaderMap;
+use hyper_body_utils::HttpBody;
 use vetis::{
     listener::Listener,
     server::{Protocol, Server, ServerConfig},
@@ -118,4 +120,32 @@ impl Server for HttpServer {
         }
         Ok(())
     }
+}
+
+/// Create a static response
+///
+/// # Arguments
+///
+/// * `status` - The status code of the response
+/// * `headers` - The headers of the response
+/// * `body` - The body of the response
+///
+/// # Returns
+///
+/// * `http::Response<HttpBody>` - The response
+pub fn static_response(
+    status: http::StatusCode,
+    headers: Option<HeaderMap>,
+    body: String,
+) -> http::Response<HttpBody> {
+    let mut response = http::Response::builder()
+        .status(status)
+        .body(HttpBody::from_bytes(body.as_bytes()))
+        .unwrap();
+
+    if let Some(headers) = headers {
+        *response.headers_mut() = headers;
+    }
+
+    response
 }

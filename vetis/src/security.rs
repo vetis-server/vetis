@@ -72,6 +72,7 @@ impl SecurityConfigBuilder {
             Ok(cert) => self.cert = cert,
             Err(e) => {
                 error!("Failed to read certificate file: {}", e);
+                eprintln!("Failed to read certificate file: {}", e);
             }
         }
         self

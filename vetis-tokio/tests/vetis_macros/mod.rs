@@ -1,7 +1,7 @@
 use deboa::request::get;
 use deboa_tokio::Client;
 use vetis::{virtual_host::handler_fn, Response};
-use vetis_macros::http;
+use vetis_macros::{http, security};
 
 use crate::common::{deboa_default_protocol, vetis_default_protocol};
 
@@ -15,7 +15,13 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         protocol => vetis_default_protocol(),
         port => 8080,
         interface => "0.0.0.0",
-        handler => handler
+        handler => handler,
+        security_config => security! {
+            cert => "../../../certs/server.der",
+            key => "../../../certs/server.key.der",
+            ca_cert => "../../../certs/ca.der",
+            client_auth => false
+        }
     )
     .await?;
 

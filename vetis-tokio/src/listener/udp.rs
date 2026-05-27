@@ -17,14 +17,16 @@ use log::{debug, error, info};
 use tokio::task::JoinHandle;
 use vetis::{
     errors::{StartError, VetisError},
-    http::Request,
+    request::Request,
+    virtual_host::VirtualHost,
+    VetisResult,
 };
 
 use crate::{
     http::static_response,
     listener::{Listener, ListenerConfig, ListenerResult},
     tls::TlsFactory,
-    virtual_host::VirtualHost,
+    virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
 };
 
@@ -32,11 +34,11 @@ use crate::{
 pub struct UdpListener {
     config: ListenerConfig,
     task: Option<JoinHandle<()>>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
 impl Listener for UdpListener {
-    type VirtualHost = VirtualHost;
+    type VirtualHost = VirtualHostImpl;
 
     /// Create a new listener
     ///
@@ -56,7 +58,7 @@ impl Listener for UdpListener {
     /// # Arguments
     ///
     /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual hosts.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHost>) {
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
         self.virtual_hosts = virtual_hosts;
     }
 
@@ -136,7 +138,7 @@ impl UdpListener {
     async fn handle_connections(
         &mut self,
         endpoint: quinn::Endpoint,
-        virtual_hosts: VetisVirtualHosts<VirtualHost>,
+        virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     ) -> Result<JoinHandle<()>, VetisError> {
         let port = self.config.port();
         let task = tokio::spawn(async move {
@@ -204,7 +206,7 @@ impl UdpListener {
 fn handle_http_request(
     port: u16,
     resolver: RequestResolver<QuinnConnection, Bytes>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()> {
     let virtual_hosts = virtual_hosts.clone();
