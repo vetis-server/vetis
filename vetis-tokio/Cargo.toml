@@ -22,7 +22,7 @@ license = false
 eula = false
 
 [features]
-default = ["http3", "rust-tls"]
+default = ["http2", "rust-tls"]
 
 auth = ["vetis/auth"]
 
@@ -99,7 +99,7 @@ vetis = { workspace = true, default-features = false }
 [dev-dependencies]
 deboa = { version = "0.1.0-beta.17" }
 deboa-tokio = { version = "0.1.0-beta.2", default-features = false, features = [
-  "http3",
+  "http2",
   "rust-tls",
   "default-rustls-provider",
   "default-rustls-verifier",
