@@ -13,29 +13,22 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test-with-interfaces:    
-    name: Test with Interfaces
+  test:    
+    name: Test all
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        protocols: [http1, http2, http3]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6
+    - name: Checkout repository
+      uses: actions/checkout@v6
     
-    - uses: Swatinem/rust-cache@v2
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
 
-    - name: Run vetis-tokio tests
+    - name: Run tests
       run: |
-        cd vetis-tokio
-        cargo test --features "${{ matrix.protocols }} rust-tls" --no-default-features
-        cd ..
-
-    - name: Run vetis tests (smol)
-      run: |
-        cd vetis-smol
-        cargo test --features "${{ matrix.protocols }} rust-tls" --no-default-features
-        cd ..
+        cargo test
                         
   test-matrix:
     name: Test ${{ matrix.platform.os-name }} with rust ${{ matrix.toolchain }}
@@ -43,69 +36,48 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        protocols: [http1, http2, http3]     
         platform:
           - os-name: FreeBSD-x86_64
             runs-on: ubuntu-24.04
             target: x86_64-unknown-freebsd
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
             skip-tests: true
           - os-name: Linux-x86_64
             runs-on: ubuntu-24.04
             target: x86_64-unknown-linux-musl
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: Linux-aarch64
             runs-on: ubuntu-24.04
             target: aarch64-unknown-linux-musl
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: Linux-arm
             runs-on: ubuntu-24.04
             target: arm-unknown-linux-musleabi
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: Linux-i686
             runs-on: ubuntu-24.04
             target: i686-unknown-linux-musl
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
             skip-tests: true
           - os-name: Linux-powerpc
             runs-on: ubuntu-24.04
             target: powerpc-unknown-linux-gnu
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
             skip-tests: true
           - os-name: Linux-powerpc64
             runs-on: ubuntu-24.04
             target: powerpc64-unknown-linux-gnu
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
             skip-tests: true
           - os-name: Linux-powerpc64le
             runs-on: ubuntu-24.04
             target: powerpc64le-unknown-linux-gnu
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
             skip-tests: true
           - os-name: Linux-riscv64
             runs-on: ubuntu-24.04
             target: riscv64gc-unknown-linux-gnu
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: Linux-s390x
             runs-on: ubuntu-24.04
             target: s390x-unknown-linux-gnu
             skip-tests: true
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: NetBSD-x86_64
             runs-on: ubuntu-24.04
             target: x86_64-unknown-netbsd
             skip-tests: true
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
             # Use a cross git commit that includes the fix for -lexecinfo on NetBSD
             # (not yet in a released version of cross).
             cross-version: 588b3c99db52b5a9c5906fab96cfadcf1bde7863
@@ -113,29 +85,19 @@ jobs:
             runs-on: windows-latest
             target: aarch64-pc-windows-msvc
             skip-tests: true
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: Windows-i686
             runs-on: windows-latest
             target: i686-pc-windows-msvc
             skip-tests: true
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: Windows-x86_64
             runs-on: windows-latest
             target: x86_64-pc-windows-msvc
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: macOS-x86_64
             runs-on: macOS-latest
             target: x86_64-apple-darwin
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
           - os-name: macOS-aarch64
             runs-on: macOS-latest
             target: aarch64-apple-darwin
-            protocols: [http1, http2, http3]
-            crate: [vetis-tokio, vetis-smol]
         toolchain:
           - stable
         include:
@@ -155,25 +117,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Set "--features" flag value
-        id: set-features-flag-value
-        shell: bash
-        run: |
-          if [ -n "${{ matrix.platform.protocols }}" ]; then
-              echo "features=${{ matrix.platform.protocols }} rust-tls" >> "$GITHUB_OUTPUT"
-          else 
-              echo "features=default" >> "$GITHUB_OUTPUT"
-          fi
-          cat "$GITHUB_OUTPUT"
-
-      - name: Build ${{ matrix.platform.crate }} binary
-        run: |
-          cd ${{ matrix.platform.crate }}
-          cargo build --locked --release --features "${{ steps.set-features-flag-value.outputs.features }}" --no-default-features
-          cd ..
-      - name: Run ${{ matrix.platform.crate }} tests
-        run: |
-          cd ${{ matrix.platform.crate }}
-          cargo test --locked --release --features "${{ steps.set-features-flag-value.outputs.features }}" --no-default-features
-          cd ..
+      - name: Build ${{ matrix.platform.target }} binary for ${{ matrix.protocols }} with rust-tls features
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: "build"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args:
+            "--locked --release --features \"${{ matrix.protocols }} rust-tls\""
+          strip: true
+          cross-version: ${{ matrix.platform.cross-version }}
+      - name: Run tests for ${{ matrix.platform.target }} with ${{ matrix.protocols }} and rust-tls features
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: "test"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args:
+            "--locked --release  --features \"${{ matrix.protocols }} rust-tls\""
         if: ${{ !matrix.platform.skip-tests }}
