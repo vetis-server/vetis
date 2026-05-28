@@ -128,7 +128,7 @@ jobs:
           args:
             "--locked --release --features \"${{ matrix.protocols }} rust-tls\""
           strip: true
-          cross-version: ${{ matrix.platform.cross-version | default('main') }}
+          cross-version: ${{ matrix.platform.cross-version || 'main' }}
       - name: Run tests for ${{ matrix.platform.target }} with ${{ matrix.protocols }} and rust-tls features
         uses: houseabsolute/actions-rust-cross@v1
         with:
