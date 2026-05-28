@@ -116,7 +116,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-
+      - name: Maybe install SSL packages
+        run: sudo apt-get update --yes && sudo apt-get install --yes pkg-config openssl libssl-dev
       - name: Build ${{ matrix.platform.target }} binary for ${{ matrix.protocols }} with rust-tls features
         uses: houseabsolute/actions-rust-cross@v1
         with:
