@@ -379,7 +379,7 @@ async fn process_request(
 fn handle_http1_request<T>(
     port: Arc<u16>,
     io: FuturesIo<T>,
-    virtual_hosts: VetisVirtualHosts<VirtualHost>,
+    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where
