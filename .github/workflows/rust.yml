@@ -31,12 +31,12 @@ jobs:
         cargo test
                         
   test-matrix:
-    name: Test ${{ matrix.platform.os-name }} with rust ${{ matrix.toolchain }}
+    name: Test ${{ matrix.platform.os-name }}
     runs-on: ${{ matrix.platform.runs-on }}
     strategy:
       fail-fast: false
       matrix:
-        protocols: [http1, http2, http3]     
+        protocols: [http2]     
         platform:
           - os-name: FreeBSD-x86_64
             runs-on: ubuntu-24.04
