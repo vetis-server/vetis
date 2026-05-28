@@ -118,6 +118,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Maybe install SSL packages
         run: sudo apt-get update --yes && sudo apt-get install --yes pkg-config openssl libssl-dev
+        if: matrix.platform.runs-on == 'ubuntu-24.04'
       - name: Build ${{ matrix.platform.target }} binary for ${{ matrix.protocols }} with rust-tls features
         uses: houseabsolute/actions-rust-cross@v1
         with:
