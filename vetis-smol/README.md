@@ -50,10 +50,6 @@ pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../certs/server.key.der"
 
 #[apply(main!)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 
     let https = ListenerConfig::builder()
