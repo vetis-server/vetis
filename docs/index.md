@@ -171,11 +171,9 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
 | [vetis-tokio](./vetis-tokio) | Tokio runtime support | [![docs.rs](https://img.shields.io/docsrs/vetis-tokio/latest)](https://docs.rs/vetis-tokio) |
 | [vetis-macros](./vetis-macros) | Macros for Vetis | [![docs.rs](https://img.shields.io/docsrs/vetis-macros/latest)](https://docs.rs/vetis-macros) |
 
-
 ## Standalone Server
 
 Check out the [standalone server](./standalone-server.md) for complete examples of how to use Vetis as a standalone server.
-
 
 ## Examples
 

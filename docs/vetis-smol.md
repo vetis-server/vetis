@@ -1,32 +1,23 @@
-# VeTiS-Smol (Very Tiny Server - Smol runtime support)
+---
+layout: default
+title: Vetis Smol - Smol Runtime Support
+nav_order: 4
+---
 
-[![Crates.io downloads](https://img.shields.io/crates/d/vetis-smol)](https://crates.io/crates/vetis-smol) [![crates.io](https://img.shields.io/crates/v/vetis-smol?style=flat-square)](https://crates.io/crates/vetis-smol) [![Build Status](https://github.com/vetis-server/vetis/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/vetis-server/vetis/actions/workflows/rust.yml) ![Crates.io MSRV](https://img.shields.io/crates/msrv/vetis-smol) [![Documentation](https://docs.rs/vetis-smol/badge.svg)](https://docs.rs/vetis-smol/latest/vetis-smol) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vetis-server/vetis/blob/main/LICENSE.md)  [![codecov](https://codecov.io/gh/vetis-server/vetis/graph/badge.svg?token=T0HSBAPVSI)](https://codecov.io/gh/vetis-server/vetis)
+# Vetis Smol
 
-## Smol Runtime Support for Vetis
+Smol runtime support for Vetis HTTP server.
 
-The goal of this crate is provide smol runtime support for Vetis.
-
-## Quick Start
-
-Add VeTiS and VeTiS-Smol to your `Cargo.toml`:
+## Installation
 
 ```toml
 vetis = { version = "0.1.4-beta.7" }
 vetis-smol = { version = "0.1.0-beta.2", features = ["http2", "rust-tls"] }
 ```
 
-## Crate features
+## Usage
 
-- http1
-- http2 (default)
-- http3
-- rust-tls (default)
-
-## Usage Example
-
-Here's how simple it is to create a web server with VeTiS:
-
-```rust,no_run
+```rust
 use hyper::StatusCode;
 
 use macro_rules_attribute::apply;
@@ -116,10 +107,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## License
+## API Reference
 
-MIT
-
-## Author
-
-Rogerio Pereira Araujo <rogerio.araujo@gmail.com>
+For detailed API documentation, see the [docs.rs page](https://docs.rs/vetis-smol).

@@ -11,8 +11,8 @@ The goal of this crate is provide tokio runtime support for Vetis.
 Add VeTiS and VeTiS-Tokio to your `Cargo.toml`:
 
 ```toml
-vetis = { version = "0.1.0" }
-vetis-tokio = { version = "0.1.0", features = ["http2", "rust-tls"] }
+vetis = { version = "0.1.4-beta.7" }
+vetis-tokio = { version = "0.1.0-beta.2", features = ["http2", "rust-tls"] }
 ```
 
 ## Crate features

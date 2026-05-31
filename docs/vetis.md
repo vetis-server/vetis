@@ -16,7 +16,8 @@ Add VeTiS to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-vetis = { version = "0.1.4-beta.2", features = ["tokio-rt", "http2", "tokio-rust-tls"] }
+vetis = { version = "0.1.4-beta.7" }
+vetis-smol = { version = "0.1.0-beta.2", features = ["http2", "rust-tls"] }
 ```
 
 ## Usage
@@ -24,9 +25,7 @@ vetis = { version = "0.1.4-beta.2", features = ["tokio-rt", "http2", "tokio-rust
 ```rust
 use hyper::StatusCode;
 
-#[cfg(feature = "smol")]
 use macro_rules_attribute::apply;
-#[cfg(feature = "smol")]
 use smol_macros::main;
 
 use vetis::{
@@ -50,19 +49,8 @@ pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
 
-#[cfg(feature = "tokio")]
-#[tokio::main]
+#[apply(main)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-#[cfg(feature = "smol")]
-#[apply(main!)]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    run().await
-}
-
-async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 
     let https = ListenerConfig::builder()

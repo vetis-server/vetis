@@ -23,20 +23,6 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 - **Zero-Cost Abstractions**: Leverage Rust's performance without overhead
 - **Feature-Gated**: Include only what you need for optimal binary size
 
-## Quick Start
-
-Add VeTiS to your `Cargo.toml`:
-
-```toml
-vetis = { version = "0.1.0" }
-```
-
-## Crate features
-
-- static-files
-- reverse-proxy
-- auth
-
 ## Usage Example
 
 Please refer to the [vetis-tokio](../vetis-tokio/README.md) or [vetis-smol](../vetis-smol/README.md) crates for usage examples.
@@ -49,7 +35,6 @@ Please refer to the [vetis-tokio](../vetis-tokio/README.md) or [vetis-smol](../v
 - **Multi-Protocol** - Support for HTTP/1, HTTP/2 and HTTP/3 are disabled by default
 - **Virtual Hosts** - Host multiple domains on a single server
 - **SNI Support** - Server Name Indication for TLS
-- **Reverse Proxy** - Route requests to backend services (feature gated, disabled by default)
 
 ### Content & Security
 
@@ -57,9 +42,8 @@ Please refer to the [vetis-tokio](../vetis-tokio/README.md) or [vetis-smol](../v
 - **Authorization** - Fine-grained access control
 - **Dynamic Content** - Template rendering and content generation
 - **Logging** - Comprehensive request and error logging
-- **Static File Serving** - Efficient static asset delivery (feature gated, disabled by default)
 
-### Languages
+### Languages (via crates)
 
 - **Python** - Support for ASGI/WSGI/RSGI applications
 - **PHP** - Support for FastCGI compatible applications
