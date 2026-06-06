@@ -346,160 +346,160 @@ macro_rules! localhost {
     };
 
     (
-      from_crate => $from_crate:ident, 
-      protocol => $protocol:expr, 
-      port => $port:literal, 
+      from_crate => $from_crate:ident,
+      protocol => $protocol:expr,
+      port => $port:literal,
       handler => $handler:ident
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      from_crate => $from_crate:ident, 
-      port => $port:literal, 
-      protocol => $protocol:expr, 
+      from_crate => $from_crate:ident,
+      port => $port:literal,
+      protocol => $protocol:expr,
       handler => $handler:ident
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      from_crate => $from_crate:ident, 
-      handler => $handler:ident, 
-      port => $port:literal, 
+      from_crate => $from_crate:ident,
+      handler => $handler:ident,
+      port => $port:literal,
       protocol => $protocol:expr
     ) => {
         localhost!(@internal from_crate => $from_crate, port => $port, protocol => $protocol, handler => $handler)
     };
 
     (
-      from_crate => $from_crate:ident, 
-      handler => $handler:ident, 
-      protocol => $protocol:expr, 
+      from_crate => $from_crate:ident,
+      handler => $handler:ident,
+      protocol => $protocol:expr,
       port => $port:literal
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      from_crate => $from_crate:ident, 
-      port => $port:literal, 
-      handler => $handler:ident, 
+      from_crate => $from_crate:ident,
+      port => $port:literal,
+      handler => $handler:ident,
       protocol => $protocol:expr
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      port => $port:literal, 
-      from_crate => $from_crate:ident, 
-      protocol => $protocol:expr, 
+      port => $port:literal,
+      from_crate => $from_crate:ident,
+      protocol => $protocol:expr,
       handler => $handler:ident
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      port => $port:literal, 
-      protocol => $protocol:expr, 
-      from_crate => $from_crate:ident, 
+      port => $port:literal,
+      protocol => $protocol:expr,
+      from_crate => $from_crate:ident,
       handler => $handler:ident
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      port => $port:literal, 
-      protocol => $protocol:expr, 
-      handler => $handler:ident, 
+      port => $port:literal,
+      protocol => $protocol:expr,
+      handler => $handler:ident,
       from_crate => $from_crate:ident
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      protocol => $protocol:expr, 
-      handler => $handler:ident, 
-      from_crate => $from_crate:ident, 
+      protocol => $protocol:expr,
+      handler => $handler:ident,
+      from_crate => $from_crate:ident,
       port => $port:literal
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      protocol => $protocol:expr, 
-      from_crate => $from_crate:ident, 
-      handler => $handler:ident, 
+      protocol => $protocol:expr,
+      from_crate => $from_crate:ident,
+      handler => $handler:ident,
       port => $port:literal
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
 
     (
-      protocol => $protocol:expr, 
-      port => $port:literal, 
-      from_crate => $from_crate:ident, 
+      protocol => $protocol:expr,
+      port => $port:literal,
+      from_crate => $from_crate:ident,
       handler => $handler:ident
     ) => {
         localhost!(
-          @internal 
-          from_crate => $from_crate, 
-          port => $port, 
-          protocol => $protocol, 
+          @internal
+          from_crate => $from_crate,
+          port => $port,
+          protocol => $protocol,
           handler => $handler
         )
     };
@@ -559,118 +559,118 @@ macro_rules! security {
       client_auth => $client_auth:expr
     ) => {
         security!(
-            @internal 
-            cert => $cert, 
-            key => $key, 
-            ca_cert => $ca_cert, 
+            @internal
+            cert => $cert,
+            key => $key,
+            ca_cert => $ca_cert,
             client_auth => $client_auth
         )
     };
 
     (
-      cert => $cert:expr, 
-      ca_cert => $ca_cert:expr, 
-      key => $key:expr, 
+      cert => $cert:expr,
+      ca_cert => $ca_cert:expr,
+      key => $key:expr,
       client_auth => $client_auth:expr
     ) => {
         security!(@internal cert => $cert, key => $key, ca_cert => $ca_cert, client_auth => $client_auth)
     };
 
     (
-      cert => $cert:expr, 
-      key => $key:expr, 
-      client_auth => $client_auth:expr, 
+      cert => $cert:expr,
+      key => $key:expr,
+      client_auth => $client_auth:expr,
       ca_cert => $ca_cert:expr
     ) => {
         security!(@internal cert => $cert, key => $key, ca_cert => $ca_cert, client_auth => $client_auth)
     };
 
     (
-      key => $key:expr, 
-      cert => $cert:expr, 
-      ca_cert => $ca_cert:expr, 
+      key => $key:expr,
+      cert => $cert:expr,
+      ca_cert => $ca_cert:expr,
       client_auth => $client_auth:expr
     ) => {
         security!(
-          @internal 
-          cert => $cert, 
-          key => $key, 
-          ca_cert => $ca_cert, 
+          @internal
+          cert => $cert,
+          key => $key,
+          ca_cert => $ca_cert,
           client_auth => $client_auth
         )
     };
 
     (
-      key => $key:expr, 
-      ca_cert => $ca_cert:expr, 
-      cert => $cert:expr, 
+      key => $key:expr,
+      ca_cert => $ca_cert:expr,
+      cert => $cert:expr,
       client_auth => $client_auth:expr
     ) => {
         security!(
-          @internal 
-          cert => $cert, 
-          key => $key, 
-          ca_cert => $ca_cert, 
+          @internal
+          cert => $cert,
+          key => $key,
+          ca_cert => $ca_cert,
           client_auth => $client_auth
         )
     };
 
     (
-      key => $key:expr, 
-      ca_cert => $ca_cert:expr, 
-      client_auth => $client_auth:expr, 
+      key => $key:expr,
+      ca_cert => $ca_cert:expr,
+      client_auth => $client_auth:expr,
       cert => $cert:expr
     ) => {
         security!(
-          @internal 
-          cert => $cert, 
-          key => $key, 
-          ca_cert => $ca_cert, 
+          @internal
+          cert => $cert,
+          key => $key,
+          ca_cert => $ca_cert,
           client_auth => $client_auth
         )
     };
 
     (
-      ca_cert => $ca_cert:expr, 
-      key => $key:expr, 
-      cert => $cert:expr, 
+      ca_cert => $ca_cert:expr,
+      key => $key:expr,
+      cert => $cert:expr,
       client_auth => $client_auth:expr
     ) => {
         security!(
-          @internal 
-          cert => $cert, 
-          key => $key, 
-          ca_cert => $ca_cert, 
+          @internal
+          cert => $cert,
+          key => $key,
+          ca_cert => $ca_cert,
           client_auth => $client_auth
         )
     };
 
     (
-      ca_cert => $ca_cert:expr, 
-      cert => $cert:expr, 
-      key => $key:expr, 
+      ca_cert => $ca_cert:expr,
+      cert => $cert:expr,
+      key => $key:expr,
       client_auth => $client_auth:expr
     ) => {
         security!(
-          @internal 
-          cert => $cert, 
-          key => $key, 
-          ca_cert => $ca_cert, 
+          @internal
+          cert => $cert,
+          key => $key,
+          ca_cert => $ca_cert,
           client_auth => $client_auth
         )
     };
 
     (
-      ca_cert => $ca_cert:expr, 
-      client_auth => $client_auth:expr, 
-      key => $key:expr, 
+      ca_cert => $ca_cert:expr,
+      client_auth => $client_auth:expr,
+      key => $key:expr,
       cert => $cert:expr
     ) => {
         security!(
-          @internal 
-          cert => $cert, 
-          key => $key, 
-          ca_cert => $ca_cert, 
+          @internal
+          cert => $cert,
+          key => $key,
+          ca_cert => $ca_cert,
           client_auth => $client_auth
         )
     };
