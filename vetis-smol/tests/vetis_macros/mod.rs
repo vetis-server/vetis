@@ -1,3 +1,4 @@
+use crate::common::{deboa_default_protocol, vetis_default_protocol};
 use deboa::request::get;
 use deboa_smol::{
     cert::{Certificate, ContentEncoding},
@@ -6,11 +7,90 @@ use deboa_smol::{
 use macro_rules_attribute::apply;
 use smol_macros::test;
 use vetis::{virtual_host::handler_fn, Response};
-use vetis_macros::{http, security};
+use vetis_macros::{http, localhost, security};
 
-use crate::common::{deboa_default_protocol, vetis_default_protocol};
+#[apply(test!)]
+async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
+    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 
-async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
+    let mut server = localhost!(
+        from_crate => vetis_smol,
+        port => 8080,
+        handler => handler,
+        protocol => vetis_default_protocol()
+    )
+    .await?;
+
+    server
+        .start()
+        .await?;
+
+    let client = Client::builder()
+        .protocol(deboa_default_protocol())
+        .build();
+
+    let response = get("http://localhost:8080")?
+        .send_with(&client)
+        .await?;
+
+    assert_eq!(response.status(), 200);
+    assert_eq!(
+        response
+            .text()
+            .await?,
+        "Hello, World!"
+    );
+
+    server
+        .stop()
+        .await?;
+
+    Ok(())
+}
+
+#[apply(test!)]
+async fn do_test_http_minimal() -> Result<(), Box<dyn std::error::Error>> {
+    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
+
+    let mut server = http!(
+        from_crate => vetis_smol,
+        hostname => "localhost",
+        protocol => vetis_default_protocol(),
+        port => 8080,
+        interface => "0.0.0.0",
+        handler => handler
+    )
+    .await?;
+
+    server
+        .start()
+        .await?;
+
+    let client = Client::builder()
+        .protocol(deboa_default_protocol())
+        .build();
+
+    let response = get("http://localhost:8080")?
+        .send_with(&client)
+        .await?;
+
+    assert_eq!(response.status(), 200);
+    assert_eq!(
+        response
+            .text()
+            .await?,
+        "Hello, World!"
+    );
+
+    server
+        .stop()
+        .await?;
+
+    Ok(())
+}
+
+#[apply(test!)]
+async fn do_test_https() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 
     let mut server = http!(
@@ -41,7 +121,7 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         .certificate(certificate)
         .build();
 
-    let response = get("http://localhost:8080")?
+    let response = get("https://localhost:8080")?
         .send_with(&client)
         .await?;
 
@@ -58,9 +138,4 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     Ok(())
-}
-
-#[apply(test!)]
-async fn test_http() -> Result<(), Box<dyn std::error::Error>> {
-    do_test_http().await
 }
