@@ -12,7 +12,13 @@ keywords = ["http", "networking", "macros"]
 publish = true
 rust-version.workspace = true
 
+[lib]
+proc-macro = true
+
 [dependencies]
+proc-macro2 = "1.0.106"
+quote = "1.0.45"
+syn = "2.0.117"
 vetis = { workspace = true }
 
 [dev-dependencies]

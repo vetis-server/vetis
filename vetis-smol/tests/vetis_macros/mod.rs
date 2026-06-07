@@ -7,13 +7,13 @@ use deboa_smol::{
 use macro_rules_attribute::apply;
 use smol_macros::test;
 use vetis::{virtual_host::handler_fn, Response};
-use vetis_macros::{http, localhost, security};
+use vetis_macros::{http, security};
 
 #[apply(test!)]
 async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 
-    let mut server = localhost!(
+    let mut server = http!(
         from_crate => vetis_smol,
         port => 8080,
         handler => handler,

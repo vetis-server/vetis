@@ -3674,6 +3674,9 @@ dependencies = [
 name = "vetis-macros"
 version = "0.1.1-beta.2"
 dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
  "tokio",
  "vetis",
  "vetis-tokio",
