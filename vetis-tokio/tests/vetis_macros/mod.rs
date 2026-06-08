@@ -10,13 +10,13 @@ use crate::common::{deboa_default_protocol, vetis_default_protocol};
 
 #[tokio::test]
 async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
-    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
-
     let mut server = http!(
         from_crate => vetis_tokio,
         port => 8888,
-        handler => handler,
-        protocol => vetis_default_protocol()
+        protocol => vetis_default_protocol(),
+        handler => handler_fn(
+            |_req| async move { Ok(Response::builder().text("Hello, World!")) }
+        )
     )
     .await?;
 
