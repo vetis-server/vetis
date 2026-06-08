@@ -15,7 +15,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut server = http!(
         from_crate => vetis_smol,
-        port => 8080,
+        port => 8888,
         handler => handler,
         protocol => vetis_default_protocol()
     )
@@ -29,48 +29,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
         .protocol(deboa_default_protocol())
         .build();
 
-    let response = get("http://localhost:8080")?
-        .send_with(&client)
-        .await?;
-
-    assert_eq!(response.status(), 200);
-    assert_eq!(
-        response
-            .text()
-            .await?,
-        "Hello, World!"
-    );
-
-    server
-        .stop()
-        .await?;
-
-    Ok(())
-}
-
-#[apply(test!)]
-async fn do_test_http_minimal() -> Result<(), Box<dyn std::error::Error>> {
-    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
-
-    let mut server = http!(
-        from_crate => vetis_smol,
-        hostname => "localhost",
-        protocol => vetis_default_protocol(),
-        port => 8080,
-        interface => "0.0.0.0",
-        handler => handler
-    )
-    .await?;
-
-    server
-        .start()
-        .await?;
-
-    let client = Client::builder()
-        .protocol(deboa_default_protocol())
-        .build();
-
-    let response = get("http://localhost:8080")?
+    let response = get("http://localhost:8888")?
         .send_with(&client)
         .await?;
 

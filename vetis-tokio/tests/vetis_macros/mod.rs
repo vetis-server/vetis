@@ -8,6 +8,46 @@ use vetis_macros::{http, security};
 
 use crate::common::{deboa_default_protocol, vetis_default_protocol};
 
+#[tokio::test]
+async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
+    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
+
+    let mut server = http!(
+        from_crate => vetis_tokio,
+        port => 8888,
+        handler => handler,
+        protocol => vetis_default_protocol()
+    )
+    .await?;
+
+    server
+        .start()
+        .await?;
+
+    let client = Client::builder()
+        .protocol(deboa_default_protocol())
+        .build();
+
+    let response = get("http://localhost:8888")?
+        .send_with(&client)
+        .await?;
+
+    assert_eq!(response.status(), 200);
+    assert_eq!(
+        response
+            .text()
+            .await?,
+        "Hello, World!"
+    );
+
+    server
+        .stop()
+        .await?;
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 
@@ -56,9 +96,4 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     Ok(())
-}
-
-#[tokio::test]
-async fn test_http() -> Result<(), Box<dyn std::error::Error>> {
-    do_test_http().await
 }
