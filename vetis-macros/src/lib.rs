@@ -6,7 +6,7 @@ use proc_macro2::{Span, TokenStream as TS2};
 use quote::quote;
 use syn::{parse_macro_input, LitInt, LitStr};
 
-use crate::parsers::{SecurityArgs, StatusPagesArgs};
+use crate::parsers::{HttpArgs, SecurityArgs, StatusPagesArgs};
 
 mod parsers;
 
@@ -71,7 +71,7 @@ mod parsers;
 ///     Ok(())
 /// }
 pub fn http(item: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(item as parsers::http::HttpArgs);
+    let args = parse_macro_input!(item as HttpArgs);
 
     let from_crate = match args.from_crate {
         Some(e) => e,
@@ -194,9 +194,14 @@ pub fn http(item: TokenStream) -> TokenStream {
 ///
 /// # Arguments
 ///
+/// ## Required
+///
 /// * `cert` - The path to the certificate file.
 /// * `key` - The path to the private key file.
 /// * `ca_cert` - The path to the CA certificate file.
+///
+/// ## Optional
+///
 /// * `client_auth` - Whether to require client authentication.
 ///
 /// # Examples
