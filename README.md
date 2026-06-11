@@ -54,6 +54,26 @@ vetis = { version = "0.1.0" }
 Here's how simple it is to create a web server with VeTiS:
 
 ```rust
+use hyper::StatusCode;
+
+use vetis::{
+    listener::ListenerConfig,
+    security::SecurityConfig,
+    server::{Protocol, ServerConfig},
+    virtual_host::{handler_fn, VirtualHostConfig},
+};
+
+use vetis_macros::status_pages;
+
+use vetis_tokio::{
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
+    Vetis,
+};
+
+pub(crate) const CA_CERT: &[u8] = include_bytes!("../../certs/ca.der");
+pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../../certs/server.der");
+pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../certs/server.key.der");
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
