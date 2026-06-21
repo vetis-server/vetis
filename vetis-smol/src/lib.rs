@@ -39,6 +39,7 @@ pub use vetis::{
     VetisRwLock, VetisVirtualHosts,
 };
 
+#[derive(Default)]
 /// Main server instance that manages virtual hosts and listeners.
 ///
 /// The `Vetis` struct is the core of the VeTiS server. It handles:
@@ -59,9 +60,9 @@ pub use vetis::{
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let config = ServerConfig::builder().build()?;
 ///     let mut server = Vetis::new(config);
-///     
+///
 ///     // Add virtual hosts...
-///     
+///
 ///     server.run().await?;
 ///     Ok(())
 /// }
@@ -199,9 +200,9 @@ impl Vetis {
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
-    ///     
+    ///
     ///     // Add virtual hosts...
-    ///     
+    ///
     ///     server.run().await?; // Runs until Ctrl+C
     ///     Ok(())
     /// }
@@ -244,7 +245,7 @@ impl Vetis {
     ///
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
-    /// use smol_macros::main;    
+    /// use smol_macros::main;
     /// use vetis::server::ServerConfig;
     /// use vetis_smol::Vetis;
     ///
@@ -252,13 +253,13 @@ impl Vetis {
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
-    ///     
+    ///
     ///     // Add virtual hosts...
-    ///     
+    ///
     ///     server.start().await?;
-    ///     
+    ///
     ///     // Server is now running, do other work...
-    ///     
+    ///
     ///     server.stop().await?;
     ///     Ok(())
     /// }
@@ -312,7 +313,7 @@ impl Vetis {
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
-    ///     
+    ///
     ///     server.start().await?;
     ///     // Server running...
     ///     server.stop().await?;

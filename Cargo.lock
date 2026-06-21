@@ -3678,7 +3678,7 @@ dependencies = [
 
 [[package]]
 name = "vetis-smol"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 dependencies = [
  "async-lock",
  "async-net",
@@ -3731,7 +3731,7 @@ dependencies = [
 
 [[package]]
 name = "vetis-tokio"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 dependencies = [
  "async-lock",
  "base64",

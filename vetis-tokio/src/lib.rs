@@ -33,6 +33,7 @@ pub use vetis::{
     VetisRwLock, VetisVirtualHosts,
 };
 
+#[derive(Default)]
 /// Main server instance that manages virtual hosts and listeners.
 ///
 /// The `Vetis` struct is the core of the VeTiS server. It handles:
