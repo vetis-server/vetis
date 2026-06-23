@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let https = ListenerConfig::builder()
         .port(8443)
-        .protocol(Protocol::Http1)
+        .protocol(Protocol::Http2)
         .interface("0.0.0.0")
         .build()?;
 
