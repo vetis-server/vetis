@@ -4,14 +4,14 @@ title: Vetis Macros - Procedural Macros
 nav_order: 3
 ---
 
-# Vetis Macros
+## Vetis Macros
 
 Collection of procedural macros for Vetis HTTP server.
 
 Available macros includes:
 
 - `http!`
-- `https!`
+- `statuspages!`
 
 ## Installation
 
@@ -55,7 +55,7 @@ let handler = handler_fn(|req| async move {
     Ok(vetis::Response::builder().body(http_body_util::Full::from("Hello, World!")))
 });
 
-let mut server = https!(
+let mut server = http!(
     hostname => "localhost",
     port => 8080,
     interface => "0.0.0.0",
@@ -73,7 +73,7 @@ server
 
 server
     .stop()
-    .await?;  
+    .await?;
 ```
 
 ## API Reference

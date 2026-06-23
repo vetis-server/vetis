@@ -4,7 +4,7 @@ title: Vetis Smol - Smol Runtime Support
 nav_order: 4
 ---
 
-# Vetis Smol
+## Vetis Smol
 
 Smol runtime support for Vetis HTTP server.
 

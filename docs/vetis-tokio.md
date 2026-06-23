@@ -4,7 +4,7 @@ title: Vetis Tokio - Tokio Runtime Support
 nav_order: 5
 ---
 
-# Vetis Tokio
+## Vetis Tokio
 
 Tokio runtime support for Vetis HTTP server.
 

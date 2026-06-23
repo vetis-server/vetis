@@ -1,14 +1,11 @@
 use hyper::StatusCode;
-
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
 };
-
 use vetis_macros::status_pages;
-
 use vetis_tokio::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,

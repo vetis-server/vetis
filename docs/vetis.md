@@ -4,7 +4,7 @@ title: Vetis - HTTP Server
 nav_order: 2
 ---
 
-# Vetis
+## Vetis
 
 **VeTiS** is a lightweight yet powerful web server that brings simplicity and performance together. Designed with Rust's safety guarantees in mind, it delivers HTTP/1, HTTP/2, and HTTP/3 support with a clean, intuitive API that makes building web services a breeze.
 
@@ -24,28 +24,21 @@ vetis-smol = { version = "0.1.0-beta.2", features = ["http2", "rust-tls"] }
 
 ```rust
 use hyper::StatusCode;
-
 use macro_rules_attribute::apply;
 use smol_macros::main;
-
 use vetis::{
-    config::server::{
-        virtual_host::{
-            path::proxy::ProxyPathConfig, path::static_files::StaticPathConfig, SecurityConfig,
-            VirtualHostConfig,
-        },
-        ListenerConfig, Protocol, ServerConfig,
-    },
-    server::virtual_host::{
-        handler_fn,
-        path::{proxy::ProxyPath, static_files::StaticPath, HandlerPath},
-        VirtualHost,
-    },
+    listener::ListenerConfig,
+    security::SecurityConfig,
+    server::{Protocol, ServerConfig},
+    virtual_host::{handler_fn, VirtualHostConfig},
+};
+use vetis_macros::status_pages;
+use vetis_tokio::{
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
 };
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
-
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../certs/server.key.der");
 
@@ -74,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .port(8443)
         .security(security_config)
         .root_directory("/home/rogerio/Downloads")
-        .status_pages(maplit::hashmap! {
+        .status_pages(status_pages! {
             404 => "404.html".to_string(),
             500 => "500.html".to_string(),
         })
