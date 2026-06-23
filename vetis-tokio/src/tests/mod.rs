@@ -30,6 +30,7 @@ pub(crate) const fn deboa_default_protocol() -> HttpVersion {
 }
 
 mod config;
+mod lib;
 mod paths;
 
 #[cfg(target_os = "linux")]

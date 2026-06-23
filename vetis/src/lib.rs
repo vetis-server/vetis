@@ -20,6 +20,7 @@ pub mod security;
 /// Server module
 pub mod server;
 /// Internal tests module
+#[cfg(test)]
 mod tests;
 /// Utility functions and helpers
 pub mod utils;
