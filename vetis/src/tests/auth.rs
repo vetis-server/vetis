@@ -5,7 +5,7 @@ use std::io::Write;
 use crate::auth::{Algorithm, BasicAuthConfig};
 
 fn create_temp_htpasswd(content: &str) -> String {
-    let path = format!("/tmp/test_htpasswd_{}.tmp", std::process::id());
+    let path = format!("test_htpasswd_{}.tmp", std::process::id());
     let mut file = File::create(&path).unwrap();
     write!(file, "{}", content).unwrap();
     path
