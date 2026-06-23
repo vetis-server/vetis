@@ -68,8 +68,8 @@ impl BasicAuthConfigBuilder {
     /// # Returns
     ///
     /// * `Self` - The builder.
-    pub fn htpasswd(mut self, htpasswd: Option<String>) -> Self {
-        self.htpasswd = htpasswd;
+    pub fn htpasswd(mut self, htpasswd: &str) -> Self {
+        self.htpasswd = Some(htpasswd.to_owned());
         self
     }
 
@@ -169,7 +169,6 @@ impl BasicAuthConfigBuilder {
 /// let auth = BasicAuthConfig::builder()
 ///     .users(HashMap::new())
 ///     .algorithm(Algorithm::BCrypt)
-///     .htpasswd(None)
 ///     .build();
 /// ```
 pub struct BasicAuthConfig {

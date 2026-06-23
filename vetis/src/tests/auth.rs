@@ -5,10 +5,12 @@ use std::io::Write;
 use crate::auth::{Algorithm, BasicAuthConfig};
 
 fn create_temp_htpasswd(content: &str) -> String {
-    let path = format!("test_htpasswd_{}.tmp", std::process::id());
+    let temp_dir = std::env::temp_dir();
+    let path = temp_dir.join(format!("test_htpasswd_{}.tmp", std::process::id()));
     let mut file = File::create(&path).unwrap();
     write!(file, "{}", content).unwrap();
-    path
+    path.to_string_lossy()
+        .to_string()
 }
 
 fn cleanup_temp_file(path: &str) {
@@ -51,7 +53,6 @@ fn test_basic_auth_config_builder_build_success() {
     let config = BasicAuthConfig::builder()
         .users(users.clone())
         .algorithm(Algorithm::Argon2)
-        .htpasswd(None)
         .build()
         .unwrap();
 
@@ -65,7 +66,7 @@ fn test_basic_auth_config_builder_build_with_htpasswd_file() {
     let path = create_temp_htpasswd("user1:$2y$10$hash1\n");
     let path_for_cleanup = path.clone();
     let config = BasicAuthConfig::builder()
-        .htpasswd(Some(path))
+        .htpasswd(&path)
         .build()
         .unwrap();
 
@@ -76,7 +77,7 @@ fn test_basic_auth_config_builder_build_with_htpasswd_file() {
 #[test]
 fn test_basic_auth_config_builder_build_htpasswd_not_found() {
     let result = BasicAuthConfig::builder()
-        .htpasswd(Some("/nonexistent/.htpasswd".to_string()))
+        .htpasswd("/nonexistent/.htpasswd")
         .build();
 
     assert!(result.is_err());
@@ -88,7 +89,7 @@ fn test_basic_auth_config_builder_cache_users_valid_file() {
     let path = create_temp_htpasswd(content);
 
     let config = BasicAuthConfig::builder()
-        .htpasswd(Some(path.clone()))
+        .htpasswd(&path)
         .cache_users()
         .build()
         .unwrap();
@@ -122,7 +123,7 @@ fn test_basic_auth_config_builder_cache_users_malformed_lines() {
     let path = create_temp_htpasswd(content);
 
     let config = BasicAuthConfig::builder()
-        .htpasswd(Some(path.clone()))
+        .htpasswd(&path)
         .cache_users()
         .build()
         .unwrap();
@@ -150,7 +151,7 @@ fn test_basic_auth_config_builder_cache_users_malformed_lines() {
 #[test]
 fn test_basic_auth_config_builder_cache_users_nonexistent_file() {
     let config = BasicAuthConfig::builder()
-        .htpasswd(Some("/nonexistent/.htpasswd".to_string()))
+        .htpasswd("/nonexistent/.htpasswd")
         .cache_users()
         .build();
 
@@ -177,7 +178,6 @@ fn test_basic_auth_config_builder_chain() {
     let config = BasicAuthConfig::builder()
         .users(users.clone())
         .algorithm(Algorithm::Argon2)
-        .htpasswd(None)
         .build()
         .unwrap();
 
@@ -219,7 +219,6 @@ fn test_basic_auth_config_algorithm_getter() {
 #[test]
 fn test_basic_auth_config_htpasswd_getter() {
     let config = BasicAuthConfig::builder()
-        .htpasswd(None)
         .build()
         .unwrap();
 
@@ -229,7 +228,7 @@ fn test_basic_auth_config_htpasswd_getter() {
     let path_for_cleanup = path.clone();
     let path_for_assertion = path.clone();
     let config = BasicAuthConfig::builder()
-        .htpasswd(Some(path))
+        .htpasswd(&path)
         .build()
         .unwrap();
 
