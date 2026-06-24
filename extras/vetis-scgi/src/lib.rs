@@ -1,9 +1,8 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
-use std::{future::Future, pin::Pin, sync::Arc};
-
 use http::StatusCode;
 use hyper_body_utils::HttpBody;
+use std::{future::Future, pin::Pin, sync::Arc};
 use vetis::{
     errors::VetisError, virtual_host::path::interface::InterfaceWorker, Request, Response,
 };
