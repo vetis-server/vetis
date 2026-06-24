@@ -19,17 +19,14 @@ vetis-smol = { version = "0.1.0-beta.2", features = ["http2", "rust-tls"] }
 
 ```rust
 use hyper::StatusCode;
-
 use macro_rules_attribute::apply;
 use smol_macros::main;
-
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
 };
-
 use vetis_smol::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,

@@ -4,7 +4,7 @@ title: Vetis - Standalone Server
 nav_order: 6
 ---
 
-# Standalone Server
+## Standalone Server
 
 Vetis can be also used as a standalone server, we bundle a binary with the most common features enabled.
 

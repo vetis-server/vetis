@@ -4,7 +4,7 @@ title: Vetis - Configuration
 nav_order: 7
 ---
 
-# Configuration
+## Configuration
 
 This document describes the configuration structure for the Vetis web server.
 

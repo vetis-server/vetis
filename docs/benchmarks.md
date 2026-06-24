@@ -4,7 +4,7 @@ title: Vetis - Benchmarks
 nav_order: 4
 ---
 
-# Benchmarks
+## Benchmarks
 
 Go to `examples/simple` and run:
 
@@ -23,16 +23,16 @@ has huge impact on performance.
 
 ```text
 Summary:
-  Success rate:	100.00%
-  Total:	10001.2078 ms
-  Slowest:	940.3868 ms
-  Fastest:	0.0414 ms
-  Average:	0.6897 ms
-  Requests/sec:	184706.9910
+  Success rate: 100.00%
+  Total: 10001.2078 ms
+  Slowest: 940.3868 ms
+  Fastest: 0.0414 ms
+  Average: 0.6897 ms
+  Requests/sec: 184706.9910
 
-  Total data:	35.23 MiB
-  Size/request:	20 B
-  Size/sec:	3.52 MiB
+  Total data: 35.23 MiB
+  Size/request: 20 B
+  Size/sec: 3.52 MiB
 
 Response time histogram:
     0.041 ms [1]       |
@@ -60,8 +60,8 @@ Response time distribution:
 
 
 Details (average, fastest, slowest):
-  DNS+dialup:	522.2068 ms, 27.9548 ms, 939.1788 ms
-  DNS-lookup:	0.0147 ms, 0.0008 ms, 0.1313 ms
+  DNS+dialup: 522.2068 ms, 27.9548 ms, 939.1788 ms
+  DNS-lookup: 0.0147 ms, 0.0008 ms, 0.1313 ms
 
 Status code distribution:
   [200] 1847268 responses
