@@ -1,14 +1,12 @@
-use std::{collections::HashMap, future::Future, path::Path, pin::Pin, sync::Arc};
-
-use radix_trie::Trie;
-use serde::Deserialize;
-
 use crate::{
     errors::{ConfigError, FileError, VetisError, VirtualHostError},
     security::SecurityConfig,
     virtual_host::path::PathConfig,
     Request, Response,
 };
+use radix_trie::Trie;
+use serde::Deserialize;
+use std::{collections::HashMap, future::Future, path::Path, pin::Pin, sync::Arc};
 
 /// Path configuration for virtual hosts.
 pub mod path;

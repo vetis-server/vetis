@@ -1,8 +1,9 @@
-use crate::errors::{ConfigError, VetisError};
-use crate::security::SecurityConfig;
-use crate::virtual_host::VirtualHostConfig;
-use std::collections::HashMap;
-use std::fs;
+use crate::{
+    errors::{ConfigError, VetisError},
+    security::SecurityConfig,
+    virtual_host::VirtualHostConfig,
+};
+use std::{collections::HashMap, fs};
 
 #[test]
 fn test_virtual_host_config_build_success() {

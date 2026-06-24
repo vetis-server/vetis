@@ -1,8 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
-use std::{collections::HashMap, sync::Arc};
-
 use async_lock::RwLock;
+use std::{collections::HashMap, sync::Arc};
 
 /// Basic authentication module
 #[cfg(feature = "auth")]

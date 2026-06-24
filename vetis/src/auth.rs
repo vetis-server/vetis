@@ -1,11 +1,8 @@
-use std::{collections::HashMap, path::Path};
-
+use crate::errors::{ConfigError, VetisError};
 use futures_util::future::BoxFuture;
 use http::HeaderMap;
 use serde::Deserialize;
-
-use crate::errors::ConfigError;
-use crate::errors::VetisError;
+use std::{collections::HashMap, path::Path};
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 /// An enum with authentication algorithms.
@@ -117,9 +114,7 @@ impl BasicAuthConfigBuilder {
                         });
                 }
                 Err(e) => {
-                    use log::error;
-
-                    error!("Failed to read htpasswd file: {}", e);
+                    log::error!("Failed to read htpasswd file: {}", e);
                 }
             }
         }

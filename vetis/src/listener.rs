@@ -1,12 +1,10 @@
-use std::{future::Future, pin::Pin};
-
-use serde::Deserialize;
-
 use crate::{
     errors::{ConfigError, VetisError},
     server::Protocol,
     VetisVirtualHosts,
 };
+use serde::Deserialize;
+use std::{future::Future, pin::Pin};
 
 /// A pinned future that resolves to a result of type T or a VetisError
 pub type ListenerResult<'a, T> =

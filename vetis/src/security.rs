@@ -1,9 +1,7 @@
-use std::fs;
-
+use crate::errors::{ConfigError, VetisError};
 use log::error;
 use serde::{Deserialize, Deserializer};
-
-use crate::errors::{ConfigError, VetisError};
+use std::fs;
 
 /// Builder for creating `SecurityConfig` instances.
 ///

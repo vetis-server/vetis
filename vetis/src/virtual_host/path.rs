@@ -1,8 +1,7 @@
 //! Path module for virtual host configuration.
 
-use std::{future::Future, pin::Pin, sync::Arc};
-
 use crate::{errors::VetisError, Request, Response};
+use std::{future::Future, pin::Pin, sync::Arc};
 
 /// Trait for handling different types of paths in the server
 pub trait Path: Sync + Send {

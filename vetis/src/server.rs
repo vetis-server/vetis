@@ -1,8 +1,6 @@
-use std::future::Future;
-
-use serde::Deserialize;
-
 use crate::{errors::ConfigError, listener::ListenerConfig, VetisResult, VetisVirtualHosts};
+use serde::Deserialize;
+use std::future::Future;
 
 /// Supported HTTP protocols.
 ///

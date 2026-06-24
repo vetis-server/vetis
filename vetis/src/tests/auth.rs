@@ -1,16 +1,10 @@
-use std::collections::HashMap;
-use std::fs::{self, File};
-use std::io::Write;
-
 use crate::auth::{Algorithm, BasicAuthConfig};
+use std::{collections::HashMap, fs};
 
 fn create_temp_htpasswd(content: &str) -> String {
-    let temp_dir = std::env::temp_dir();
-    let path = temp_dir.join(format!("test_htpasswd_{}.tmp", std::process::id()));
-    let mut file = File::create(&path).unwrap();
-    write!(file, "{}", content).unwrap();
-    path.to_string_lossy()
-        .to_string()
+    let path = format!("test_htpasswd_{}.tmp", std::process::id());
+    fs::write(&path, content).unwrap();
+    path
 }
 
 fn cleanup_temp_file(path: &str) {

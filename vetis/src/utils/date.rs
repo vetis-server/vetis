@@ -1,5 +1,4 @@
 use std::time::SystemTime;
-
 use time::{format_description::well_known::Rfc2822, OffsetDateTime};
 
 /// Format a date to RFC 2822 format.

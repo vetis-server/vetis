@@ -1,5 +1,7 @@
-use crate::errors::{ConfigError, VetisError};
-use crate::security::SecurityConfig;
+use crate::{
+    errors::{ConfigError, VetisError},
+    security::SecurityConfig,
+};
 use std::fs;
 
 #[test]

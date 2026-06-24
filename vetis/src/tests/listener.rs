@@ -1,5 +1,4 @@
-use crate::listener::ListenerConfig;
-use crate::server::Protocol;
+use crate::{listener::ListenerConfig, server::Protocol};
 
 #[test]
 fn test_listener_config_builder_default() {
