@@ -29,7 +29,7 @@ pub trait Path: Sync + Send {
     ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>;
 }
 
-#[typetag::serde(tag = "type")]
+#[typetag::serde]
 /// A trait which describe path configuration
 pub trait PathConfig: Send + Sync {
     /// Sets the URI for the path

@@ -79,7 +79,7 @@ peekable = { version = "0.6.1", features = [
 ], default-features = false }
 quinn = { version = "0.11.9", optional = true, default-features = false }
 radix_trie = "0.3.0"
-rand = "0.9.2"
+rand = "0.10.1"
 regex = { version = "1.12.4", optional = true, default-features = false }
 rustls = { version = "0.23.40", optional = true, default-features = false }
 rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
@@ -92,6 +92,7 @@ smol-macros = { version = "0.1.1", default-features = false }
 socket2 = "0.6.4"
 thiserror = "2.0.17"
 time = { version = "0.3.41", features = ["formatting"] }
+typetag = "0.2.22"
 url = "2.5.7"
 vetis = { workspace = true, default-features = false }
 

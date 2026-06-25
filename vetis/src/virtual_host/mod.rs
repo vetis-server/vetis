@@ -1,7 +1,6 @@
 use crate::{
     errors::{ConfigError, FileError, VetisError, VirtualHostError},
     security::SecurityConfig,
-    virtual_host::path::PathConfig,
     Request, Response,
 };
 use radix_trie::Trie;
@@ -453,8 +452,8 @@ impl VirtualHostConfig {
     ///
     /// # Returns
     ///
-    /// * `&Option<Vec<Box<dyn PathConfig>>>` - The static paths.
-    pub fn paths(&self) -> &Option<Vec<Box<dyn PathConfig>>> {
+    /// * `&Option<Vec<Box<dyn Path>>>` - The static paths.
+    pub fn paths(&self) -> &Option<Vec<Box<dyn path::PathConfig>>> {
         &self.paths
     }
 }

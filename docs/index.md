@@ -78,7 +78,6 @@ Check out the [benchmarks](./benchmarks.md) for performance details.
 - [easyhttpmock](https://crates.io/crates/easyhttpmock) - HTTP mock server
 - [sofie](https://crates.io/crates/sofie) - Fullstack web framework
 - [uget](https://crates.io/crates/uget) - CLI HTTP client
-- [vetis](https://crates.io/crates/vetis) - Very Tiny Http server
 
 ## License
 
