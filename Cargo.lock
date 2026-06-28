@@ -3713,7 +3713,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vetis"
-version = "0.1.4-beta.8"
+version = "0.1.4-beta.9"
 dependencies = [
  "argon2",
  "async-lock",
@@ -3772,7 +3772,7 @@ dependencies = [
 
 [[package]]
 name = "vetis-smol"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "async-lock",
  "async-net",
@@ -3826,7 +3826,7 @@ dependencies = [
 
 [[package]]
 name = "vetis-tokio"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "async-lock",
  "base64",

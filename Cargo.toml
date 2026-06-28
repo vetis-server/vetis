@@ -19,7 +19,7 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.75.0"
 
 [workspace.dependencies]
-vetis = { path = "vetis", version = "0.1.4-beta.7" }
+vetis = { path = "vetis", version = "0.1.4-beta.9" }
 vetis-macros = { path = "vetis-macros", version = "0.1.1-beta.2" }
 vetis-smol = { path = "vetis-smol" }
 vetis-tokio = { path = "vetis-tokio" }

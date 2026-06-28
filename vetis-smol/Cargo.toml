@@ -1,6 +1,6 @@
 [package]
 name = "vetis-smol"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
