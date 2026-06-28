@@ -1,6 +1,6 @@
 [package]
 name = "vetis"
-version = "0.1.4-beta.7"
+version = "0.1.4-beta.8"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true

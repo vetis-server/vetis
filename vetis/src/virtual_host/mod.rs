@@ -512,11 +512,11 @@ pub trait VirtualHost {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
-    fn serve_status_page(
-        &self,
+    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn serve_status_page<'a>(
+        &'a self,
         status: u16,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>;
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>;
 
     /// Route request to the appropriate handler
     ///
@@ -526,11 +526,11 @@ pub trait VirtualHost {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
-    fn route(
-        &self,
+    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn route<'a>(
+        &'a self,
         request: Request,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>
     where
         Self: Sync,
     {
@@ -540,10 +540,7 @@ pub trait VirtualHost {
             .into();
 
         if uri_path.starts_with("..") {
-            return Box::pin(async move {
-                self.serve_status_page(http::StatusCode::FORBIDDEN.as_u16())
-                    .await
-            });
+            return self.serve_status_page(http::StatusCode::FORBIDDEN.as_u16());
         }
 
         let paths = self.paths();
@@ -551,10 +548,7 @@ pub trait VirtualHost {
         let matches = paths.get_ancestor_value(&uri_path);
 
         let Some(path) = matches else {
-            return Box::pin(async move {
-                self.serve_status_page(http::StatusCode::NOT_FOUND.as_u16())
-                    .await
-            });
+            return self.serve_status_page(http::StatusCode::NOT_FOUND.as_u16());
         };
 
         let path = path.clone();

@@ -22,11 +22,11 @@ pub trait Path: Sync + Send {
     /// # Returns
     ///
     /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
-    fn handle(
-        &self,
+    fn handle<'a>(
+        &'a self,
         request: Request,
         uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>>;
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>;
 }
 
 #[typetag::serde]

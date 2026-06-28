@@ -40,10 +40,10 @@ impl VirtualHost for VirtualHostImpl {
         &self.config
     }
 
-    fn serve_status_page(
-        &self,
+    fn serve_status_page<'a>(
+        &'a self,
         status: u16,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>> {
         let future = async move {
             let status_code = match StatusCode::from_u16(status) {
                 Ok(code) => code,

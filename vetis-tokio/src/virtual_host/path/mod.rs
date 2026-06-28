@@ -107,15 +107,15 @@ impl Path for HandlerPath {
     ///
     /// * `request` - The request to handle
     /// * `uri` - The URI of the path
-    ///
+    ///'
     /// # Returns
     ///
     /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
-    fn handle(
-        &self,
+    fn handle<'a>(
+        &'a self,
         request: Request,
         _uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync + '_>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>> {
         (self.handler)(request)
     }
 }
