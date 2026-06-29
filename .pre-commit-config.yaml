@@ -21,9 +21,9 @@ repos:
         types: ["rust"]
         pass_filenames: false
 
-      - id: cargo-test
-        name: "cargo test"
-        entry: "cargo test"
+      - id: cargo-nextest
+        name: "cargo nextest"
+        entry: "cargo nextest run"
         language: "system"
         types: ["rust"]
         pass_filenames: false

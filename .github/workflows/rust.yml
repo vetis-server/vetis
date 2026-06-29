@@ -2,7 +2,7 @@ name: Rust
 
 permissions:
   contents: read
-  
+
 on:
   push:
     branches: [ "**" ]
@@ -13,7 +13,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:    
+  test:
     name: Test all
     strategy:
       matrix:
@@ -22,21 +22,24 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v7
-    
+
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
 
-    - name: Run tests
+    - name: Install nextest
+      uses: taiki-e/install-action@nextest
+
+    - name: Run all tests
       run: |
-        cargo test
-                        
+          cargo nextest run
+
   test-matrix:
     name: Test ${{ matrix.platform.os-name }}
     runs-on: ${{ matrix.platform.runs-on }}
     strategy:
       fail-fast: false
       matrix:
-        protocols: [http2]     
+        protocols: [http2]
         platform:
           - os-name: FreeBSD-x86_64
             runs-on: ubuntu-24.04
