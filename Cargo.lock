@@ -3746,7 +3746,7 @@ dependencies = [
  "peekable",
  "quinn",
  "radix_trie",
- "rand 0.9.4",
+ "rand 0.10.1",
  "regex",
  "serde",
  "serde_yaml_ng",
