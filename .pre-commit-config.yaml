@@ -35,6 +35,54 @@ repos:
         types: ["rust"]
         pass_filenames: false
 
+      - id: cargo-nextest-vetis-smol-http1-rust-tls
+        name: "test vetis-smol with http1 and rust-tls"
+        entry: |
+          cargo nextest run --package vetis-smol --features "http1 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+        language: "system"
+        types: ["rust"]
+        pass_filenames: false
+
+      - id: cargo-nextest-vetis-smol-http2-rust-tls
+        name: "test vetis-smol with http2 and rust-tls"
+        entry: |
+          cargo nextest run --package vetis-smol --features "http2 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+        language: "system"
+        types: ["rust"]
+        pass_filenames: false
+
+      - id: cargo-nextest-vetis-smol-http3-rust-tls
+        name: "test vetis-smol with http3 and rust-tls"
+        entry: |
+          cargo nextest run --package vetis-smol --features "http3 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+        language: "system"
+        types: ["rust"]
+        pass_filenames: false        
+
+      - id: cargo-nextest-vetis-tokio-http1-rust-tls
+        name: "test vetis-tokio with http1 and rust-tls"
+        entry: |
+          cargo nextest run --package vetis-tokio --features "http1 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+        language: "system"
+        types: ["rust"]
+        pass_filenames: false
+
+      - id: cargo-nextest-vetis-tokio-http2-rust-tls
+        name: "test vetis-tokio with http2 and rust-tls"
+        entry: |
+          cargo nextest run --package vetis-tokio --features "http2 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+        language: "system"
+        types: ["rust"]
+        pass_filenames: false
+
+      - id: cargo-nextest-vetis-tokio-http3-rust-tls
+        name: "test vetis-tokio with http3 and rust-tls"
+        entry: |
+          cargo nextest run --package vetis-tokio --features "http3 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+        language: "system"
+        types: ["rust"]
+        pass_filenames: false        
+
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.41.0
     hooks:
