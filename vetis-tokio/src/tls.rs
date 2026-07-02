@@ -1,18 +1,16 @@
-use std::sync::Arc;
-
+use crate::virtual_host::VirtualHostImpl;
 use rustls::{
     pki_types::{CertificateDer, PrivateKeyDer},
     server::ResolvesServerCertUsingSni,
     sign::CertifiedKey,
     ServerConfig,
 };
+use std::sync::Arc;
 use vetis::{
     errors::{StartError, VetisError},
     virtual_host::VirtualHost,
     VetisVirtualHosts,
 };
-
-use crate::virtual_host::VirtualHostImpl;
 
 pub struct TlsFactory {}
 

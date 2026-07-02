@@ -1,17 +1,13 @@
 use clap::Parser;
 use log::error;
-
-use serde::Deserialize;
-
 #[cfg(target_env = "musl")]
 use mimalloc::MiMalloc;
-
+use serde::Deserialize;
 #[global_allocator]
 #[cfg(target_env = "musl")]
 static GLOBAL: MiMalloc = MiMalloc;
-
 use std::{error::Error, fs::read_to_string, path::Path};
-use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig};
+use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig, Vetis as _};
 use vetis_tokio::{virtual_host::VirtualHostImpl, Vetis};
 
 #[derive(Deserialize)]
@@ -66,21 +62,13 @@ async fn run(
     Ok(())
 }
 
-fn init_runtime() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     if let Some(config) = args.config {
         if Path::exists(Path::new(&config)) {
             let file = read_to_string(&config);
-            if let Err(e) = file {
-                return Err(e.into());
-            }
-
             if let Ok(file) = file {
                 let config = serde_yaml_ng::from_str::<VetisServerConfig>(&file);
-                if let Err(e) = config {
-                    return Err(e.into());
-                }
-
                 if let Ok(config) = config {
                     env_logger::Builder::from_env(
                         env_logger::Env::default().filter_or("RUST_LOG", config.log_level),
@@ -96,22 +84,21 @@ fn init_runtime() -> Result<(), Box<dyn Error>> {
                     rt.block_on(async { run(config.server, config.virtual_hosts).await })?;
                 } else {
                     eprintln!(
-                        "Failed to parse config file: {}",
+                        "Failed to start server: {}",
                         config
                             .err()
                             .unwrap()
                     );
                 }
+            } else {
+                eprintln!("Failed to start server: {}", config);
             }
+        } else {
+            eprintln!("Failed to start server: Config file does not exist: {}", config);
         }
+    } else {
+        eprintln!("Failed to start server: No config file specified");
     }
 
-    Ok(())
-}
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if let Err(e) = init_runtime() {
-        eprintln!("Failed to start server: {}", e);
-    }
     Ok(())
 }

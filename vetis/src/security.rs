@@ -229,7 +229,7 @@ impl SecurityConfigBuilder {
 ///
 /// println!("Certificate length: {} bytes", security.cert().len());
 /// ```
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, PartialEq)]
 pub struct SecurityConfig {
     cert: Vec<u8>,
     key: Vec<u8>,

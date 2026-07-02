@@ -42,6 +42,10 @@ pub enum VetisError {
     #[error("No instances")]
     NoInstances,
 
+    /// Listener related errors
+    #[error("Listener error: {0}")]
+    Listener(#[from] ListenerError),
+
     /// Virtual host related errors
     #[error("Virtual host error: {0}")]
     VirtualHost(#[from] VirtualHostError),
@@ -73,6 +77,17 @@ pub enum ConfigError {
     Security(String),
 }
 
+/// Listener-related errors.
+///
+/// These errors occur when working with listeners,
+/// such as missing listeners or configuration issues.
+#[derive(Debug, Clone, Error, PartialEq)]
+pub enum ListenerError {
+    /// No listeners configured
+    #[error("No listeners configured")]
+    NoListeners,
+}
+
 /// Server startup errors.
 ///
 /// These errors occur when the server fails to start properly,
@@ -82,6 +97,10 @@ pub enum StartError {
     /// TLS/SSL initialization errors
     #[error("Tls initialization: {0}")]
     Tls(String),
+
+    /// Server is already running
+    #[error("Server is already running")]
+    AlreadyRunning,
 }
 
 /// Virtual host related errors.

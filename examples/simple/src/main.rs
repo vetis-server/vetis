@@ -4,11 +4,12 @@ use vetis::{
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
+    Vetis as _,
 };
 use vetis_macros::status_pages;
 use vetis_tokio::{
+    rt::Vetis,
     virtual_host::{path::HandlerPath, VirtualHostImpl},
-    Vetis,
 };
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../../../certs/ca.der");

@@ -1,3 +1,8 @@
+use crate::{
+    tests::vetis_default_protocol,
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
+    Vetis,
+};
 use http::StatusCode;
 use macro_rules_attribute::apply;
 use smol_macros::test;
@@ -6,13 +11,7 @@ use vetis::{
     listener::ListenerConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Response,
-};
-
-use crate::{
-    tests::vetis_default_protocol,
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
-    Vetis,
+    Response, Vetis as _,
 };
 
 fn create_listener() -> ListenerConfig {

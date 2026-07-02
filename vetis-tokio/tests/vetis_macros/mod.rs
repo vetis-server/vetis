@@ -3,7 +3,7 @@ use deboa_tokio::{
     cert::{Certificate, ContentEncoding},
     Client,
 };
-use vetis::{virtual_host::handler_fn, Response};
+use vetis::{virtual_host::handler_fn, Response, Vetis as _};
 use vetis_macros::{http, security};
 
 use crate::common::{deboa_default_protocol, vetis_default_protocol};

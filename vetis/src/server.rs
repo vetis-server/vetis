@@ -1,4 +1,9 @@
-use crate::{errors::ConfigError, listener::ListenerConfig, VetisResult, VetisVirtualHosts};
+use crate::{
+    errors::ConfigError,
+    listener::ListenerConfig,
+    virtual_host::{VirtualHost, VirtualHostConfig},
+    VetisResult, VetisVirtualHosts,
+};
 use serde::Deserialize;
 use std::future::Future;
 
@@ -38,7 +43,7 @@ pub enum Protocol {
 /// It allows for different server backends while maintaining a consistent API.
 pub trait Server {
     /// The type of virtual host that this server can handle
-    type VirtualHost;
+    type VirtualHost: VirtualHost;
     /// Creates a new server instance with the given configuration.
     ///
     /// # Arguments
@@ -166,7 +171,7 @@ impl ServerConfigBuilder {
 ///     Ok(())
 /// }
 /// ```
-#[derive(Clone, Default, Deserialize)]
+#[derive(Clone, Default, Deserialize, PartialEq)]
 pub struct ServerConfig {
     listeners: Vec<ListenerConfig>,
 }

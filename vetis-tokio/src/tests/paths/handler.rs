@@ -1,16 +1,15 @@
+use crate::{
+    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
+};
 use deboa::request;
 use http::StatusCode;
-
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::ServerConfig,
-    virtual_host::{handler_fn, VirtualHost, VirtualHostConfig},
-};
-
-use crate::{
-    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
+    virtual_host::{handler_fn, VirtualHostConfig},
+    Vetis as _,
 };
 
 async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {

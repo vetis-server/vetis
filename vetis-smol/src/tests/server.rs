@@ -10,7 +10,7 @@ mod server_tests {
         security::SecurityConfig,
         server::ServerConfig,
         virtual_host::{handler_fn, VirtualHostConfig},
-        Response,
+        Response, Vetis as _,
     };
 
     use crate::{
@@ -18,8 +18,7 @@ mod server_tests {
             deboa_default_protocol, vetis_default_protocol, CA_CERT, IP6_SERVER_CERT,
             IP6_SERVER_KEY, SERVER_CERT, SERVER_KEY,
         },
-        virtual_host::path::HandlerPath,
-        VirtualHostImpl,
+        virtual_host::{path::HandlerPath, VirtualHostImpl},
     };
 
     async fn do_multiple_interfaces() -> Result<(), Box<dyn Error>> {

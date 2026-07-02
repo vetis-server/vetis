@@ -1,15 +1,12 @@
-use std::{collections::HashMap, sync::Arc};
-
+use crate::{listener::ServerListener, virtual_host::VirtualHostImpl};
 use http::HeaderMap;
-
 use hyper_body_utils::HttpBody;
+use std::{collections::HashMap, sync::Arc};
 use vetis::{
     listener::Listener,
     server::{Protocol, Server, ServerConfig},
     VetisResult, VetisRwLock, VetisVirtualHosts,
 };
-
-use crate::{listener::ServerListener, virtual_host::VirtualHostImpl};
 
 pub use vetis::{Request, Response};
 
@@ -54,14 +51,15 @@ impl Server for HttpServer {
     ///
     /// * `VetisResult<()>` - A result containing `()` if the server started successfully, or a `VetisError` if the server failed to start.
     async fn start(&mut self) -> VetisResult<()> {
-        let mut listeners: Vec<ServerListener> = self
+        let mut listeners = Vec::new();
+        for listener_config in self
             .config
             .listeners()
-            .iter()
-            .map(|listener_config| match listener_config.protocol() {
+        {
+            let listener = match listener_config.protocol() {
                 #[cfg(feature = "http1")]
                 Protocol::Http1 => {
-                    let mut listener = ServerListener::new(listener_config.clone());
+                    let mut listener = ServerListenr::new(listener_config.clone());
                     listener.set_virtual_hosts(
                         self.virtual_hosts
                             .clone(),
@@ -89,8 +87,9 @@ impl Server for HttpServer {
                 _ => {
                     panic!("Unsupported protocol");
                 }
-            })
-            .collect();
+            };
+            listeners.push(listener);
+        }
 
         for listener in listeners.iter_mut() {
             listener

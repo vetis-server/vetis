@@ -6,6 +6,8 @@ use std::{collections::HashMap, sync::Arc};
 /// Basic authentication module
 #[cfg(feature = "auth")]
 pub mod auth;
+/// Base module
+pub mod base;
 /// Error handling module
 pub mod errors;
 /// Listener configuration and management module
@@ -33,5 +35,6 @@ pub type VetisRwLock<T> = RwLock<T>;
 /// A type alias for a vector of virtual hosts
 pub type VetisVirtualHosts<T> = Arc<VetisRwLock<HashMap<(Arc<str>, u16), T>>>;
 
+pub use base::Vetis;
 pub use request::Request;
 pub use response::Response;

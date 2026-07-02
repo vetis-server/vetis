@@ -147,7 +147,7 @@ pub fn http(item: TokenStream) -> TokenStream {
 
             use #from_crate::{
                 virtual_host::{path::HandlerPath, VirtualHostImpl},
-                Vetis,
+                rt::Vetis,
             };
 
             let listener = ListenerConfig::builder()

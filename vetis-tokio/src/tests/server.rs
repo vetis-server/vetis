@@ -1,13 +1,4 @@
 mod server_tests {
-    use http::StatusCode;
-    use std::error::Error;
-    use vetis::{
-        listener::ListenerConfig,
-        security::SecurityConfig,
-        server::ServerConfig,
-        virtual_host::{handler_fn, VirtualHost, VirtualHostConfig},
-    };
-
     use crate::{
         http::Response,
         tests::{
@@ -15,6 +6,15 @@ mod server_tests {
             SERVER_KEY,
         },
         virtual_host::{path::HandlerPath, VirtualHostImpl},
+    };
+    use http::StatusCode;
+    use std::error::Error;
+    use vetis::{
+        listener::ListenerConfig,
+        security::SecurityConfig,
+        server::ServerConfig,
+        virtual_host::{handler_fn, VirtualHostConfig},
+        Vetis,
     };
 
     async fn do_multiple_interfaces() -> Result<(), Box<dyn Error>> {

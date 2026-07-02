@@ -1,15 +1,13 @@
-use std::{collections::HashMap, sync::Arc};
-
+use crate::{
+    listener::ServerListener, virtual_host::VirtualHostImpl, VetisRwLock, VetisVirtualHosts,
+};
 use http::HeaderMap;
 use hyper_body_utils::HttpBody;
+use std::{collections::HashMap, sync::Arc};
 use vetis::{
     listener::Listener,
     server::{Protocol, Server, ServerConfig},
     VetisResult,
-};
-
-use crate::{
-    listener::ServerListener, virtual_host::VirtualHostImpl, VetisRwLock, VetisVirtualHosts,
 };
 
 pub use vetis::{Request, Response};

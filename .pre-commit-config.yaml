@@ -23,7 +23,7 @@ repos:
 
       - id: cargo-nextest
         name: "cargo nextest"
-        entry: "cargo nextest run"
+        entry: "cargo nextest run -j1"
         language: "system"
         types: ["rust"]
         pass_filenames: false

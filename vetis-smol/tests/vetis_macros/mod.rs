@@ -6,7 +6,7 @@ use deboa_smol::{
 };
 use macro_rules_attribute::apply;
 use smol_macros::test;
-use vetis::{virtual_host::handler_fn, Response};
+use vetis::{virtual_host::handler_fn, Response, Vetis as _};
 use vetis_macros::{http, security};
 
 #[apply(test!)]
@@ -49,7 +49,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[apply(test!)]
-async fn do_test_https() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 
     let mut server = http!(

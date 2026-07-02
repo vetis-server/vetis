@@ -143,7 +143,7 @@ impl ListenerConfigBuilder {
 ///
 /// println!("Listening on port {}", config.port());
 /// ```
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, PartialEq)]
 pub struct ListenerConfig {
     port: u16,
     protocol: Protocol,
