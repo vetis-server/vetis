@@ -27,7 +27,7 @@ use vetis::{
 /// ```rust,no_run
 /// use macro_rules_attribute::apply;
 /// use smol_macros::main;
-/// use vetis::server::ServerConfig;
+/// use vetis::{server::ServerConfig, Vetis as _};
 /// use vetis_smol::Vetis;
 ///
 /// #[apply(main!)]
@@ -98,6 +98,7 @@ impl base::Vetis for Vetis {
     /// use vetis::{
     ///     server::ServerConfig,
     ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
+    ///     Vetis as _
     /// };
     ///
     /// use vetis_smol::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
@@ -150,14 +151,20 @@ impl base::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
+    /// use macro_rules_attribute::apply;
+    /// use smol_macros::main;
+    /// use vetis::{server::ServerConfig, Vetis as _};
     /// use vetis_smol::Vetis;
     ///
-    /// let config = vetis::server::ServerConfig::builder().build()?;
-    /// let mut server = Vetis::new(config);
+    /// #[apply(main!)]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let config = vetis::server::ServerConfig::builder().build()?;
+    ///     let mut server = Vetis::new(config);
     ///
-    /// server.remove_virtual_host("example.com", 80).await;
+    ///     server.remove_virtual_host("example.com", 80).await;
     ///
-    /// Ok::<(), vetis::errors::VetisError>(())
+    ///     Ok(())
+    /// }
     /// ```
     async fn remove_virtual_host(&mut self, hostname: &str, port: u16) {
         let key = (Arc::from(hostname), port);
@@ -202,7 +209,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::server::ServerConfig;
+    /// use vetis::{server::ServerConfig, Vetis as _};
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -255,7 +262,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::server::ServerConfig;
+    /// use vetis::{server::ServerConfig, Vetis as _};
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -332,7 +339,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::server::ServerConfig;
+    /// use vetis::{server::ServerConfig, Vetis as _};
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -362,14 +369,22 @@ impl base::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
+    /// use macro_rules_attribute::apply;
+    /// use smol_macros::main;
+    /// use vetis::Vetis as _;
     /// use vetis_smol::Vetis;
     ///
-    /// let config = vetis::server::ServerConfig::builder().build()?;
-    /// let mut server = Vetis::new(config);
+    /// #[apply(main!)]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let config = vetis::server::ServerConfig::builder().build()?;
+    ///     let mut server = Vetis::new(config);
     ///
-    /// server.reload().await;
+    ///     let new_config = vetis::server::ServerConfig::builder().build()?;
+    ///     let new_hosts = vec![];
+    ///     server.reload(new_config, new_hosts).await;
     ///
-    /// Ok::<(), vetis::errors::VetisError>(())
+    ///     Ok(())
+    /// }
     /// ```
     async fn reload(
         &mut self,

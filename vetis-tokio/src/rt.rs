@@ -20,7 +20,7 @@ use vetis::{
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::server::ServerConfig;
+/// use vetis::{server::ServerConfig, Vetis as _};
 /// use vetis_tokio::Vetis;
 ///
 /// #[tokio::main]
@@ -86,6 +86,7 @@ impl vetis::Vetis for Vetis {
     /// use vetis::{
     ///     server::ServerConfig,
     ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
+    ///     Vetis as _
     /// };
     ///
     /// use vetis_tokio::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
@@ -137,14 +138,18 @@ impl vetis::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
+    /// use vetis::Vetis as _;
     /// use vetis_tokio::Vetis;
     ///
-    /// let config = vetis::server::ServerConfig::builder().build()?;
-    /// let mut server = Vetis::new(config);
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let config = vetis::server::ServerConfig::builder().build()?;
+    ///     let mut server = Vetis::new(config);
     ///
-    /// server.remove_virtual_host("example.com", 80).await;
+    ///     server.remove_virtual_host("example.com", 80).await;
     ///
-    /// Ok::<(), vetis::errors::VetisError>(())
+    ///     Ok(())
+    /// }
     /// ```
     async fn remove_virtual_host(&mut self, hostname: &str, port: u16) {
         let key = (Arc::from(hostname), port);
@@ -187,7 +192,7 @@ impl vetis::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::server::ServerConfig;
+    /// use vetis::{server::ServerConfig, Vetis as _};
     /// use vetis_tokio::Vetis;
     ///
     /// #[tokio::main]
@@ -235,7 +240,7 @@ impl vetis::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::server::ServerConfig;
+    /// use vetis::{server::ServerConfig, Vetis as _};
     /// use vetis_tokio::Vetis;
     ///
     /// #[tokio::main]
@@ -310,7 +315,7 @@ impl vetis::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::server::ServerConfig;
+    /// use vetis::{server::ServerConfig, Vetis as _};
     /// use vetis_tokio::Vetis;
     ///
     /// #[tokio::main]
@@ -340,15 +345,19 @@ impl vetis::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
+    /// use vetis::Vetis as _;
     /// use vetis_tokio::Vetis;
     ///
-    /// let config = vetis::server::ServerConfig::builder().build()?;
-    /// let mut server = Vetis::new(config);
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let config = vetis::server::ServerConfig::builder().build()?;
+    ///     let mut server = Vetis::new(config);
     ///
-    /// let changed_config = vetis::server::ServerConfig::builder().build()?;
-    /// server.reload(changed_config).await;
+    ///     let changed_config = vetis::server::ServerConfig::builder().build()?;
+    ///     server.reload(changed_config, vec![]).await;
     ///
-    /// Ok::<(), vetis::errors::VetisError>(())
+    ///     Ok(())
+    /// }
     /// ```
     async fn reload(
         &mut self,

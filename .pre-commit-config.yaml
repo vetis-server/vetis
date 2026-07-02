@@ -23,13 +23,14 @@ repos:
 
       - id: cargo-nextest
         name: "cargo nextest"
-        entry: |
-          # remove next 3 lines to use without kache and mold
-          export RUSTC_WRAPPER=kache
-          export RUSTC_LINKER=clang
-          export CARGO_BUILD_RUSTFLAGS="-C,link-arg=-fuse-ld=mold"
-          cargo test --no-run
-          cargo nextest run -j1"
+        # Remove exports below if you don't have these tools installed
+        entry: bash -c "
+          export RUSTC_WRAPPER=kache &&
+          export RUSTC_LINKER=clang &&
+          export CARGO_BUILD_RUSTFLAGS="-C link-arg=-fuse-ld=mold" &&
+          cargo test --doc &&
+          cargo nextest run -j1
+          "
         language: "system"
         types: ["rust"]
         pass_filenames: false
