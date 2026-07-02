@@ -70,10 +70,7 @@ hyper-util = { version = "0.1.20", optional = true, default-features = false }
 log = "0.4.32"
 macro_rules_attribute = { version = "0.2.2", default-features = false }
 mimalloc = "0.1.52"
-mime = { version = "0.3.17", optional = true, default-features = false }
-minimime = { version = "1.0.0", optional = true, default-features = false }
 moka = { version = "0.12.14", optional = true, default-features = false }
-parse_duration = { version = "2.1.1", optional = true, default-features = false }
 peekable = { version = "0.6.1", features = [
   "future",
 ], default-features = false }

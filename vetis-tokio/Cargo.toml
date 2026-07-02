@@ -69,10 +69,7 @@ hyper-util = { version = "0.1.20", features = [
 ], default-features = false }
 log = "0.4.32"
 mimalloc = "0.1.52"
-mime = { version = "0.3.17", optional = true, default-features = false }
-minimime = { version = "1.0.0", default-features = false }
 moka = { version = "0.12.14", features = ["future"], default-features = false }
-parse_duration = { version = "2.1.1", optional = true, default-features = false }
 peekable = { version = "0.6.1", features = ["tokio"], default-features = false }
 quinn = { version = "0.11.9", optional = true, default-features = false }
 radix_trie = "0.3.0"

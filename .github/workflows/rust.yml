@@ -131,7 +131,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           toolchain: ${{ matrix.toolchain }}
           args:
-            "--locked --release --features \"${{ matrix.protocols }} rust-tls\""
+            "--locked --release --features \"${{ matrix.protocols }} rust-tls\" --no-default-features"
           strip: true
           cross-version: ${{ matrix.platform.cross-version || 'v0.2.5' }}
       - name: Run tests for ${{ matrix.platform.target }} with ${{ matrix.protocols }} and rust-tls features
@@ -141,5 +141,5 @@ jobs:
           target: ${{ matrix.platform.target }}
           toolchain: ${{ matrix.toolchain }}
           args:
-            "--locked --release  --features \"${{ matrix.protocols }} rust-tls\""
+            "--locked --release --features \"${{ matrix.protocols }} rust-tls\" --no-default-features"
         if: ${{ !matrix.platform.skip-tests }}
