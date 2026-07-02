@@ -23,13 +23,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v7
 
-    - name: Cache Rust dependencies (sccache)
-      if: ${{ ! contains(matrix.os, 'linux') }}
+    - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
-
-    - name: Cache Rust dependencies (kache)
-      if: ${{ contains(matrix.os, 'ubuntu') }}
-      uses: kunobi-ninja/kache-action@v1
 
     - name: Install nextest
       uses: taiki-e/install-action@nextest
@@ -127,13 +122,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Cache Rust dependencies (sccache)
-        if: ${{ ! contains(matrix.platoform.target, 'linux') }}
+      - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
-
-      - name: Cache Rust dependencies (kache)
-        if: ${{ contains(matrix.platoform.target, 'linux') }}
-        uses: kunobi-ninja/kache-action@v1
 
       - name: Install mold linker
         if: ${{ contains(matrix.platoform.target, 'linux') }}

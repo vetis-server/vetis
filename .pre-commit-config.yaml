@@ -23,7 +23,10 @@ repos:
 
       - id: cargo-nextest
         name: "cargo nextest"
-        entry: "cargo nextest run -j1"
+        entry: |
+          export RUSTC_WRAPPER=kache
+          cargo test --no-run
+          cargo nextest run -j1"
         language: "system"
         types: ["rust"]
         pass_filenames: false

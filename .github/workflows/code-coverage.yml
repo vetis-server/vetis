@@ -21,8 +21,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Cache Rust dependencies (kache)
-        uses: kunobi-ninja/kache-action@v1
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Install mold linker
         uses: rui314/setup-mold@v1
