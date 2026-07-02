@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        protocols: [http2]
+        protocols: [http1, http2, http3]
         platform:
           - os-name: FreeBSD-x86_64
             runs-on: ubuntu-24.04
@@ -126,7 +126,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install mold linker
-        if: ${{ contains(matrix.platoform.target, 'linux') }}
+        if: ${{ contains(matrix.platform.target, 'linux') }}
         uses: rui314/setup-mold@v1
 
       - name: Maybe install SSL packages

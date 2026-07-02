@@ -24,7 +24,7 @@ repos:
       - id: cargo-nextest
         name: "cargo nextest"
         entry: |
-          export RUSTC_WRAPPER=kache
+          export RUSTC_WRAPPER=kache # remove this line if you don't use kache or sscache
           cargo test --no-run
           cargo nextest run -j1"
         language: "system"

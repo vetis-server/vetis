@@ -29,15 +29,18 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
+
       - name: Install Redis
         run: |
           apt-get update
           apt-get install -y redis-server
           redis-server --daemonize yes
           redis-cli ping
+
       - name: Generate code coverage
         run: |
           cargo +nightly tarpaulin --verbose --workspace --timeout 120 --out xml
+
       - name: Upload To codecov.io
         uses: codecov/codecov-action@v7
         with:
