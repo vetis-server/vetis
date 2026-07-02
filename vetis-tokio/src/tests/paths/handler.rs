@@ -3,6 +3,7 @@ use crate::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 use deboa::request;
+use deboa_tokio::cert::{Certificate, ContentEncoding};
 use http::StatusCode;
 use vetis::{
     listener::ListenerConfig,
@@ -12,7 +13,8 @@ use vetis::{
     Vetis as _,
 };
 
-async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::test]
+async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
     let ipv4 = ListenerConfig::builder()
         .port(8082)
         .protocol(vetis_default_protocol())
@@ -60,10 +62,7 @@ async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     let client = deboa_tokio::Client::builder()
-        .certificate(deboa_tokio::cert::Certificate::from_slice(
-            CA_CERT,
-            deboa_tokio::cert::ContentEncoding::DER,
-        ))
+        .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
         .build();
 
     let request = request::get("https://localhost:8082/hello")?
@@ -77,9 +76,4 @@ async fn do_test_handler() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     Ok(())
-}
-
-#[tokio::test]
-async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
-    do_test_handler().await
 }

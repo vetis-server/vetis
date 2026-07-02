@@ -1,8 +1,6 @@
 use crate::{
-    errors::ConfigError,
-    listener::ListenerConfig,
-    virtual_host::{VirtualHost, VirtualHostConfig},
-    VetisResult, VetisVirtualHosts,
+    errors::ConfigError, listener::ListenerConfig, virtual_host::VirtualHost, VetisResult,
+    VetisVirtualHosts,
 };
 use serde::Deserialize;
 use std::future::Future;

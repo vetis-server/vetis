@@ -7,7 +7,7 @@ members = [
   "vetis-macros",
   "vetis-smol",
   "vetis-tokio",
-  "examples/simple"
+  #"examples/simple"
 ]
 
 [workspace.package]

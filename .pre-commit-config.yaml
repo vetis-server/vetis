@@ -38,7 +38,7 @@ repos:
       - id: cargo-nextest-vetis-smol-http1-rust-tls
         name: "test vetis-smol with http1 and rust-tls"
         entry: |
-          cargo nextest run --package vetis-smol --features "http1 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+          cargo nextest run --package vetis-smol --features "http1 rust-tls deboa-smol/http1 deboa-smol/rust-tls deboa-smol/default-rustls-provider deboa-smol/default-rustls-verifier" --no-default-features
         language: "system"
         types: ["rust"]
         pass_filenames: false
@@ -46,7 +46,7 @@ repos:
       - id: cargo-nextest-vetis-smol-http2-rust-tls
         name: "test vetis-smol with http2 and rust-tls"
         entry: |
-          cargo nextest run --package vetis-smol --features "http2 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+          cargo nextest run --package vetis-smol --features "http2 rust-tls deboa-smol/http2 deboa-smol/rust-tls deboa-smol/default-rustls-provider deboa-smol/default-rustls-verifier" --no-default-features
         language: "system"
         types: ["rust"]
         pass_filenames: false
@@ -54,7 +54,7 @@ repos:
       - id: cargo-nextest-vetis-smol-http3-rust-tls
         name: "test vetis-smol with http3 and rust-tls"
         entry: |
-          cargo nextest run --package vetis-smol --features "http3 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+          cargo nextest run --package vetis-smol --features "http3 rust-tls  deboa-smol/http3 deboa-smol/rust-tls deboa-smol/default-rustls-provider deboa-smol/default-rustls-verifier" --no-default-features
         language: "system"
         types: ["rust"]
         pass_filenames: false        
@@ -62,7 +62,7 @@ repos:
       - id: cargo-nextest-vetis-tokio-http1-rust-tls
         name: "test vetis-tokio with http1 and rust-tls"
         entry: |
-          cargo nextest run --package vetis-tokio --features "http1 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+          cargo nextest run --package vetis-tokio --features "http1 rust-tls deboa-tokio/http1 deboa-tokio/rust-tls deboa-tokio/default-rustls-provider deboa-tokio/default-rustls-verifier" --no-default-features
         language: "system"
         types: ["rust"]
         pass_filenames: false
@@ -70,7 +70,7 @@ repos:
       - id: cargo-nextest-vetis-tokio-http2-rust-tls
         name: "test vetis-tokio with http2 and rust-tls"
         entry: |
-          cargo nextest run --package vetis-tokio --features "http2 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+          cargo nextest run --package vetis-tokio --features "http2 rust-tls deboa-tokio/http2 deboa-tokio/rust-tls deboa-tokio/default-rustls-provider deboa-tokio/default-rustls-verifier" --no-default-features
         language: "system"
         types: ["rust"]
         pass_filenames: false
@@ -78,7 +78,7 @@ repos:
       - id: cargo-nextest-vetis-tokio-http3-rust-tls
         name: "test vetis-tokio with http3 and rust-tls"
         entry: |
-          cargo nextest run --package vetis-tokio --features "http3 rust-tls default-rustls-provider default-rustls-verifier" --no-default-features
+          cargo nextest run --package vetis-tokio --features "http3 rust-tls deboa-tokio/http3 deboa-tokio/rust-tls deboa-tokio/default-rustls-provider deboa-tokio/default-rustls-verifier" --no-default-features
         language: "system"
         types: ["rust"]
         pass_filenames: false        

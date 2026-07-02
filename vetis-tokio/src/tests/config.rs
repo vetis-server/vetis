@@ -1,13 +1,10 @@
+use crate::tests::vetis_default_protocol;
 use std::error::Error;
-
 use vetis::errors::{ConfigError, VetisError};
-
 use vetis::{
     listener::ListenerConfig, security::SecurityConfig, server::ServerConfig,
     virtual_host::VirtualHostConfig,
 };
-
-use crate::tests::vetis_default_protocol;
 
 #[test]
 fn test_listener_config() -> Result<(), Box<dyn Error>> {

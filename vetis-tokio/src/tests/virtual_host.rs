@@ -1,110 +1,98 @@
-mod virtual_host_tests {
+use crate::{
+    http::Request,
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
+};
+use http::StatusCode;
+use http_body_util::BodyExt;
+use hyper_body_utils::HttpBody;
+use vetis::virtual_host::{handler_fn, VirtualHost, VirtualHostConfig};
 
-    use http::StatusCode;
-    use http_body_util::BodyExt;
-    use hyper_body_utils::HttpBody;
-    use vetis::virtual_host::{handler_fn, VirtualHost, VirtualHostConfig};
+#[tokio::test]
+async fn test_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
+    let config = VirtualHostConfig::builder()
+        .hostname("localhost")
+        .root_directory("src/tests")
+        .build()
+        .unwrap();
 
-    use crate::{
-        http::Request,
-        virtual_host::{path::HandlerPath, VirtualHostImpl},
-    };
-
-    async fn do_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
-        let config = VirtualHostConfig::builder()
-            .hostname("localhost")
-            .root_directory("src/tests")
-            .build()
-            .unwrap();
-
-        let mut virtual_host = VirtualHostImpl::new(config);
-        virtual_host.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_request| async move {
-                    Ok(crate::http::Response::builder()
-                        .status(StatusCode::OK)
-                        .text("Hello, world!"))
-                }))
-                .build()
-                .unwrap(),
-        );
-
-        assert_eq!(
-            virtual_host
-                .config()
-                .hostname(),
-            "localhost"
-        );
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
-        do_add_virtual_host().await
-    }
-
-    async fn do_handle_request() -> Result<(), Box<dyn std::error::Error>> {
-        let config = VirtualHostConfig::builder()
-            .hostname("localhost")
-            .root_directory("src/tests")
-            .build()
-            .unwrap();
-
-        let mut virtual_host = VirtualHostImpl::new(config);
-        virtual_host.add_path(
-            HandlerPath::builder()
-                .uri("/")
-                .handler(handler_fn(|_request| async move {
-                    Ok(crate::http::Response::builder()
-                        .status(StatusCode::OK)
-                        .text("Hello, world!"))
-                }))
-                .build()
-                .unwrap(),
-        );
-
-        assert_eq!(
-            virtual_host
-                .config()
-                .hostname(),
-            "localhost"
-        );
-
-        let body = HttpBody::from_text("Hello, world!");
-
-        let request = http::Request::builder()
+    let mut virtual_host = VirtualHostImpl::new(config);
+    virtual_host.add_path(
+        HandlerPath::builder()
             .uri("/")
-            .body(body)
-            .unwrap();
+            .handler(handler_fn(|_request| async move {
+                Ok(crate::http::Response::builder()
+                    .status(StatusCode::OK)
+                    .text("Hello, world!"))
+            }))
+            .build()
+            .unwrap(),
+    );
 
-        let (parts, body) = request.into_parts();
+    assert_eq!(
+        virtual_host
+            .config()
+            .hostname(),
+        "localhost"
+    );
 
-        let request = Request::from_parts(parts, body);
+    Ok(())
+}
 
-        let response = virtual_host
-            .route(request)
-            .await?;
+#[tokio::test]
+async fn test_handle_request() -> Result<(), Box<dyn std::error::Error>> {
+    let config = VirtualHostConfig::builder()
+        .hostname("localhost")
+        .root_directory("src/tests")
+        .build()
+        .unwrap();
 
-        let (parts, body) = response
-            .into_inner()
-            .into_parts();
-        assert_eq!(parts.status, StatusCode::OK);
-        assert_eq!(
-            body.collect()
-                .await
-                .unwrap()
-                .to_bytes()
-                .as_ref(),
-            b"Hello, world!"
-        );
+    let mut virtual_host = VirtualHostImpl::new(config);
+    virtual_host.add_path(
+        HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_request| async move {
+                Ok(crate::http::Response::builder()
+                    .status(StatusCode::OK)
+                    .text("Hello, world!"))
+            }))
+            .build()
+            .unwrap(),
+    );
 
-        Ok(())
-    }
+    assert_eq!(
+        virtual_host
+            .config()
+            .hostname(),
+        "localhost"
+    );
 
-    #[tokio::test]
-    async fn test_handle_request() -> Result<(), Box<dyn std::error::Error>> {
-        do_handle_request().await
-    }
+    let body = HttpBody::from_text("Hello, world!");
+
+    let request = http::Request::builder()
+        .uri("/")
+        .body(body)
+        .unwrap();
+
+    let (parts, body) = request.into_parts();
+
+    let request = Request::from_parts(parts, body);
+
+    let response = virtual_host
+        .route(request)
+        .await?;
+
+    let (parts, body) = response
+        .into_inner()
+        .into_parts();
+    assert_eq!(parts.status, StatusCode::OK);
+    assert_eq!(
+        body.collect()
+            .await
+            .unwrap()
+            .to_bytes()
+            .as_ref(),
+        b"Hello, world!"
+    );
+
+    Ok(())
 }

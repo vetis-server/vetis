@@ -59,7 +59,7 @@ impl Server for HttpServer {
             let listener = match listener_config.protocol() {
                 #[cfg(feature = "http1")]
                 Protocol::Http1 => {
-                    let mut listener = ServerListenr::new(listener_config.clone());
+                    let mut listener = ServerListener::new(listener_config.clone());
                     listener.set_virtual_hosts(
                         self.virtual_hosts
                             .clone(),
