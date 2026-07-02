@@ -1,5 +1,4 @@
 [build]
-rustc-wrapper = "sccache"
 rustflags = ["-C", "target-cpu=native"]
 
 [target.'cfg(target_os = "linux")']
