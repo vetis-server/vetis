@@ -24,9 +24,6 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Install mold linker
-        uses: rui314/setup-mold@v1
-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
 

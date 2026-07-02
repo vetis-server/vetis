@@ -24,7 +24,10 @@ repos:
       - id: cargo-nextest
         name: "cargo nextest"
         entry: |
-          export RUSTC_WRAPPER=kache # remove this line if you don't use kache or sscache
+          # remove next 3 lines to use without kache and mold
+          export RUSTC_WRAPPER=kache
+          export RUSTC_LINKER=clang
+          export CARGO_BUILD_RUSTFLAGS="-C,link-arg=-fuse-ld=mold"
           cargo test --no-run
           cargo nextest run -j1"
         language: "system"

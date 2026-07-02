@@ -1,10 +1,6 @@
 [build]
 rustflags = ["-C", "target-cpu=native"]
 
-[target.'cfg(target_os = "linux")']
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-
 [target.x86_64-pc-windows-gnu]
 rustflags = ["-C", "target-cpu=x86-64-v2"]
 

@@ -29,10 +29,6 @@ jobs:
     - name: Install nextest
       uses: taiki-e/install-action@nextest
 
-    - name: Install mold linker
-      if: matrix.os == 'ubuntu-latest'
-      uses: rui314/setup-mold@v1
-
     - name: Run all tests
       run: |
           cargo nextest run -j1
@@ -124,10 +120,6 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
-
-      - name: Install mold linker
-        if: ${{ contains(matrix.platform.target, 'linux') }}
-        uses: rui314/setup-mold@v1
 
       - name: Maybe install SSL packages
         run: sudo apt-get update --yes && sudo apt-get install --yes pkg-config openssl libssl-dev binutils
