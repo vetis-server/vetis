@@ -1,44 +1,35 @@
-use std::{
-    collections::HashMap,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
-    sync::Arc,
-};
-
-use http::{header, Response};
-use hyper::{body::Incoming, service::service_fn};
-use hyper_body_utils::HttpBody;
-#[cfg(feature = "http1")]
-use hyper_util::rt::TokioIo;
-use log::{debug, error, info};
-use vetis::{
-    errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
-    Request, VetisResult,
-};
-
-use peekable::future::AsyncPeekable;
-
-#[cfg(feature = "http1")]
-use hyper::server::conn::http1;
-#[cfg(feature = "http2")]
-use hyper::server::conn::http2;
-
 #[cfg(feature = "http2")]
 use crate::rt::SmolExecutor;
-
-use smol::{
-    io::{AsyncRead, AsyncWrite},
-    Async, Task,
-};
-
-use futures_rustls::TlsAcceptor;
-#[cfg(any(feature = "http1", feature = "http2"))]
-use smol_hyper::rt::FuturesIo;
-
 use crate::{
     listener::{Listener, ListenerResult},
     tls::TlsFactory,
     virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
+};
+use futures_rustls::TlsAcceptor;
+use http::{header, Response};
+#[cfg(feature = "http1")]
+use hyper::server::conn::http1;
+#[cfg(feature = "http2")]
+use hyper::server::conn::http2;
+use hyper::{body::Incoming, service::service_fn};
+use hyper_body_utils::HttpBody;
+use log::{debug, error, info};
+use peekable::future::AsyncPeekable;
+use smol::{
+    io::{AsyncRead, AsyncWrite},
+    Async, Task,
+};
+#[cfg(any(feature = "http1", feature = "http2"))]
+use smol_hyper::rt::FuturesIo;
+use std::{
+    collections::HashMap,
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
+    sync::Arc,
+};
+use vetis::{
+    errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
+    Request, VetisResult,
 };
 
 /// TCP listener

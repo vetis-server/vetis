@@ -1,9 +1,10 @@
-use std::{
-    collections::HashMap,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
-    sync::Arc,
+use crate::{
+    http::static_response,
+    listener::{Listener, ListenerConfig, ListenerResult},
+    tls::TlsFactory,
+    virtual_host::VirtualHostImpl,
+    VetisRwLock, VetisVirtualHosts,
 };
-
 use bytes::Bytes;
 use futures_util::StreamExt;
 use h3::server::{Connection, RequestResolver};
@@ -11,23 +12,19 @@ use h3_quinn::{
     quinn::{self, crypto::rustls::QuicServerConfig},
     Connection as QuinnConnection,
 };
-
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
 use smol::Task;
+use std::{
+    collections::HashMap,
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
+    sync::Arc,
+};
 use vetis::{
     errors::{StartError, VetisError},
     request::Request,
     virtual_host::VirtualHost,
     VetisResult,
-};
-
-use crate::{
-    http::static_response,
-    listener::{Listener, ListenerConfig, ListenerResult},
-    tls::TlsFactory,
-    virtual_host::VirtualHostImpl,
-    VetisRwLock, VetisVirtualHosts,
 };
 
 /// UDP listener
