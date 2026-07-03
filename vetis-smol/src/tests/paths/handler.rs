@@ -1,6 +1,5 @@
 use crate::{
-    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
+    tests::{CA_CERT, SERVER_CERT, SERVER_KEY, deboa_default_protocol, vetis_default_protocol}, virtual_host::{VirtualHostImpl, path::HandlerPath},
 };
 use deboa::request;
 use deboa_smol::{cert::Certificate, cert::ContentEncoding, Client};
@@ -67,6 +66,7 @@ async fn do_test_handler() -> Result<(), Box<dyn Error>> {
 
     let client = Client::builder()
         .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
+        .protocol(deboa_default_protocol())
         .build();
 
     let request = request::get(format!("https://localhost:{}{}", port, "/hello"))?

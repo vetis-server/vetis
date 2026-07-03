@@ -1,6 +1,5 @@
 use crate::{
-    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
+    tests::{CA_CERT, SERVER_CERT, SERVER_KEY, deboa_default_protocol, vetis_default_protocol}, virtual_host::{VirtualHostImpl, path::HandlerPath},
 };
 use deboa::request;
 use deboa_tokio::cert::{Certificate, ContentEncoding};
@@ -65,6 +64,7 @@ async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = deboa_tokio::Client::builder()
         .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
+        .protocol(deboa_default_protocol())
         .build();
 
     let request = request::get(format!("https://localhost:{}{}", port, "/hello"))?
