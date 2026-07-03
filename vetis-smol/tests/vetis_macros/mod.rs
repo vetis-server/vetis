@@ -9,6 +9,7 @@ use smol_macros::test;
 use vetis::{virtual_host::handler_fn, Response, Vetis as _};
 use vetis_macros::{http, security};
 
+#[cfg(feature = "http1")]
 #[apply(test!)]
 async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });

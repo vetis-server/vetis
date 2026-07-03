@@ -8,6 +8,7 @@ use vetis_macros::{http, security};
 
 use crate::common::{deboa_default_protocol, vetis_default_protocol};
 
+#[cfg(feature = "http1")]
 #[tokio::test]
 async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
