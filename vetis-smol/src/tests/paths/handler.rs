@@ -1,11 +1,14 @@
-use std::error::Error;
-
+use crate::{
+    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
+};
 use deboa::request;
 use deboa_smol::{cert::Certificate, cert::ContentEncoding, Client};
 use http::StatusCode;
-
 use macro_rules_attribute::apply;
+use rand::random_range;
 use smol_macros::test;
+use std::error::Error;
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
@@ -14,14 +17,10 @@ use vetis::{
     Response, Vetis as _,
 };
 
-use crate::{
-    tests::{vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
-};
-
 async fn do_test_handler() -> Result<(), Box<dyn Error>> {
+    let port = random_range(9000..=20000);
     let ipv4 = ListenerConfig::builder()
-        .port(8082)
+        .port(port)
         .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
@@ -39,7 +38,7 @@ async fn do_test_handler() -> Result<(), Box<dyn Error>> {
     let localhost_config = VirtualHostConfig::builder()
         .hostname("localhost")
         .root_directory("src/tests")
-        .port(8082)
+        .port(port)
         .security(security_config)
         .build()?;
 
@@ -70,7 +69,7 @@ async fn do_test_handler() -> Result<(), Box<dyn Error>> {
         .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
         .build();
 
-    let request = request::get("https://localhost:8082/hello")?
+    let request = request::get(format!("https://localhost:{}{}", port, "/hello"))?
         .send_with(&client)
         .await?;
 

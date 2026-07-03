@@ -5,6 +5,7 @@ use crate::{
 use deboa::request;
 use deboa_tokio::cert::{Certificate, ContentEncoding};
 use http::StatusCode;
+use rand::random_range;
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
@@ -15,8 +16,9 @@ use vetis::{
 
 #[tokio::test]
 async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
+    let port = random_range(9000..=20000);
     let ipv4 = ListenerConfig::builder()
-        .port(8082)
+        .port(port)
         .protocol(vetis_default_protocol())
         .interface("0.0.0.0")
         .build()?;
@@ -34,7 +36,7 @@ async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
     let localhost_config = VirtualHostConfig::builder()
         .hostname("localhost")
         .root_directory("src/tests")
-        .port(8082)
+        .port(port)
         .security(security_config)
         .build()?;
 
@@ -65,7 +67,7 @@ async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
         .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
         .build();
 
-    let request = request::get("https://localhost:8082/hello")?
+    let request = request::get(format!("https://localhost:{}{}", port, "/hello"))?
         .send_with(&client)
         .await?;
 
