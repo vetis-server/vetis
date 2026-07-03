@@ -21,8 +21,8 @@ rust-version = "1.75.0"
 [workspace.dependencies]
 vetis = { path = "vetis", version = "0.1.4-beta.9" }
 vetis-macros = { path = "vetis-macros", version = "0.1.1-beta.2" }
-vetis-smol = { path = "vetis-smol" }
-vetis-tokio = { path = "vetis-tokio" }
+vetis-smol = { path = "vetis-smol", version = "0.1.0-beta.4" }
+vetis-tokio = { path = "vetis-tokio", version = "0.1.0-beta.4" }
 
 [profile.release]
 strip = true

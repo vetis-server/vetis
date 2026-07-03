@@ -1,10 +1,9 @@
 use crate::virtual_host::path::auth::basic_auth::BasicAuth;
 use http::HeaderMap;
-use smol_macros::test;
 use std::error::Error;
 use vetis::{
     errors::{VetisError, VirtualHostError},
-    virtual_host::path::auth::{Algorithm, Auth, AuthType, BasicAuthConfig},
+    auth::{Algorithm, Auth, BasicAuthConfig},
 };
 
 #[test]
@@ -20,7 +19,7 @@ fn test_auth_type_basic() {
     let _ = auth_type;
 }
 
-#[smol_macros::test]
+#[tokio::test]
 async fn test_authenticate_missing_header() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -46,7 +45,7 @@ async fn test_authenticate_missing_header() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[smol_macros::test]
+#[tokio::test]
 async fn test_authenticate_invalid_header_format() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -73,7 +72,7 @@ async fn test_authenticate_invalid_header_format() -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
-#[smol_macros::test]
+#[tokio::test]
 async fn test_authenticate_non_basic_auth() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -105,7 +104,7 @@ async fn test_authenticate_non_basic_auth() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[smol_macros::test]
+#[tokio::test]
 async fn test_authenticate_invalid_base64() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -132,7 +131,7 @@ async fn test_authenticate_invalid_base64() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[smol_macros::test]
+#[tokio::test]
 async fn test_authenticate_invalid_utf8() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -159,7 +158,7 @@ async fn test_authenticate_invalid_utf8() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[smol_macros::test]
+#[tokio::test]
 async fn test_authenticate_invalid_credentials_format() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)

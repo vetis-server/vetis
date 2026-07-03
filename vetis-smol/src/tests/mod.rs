@@ -1,16 +1,13 @@
 #![allow(unreachable_code, dead_code)]
-
 use deboa_smol::HttpVersion;
 use vetis::server::Protocol;
 
+#[cfg(feature = "auth")]
+mod auth;
 mod config;
 mod http;
 mod lib;
 mod paths;
-mod rt;
-
-#[cfg(feature = "auth")]
-mod auth;
 
 #[cfg(target_os = "linux")]
 mod server;

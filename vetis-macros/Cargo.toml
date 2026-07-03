@@ -19,8 +19,5 @@ proc-macro = true
 proc-macro2 = "1.0.106"
 quote = "1.0.45"
 syn = "2.0.117"
-vetis = { workspace = true }
+vetis = { workspace = true, default-features = false }
 
-[dev-dependencies]
-tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
-vetis-tokio.workspace = true
