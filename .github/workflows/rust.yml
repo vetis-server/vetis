@@ -31,7 +31,7 @@ jobs:
 
     - name: Run all tests
       run: |
-          cargo nextest run -j1
+          cargo nextest run -j1 --no-fail-fast
 
   test-matrix:
     name: Test ${{ matrix.platform.os-name }}
@@ -112,6 +112,7 @@ jobs:
       - name: Maybe install SSL packages
         run: sudo apt-get update --yes && sudo apt-get install --yes pkg-config openssl libssl-dev binutils
         if: matrix.platform.runs-on == 'ubuntu-24.04'
+
       - name: Build ${{ matrix.platform.target }} binary for vetis-${{ matrix.runtimes }} and ${{ matrix.protocols }} with rust-tls features
         uses: houseabsolute/actions-rust-cross@v1
         with:
@@ -122,6 +123,7 @@ jobs:
             "--package vetis-${{ matrix.runtimes }} --locked --release --features \"${{ matrix.protocols }} rust-tls deboa-${{ matrix.runtimes }}/${{ matrix.protocols }} deboa-${{ matrix.runtimes }}/rust-tls deboa-${{ matrix.runtimes }}/default-rustls-provider deboa-${{ matrix.runtimes }}/default-rustls-verifier\" --no-default-features"
           strip: true
           cross-version: ${{ matrix.platform.cross-version || 'v0.2.5' }}
+          
       - name: Run tests for ${{ matrix.platform.target }} with vetis-${{ matrix.runtimes }} and ${{ matrix.protocols }} and rust-tls features
         uses: houseabsolute/actions-rust-cross@v1
         with:
