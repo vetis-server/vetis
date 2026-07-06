@@ -50,7 +50,7 @@ async-net = "2.0.0"
 async-signal = { version = "0.2.12", default-features = false }
 base64 = { version = "0.22.1", optional = true, default-features = false }
 blocking = { version = "1.6.2", optional = true, default-features = false }
-bytes = "1.11.1"
+bytes = { version = "1.11.1", default-features = false }
 clap = { version = "4.5.61", features = [
   "derive",
   "std",
@@ -75,8 +75,8 @@ peekable = { version = "0.6.1", features = [
   "future",
 ], default-features = false }
 quinn = { version = "0.11.9", optional = true, default-features = false }
-radix_trie = "0.3.0"
-rand = "0.10.1"
+radix_trie = { version = "0.3.0", default-features = false }
+rand = { version = "0.10.1", default-features = false }
 regex = { version = "1.12.4", optional = true, default-features = false }
 rustls = { version = "0.23.40", optional = true, default-features = false }
 rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
