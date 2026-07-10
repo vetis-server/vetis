@@ -1,5 +1,5 @@
 #![allow(unreachable_code, dead_code)]
-use deboa_smol::HttpVersion;
+use deboa::HttpVersion;
 use vetis::server::Protocol;
 
 #[cfg(feature = "auth")]

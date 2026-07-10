@@ -2,24 +2,11 @@ use crate::virtual_host::path::auth::basic_auth::BasicAuth;
 use http::HeaderMap;
 use std::error::Error;
 use vetis::{
-    auth::{Algorithm, Auth, BasicAuthConfig},
     errors::{VetisError, VirtualHostError},
+    virtual_host::path::auth::{Algorithm, Auth, AuthType, BasicAuthConfig},
 };
 
-#[test]
-fn test_auth_type_basic() {
-    let config = BasicAuthConfig::builder()
-        .algorithm(Algorithm::BCrypt)
-        .build()
-        .unwrap();
-
-    let basic_auth = BasicAuth::new(config);
-    let auth_type = AuthType::Basic(basic_auth);
-
-    let _ = auth_type;
-}
-
-#[tokio::test]
+#[compio::test]
 async fn test_authenticate_missing_header() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -45,7 +32,7 @@ async fn test_authenticate_missing_header() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[tokio::test]
+#[compio::test]
 async fn test_authenticate_invalid_header_format() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -72,7 +59,7 @@ async fn test_authenticate_invalid_header_format() -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
-#[tokio::test]
+#[compio::test]
 async fn test_authenticate_non_basic_auth() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -104,7 +91,7 @@ async fn test_authenticate_non_basic_auth() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[tokio::test]
+#[compio::test]
 async fn test_authenticate_invalid_base64() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -131,7 +118,7 @@ async fn test_authenticate_invalid_base64() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[tokio::test]
+#[compio::test]
 async fn test_authenticate_invalid_utf8() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)
@@ -158,7 +145,7 @@ async fn test_authenticate_invalid_utf8() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[tokio::test]
+#[compio::test]
 async fn test_authenticate_invalid_credentials_format() -> Result<(), Box<dyn Error>> {
     let config = BasicAuthConfig::builder()
         .algorithm(Algorithm::BCrypt)

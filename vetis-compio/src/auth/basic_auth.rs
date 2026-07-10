@@ -1,15 +1,12 @@
-use std::sync::Arc;
-
+#[cfg(feature = "auth")]
+use crate::config::server::virtual_host::path::auth::{Algorithm, BasicAuthConfig};
+use crate::server::virtual_host::path::auth::Auth;
 use argon2::{PasswordHash, PasswordVerifier};
 use base64::Engine;
 use http::HeaderMap;
 use serde::Deserialize;
+use std::sync::Arc;
 use vetis_core::errors::{VetisError, VirtualHostError};
-
-#[cfg(feature = "auth")]
-use crate::config::server::virtual_host::path::auth::{Algorithm, BasicAuthConfig};
-
-use crate::server::virtual_host::path::auth::Auth;
 
 /// Basic authentication
 #[derive(Clone, Deserialize)]

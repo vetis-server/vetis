@@ -14,12 +14,12 @@ use h3_quinn::{
 };
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
+use smol::Task;
 use std::{
     collections::HashMap,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     sync::Arc,
 };
-use tokio::task::JoinHandle;
 use vetis::{
     errors::{StartError, VetisError},
     request::Request,
@@ -30,7 +30,7 @@ use vetis::{
 /// UDP listener
 pub struct UdpListener {
     config: ListenerConfig,
-    task: Option<JoinHandle<()>>,
+    task: Option<Task<()>>,
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
@@ -124,7 +124,7 @@ impl Listener for UdpListener {
     fn stop(&mut self) -> ListenerResult<'_, ()> {
         Box::pin(async move {
             if let Some(task) = self.task.take() {
-                task.abort();
+                task.cancel().await;
             }
             Ok(())
         })
@@ -136,16 +136,16 @@ impl UdpListener {
         &mut self,
         endpoint: quinn::Endpoint,
         virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
-    ) -> Result<JoinHandle<()>, VetisError> {
+    ) -> Result<Task<()>, VetisError> {
         let port = self.config.port();
-        let task = tokio::spawn(async move {
+        let task = smol::spawn(async move {
             while let Some(new_conn) = endpoint
                 .accept()
                 .await
             {
                 let virtual_hosts = virtual_hosts.clone();
                 let addr = new_conn.remote_address();
-                tokio::spawn(async move {
+                smol::spawn(async move {
                     match new_conn.await {
                         Ok(conn) => {
                             let mut h3_conn: Connection<QuinnConnection, Bytes> =
@@ -188,7 +188,8 @@ impl UdpListener {
                             error!("Accepting connection failed: {:?}", err);
                         }
                     }
-                });
+                })
+                .detach();
             }
 
             endpoint
@@ -207,7 +208,7 @@ fn handle_http_request(
     client_addr: SocketAddr,
 ) -> VetisResult<()> {
     let virtual_hosts = virtual_hosts.clone();
-    tokio::spawn(async move {
+    smol::spawn(async move {
         let result = resolver
             .resolve_request()
             .await;
@@ -350,7 +351,8 @@ fn handle_http_request(
                 error!("HttpServer - Error serving connection: {:?}", response.err());
             }
         }
-    });
+    })
+    .detach();
 
     Ok(())
 }

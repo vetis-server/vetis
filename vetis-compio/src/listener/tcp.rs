@@ -1,32 +1,32 @@
 use crate::{
-    http::static_response,
     listener::{Listener, ListenerResult},
     tls::TlsFactory,
     virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
 };
-use http::header;
+use compio::io::compat::AsyncStream;
+#[cfg(feature = "http2")]
+use compio::io::{util::Splittable, AsyncRead, AsyncWrite};
+use compio_runtime::JoinHandle;
+use compio_tls::TlsAcceptor;
+#[cfg(feature = "http2")]
+use cyper_core::CompioExecutor;
+use cyper_core::HyperStream;
+use http::{header, Response};
 #[cfg(feature = "http1")]
 use hyper::server::conn::http1;
 #[cfg(feature = "http2")]
 use hyper::server::conn::http2;
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
-use hyper_util::rt::TokioExecutor;
-#[cfg(any(feature = "http1", feature = "http2"))]
-use hyper_util::rt::TokioIo;
 use log::{debug, error, info};
-use peekable::tokio::AsyncPeekable;
+use peekable::compio::AsyncPeekExt;
+use send_wrapper::SendWrapper;
 use std::{
     collections::HashMap,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     sync::Arc,
 };
-use tokio::{
-    io::{AsyncRead, AsyncWrite},
-    task::JoinHandle,
-};
-use tokio_rustls::TlsAcceptor;
 use vetis::{
     errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
     Request, VetisResult,
@@ -34,14 +34,13 @@ use vetis::{
 
 /// TCP listener
 pub struct TcpListener {
-    task: Option<JoinHandle<VetisResult<()>>>,
+    task: Option<JoinHandle<()>>,
     config: ListenerConfig,
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
 impl Listener for TcpListener {
     type VirtualHost = VirtualHostImpl;
-
     /// Create a new listener
     ///
     /// # Arguments
@@ -60,7 +59,7 @@ impl Listener for TcpListener {
     /// # Arguments
     ///
     /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual hosts.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<Self::VirtualHost>) {
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
         self.virtual_hosts = virtual_hosts;
     }
 
@@ -89,7 +88,7 @@ impl Listener for TcpListener {
                 }
             };
 
-            let listener = tokio::net::TcpListener::bind(addr)
+            let listener = compio::net::TcpListener::bind(addr)
                 .await
                 .map_err(|e| VetisError::Bind(e.to_string()))?;
 
@@ -98,7 +97,7 @@ impl Listener for TcpListener {
                     self.config
                         .protocol()
                         .clone(),
-                    listener,
+                    listener.into(),
                     self.virtual_hosts
                         .clone(),
                 )
@@ -109,7 +108,7 @@ impl Listener for TcpListener {
             Ok(())
         };
 
-        Box::pin(future)
+        Box::pin(SendWrapper::new(future))
     }
 
     /// Stop the listener
@@ -119,8 +118,8 @@ impl Listener for TcpListener {
     /// * `ListenerResult<'_, ()>` - A `ListenerResult` instance containing the result of the listener.
     fn stop(&mut self) -> ListenerResult<'_, ()> {
         let future = async move {
-            if let Some(mut task) = self.task.take() {
-                task.abort();
+            if let Some(task) = self.task.take() {
+                task.cancel().await;
             }
             Ok(())
         };
@@ -134,9 +133,9 @@ impl TcpListener {
     async fn handle_connections(
         &mut self,
         protocol: Protocol,
-        listener: tokio::net::TcpListener,
+        listener: compio::net::TcpListener,
         virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
-    ) -> Result<JoinHandle<VetisResult<()>>, VetisError> {
+    ) -> VetisResult<JoinHandle<()>> {
         let alpn = vec![
             #[cfg(feature = "http1")]
             b"http/1.1".to_vec(),
@@ -171,8 +170,7 @@ impl TcpListener {
 
                 // TODO: Check ACL before proceeding
 
-                let mut peekable = AsyncPeekable::from(stream);
-
+                let mut peekable = AsyncStream::new(stream).peekable();
                 let mut peeked = [0; 2];
                 let result = peekable
                     .peek_exact(&mut peeked)
@@ -184,10 +182,9 @@ impl TcpListener {
                 }
 
                 let is_tls = peeked.starts_with(&[0x16, 0x03]);
-
                 if is_tls {
                     let tls_stream = tls_acceptor
-                        .accept(peekable)
+                        .accept(stream)
                         .await;
 
                     let tls_stream = match tls_stream {
@@ -198,7 +195,7 @@ impl TcpListener {
                         }
                     };
 
-                    let io = TokioIo::new(tls_stream);
+                    let io = HyperStream::new_tls(tls_stream);
                     match protocol {
                         #[cfg(feature = "http1")]
                         Protocol::Http1 => {
@@ -227,7 +224,7 @@ impl TcpListener {
                         }
                     }
                 } else {
-                    let io = TokioIo::new(peekable);
+                    let io = HyperStream::new_plain(stream);
                     match protocol {
                         #[cfg(feature = "http1")]
                         Protocol::Http1 => {
@@ -259,7 +256,7 @@ impl TcpListener {
             }
         };
 
-        let task = tokio::spawn(future);
+        let task = compio::runtime::spawn(future);
 
         Ok(task)
     }
@@ -270,7 +267,7 @@ async fn process_request(
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     port: Arc<u16>,
     client_addr: SocketAddr,
-) -> Result<http::Response<HttpBody>, VetisError> {
+) -> VetisResult<http::Response<HttpBody>> {
     let host = req
         .headers()
         .get(header::HOST);
@@ -354,28 +351,24 @@ async fn process_request(
             Ok::<http::Response<HttpBody>, VetisError>(response)
         } else {
             error!("Virtual host not found: {}", host);
-            let response = static_response(
-                http::StatusCode::NOT_FOUND,
-                None,
-                "Virtual host not found".to_string(),
-            );
-            Ok(response)
+            Response::builder()
+                .status(http::StatusCode::NOT_FOUND)
+                .body(HttpBody::empty())
+                .map_err(|e| VetisError::Handler(e.to_string()))
         }
     } else {
         error!("Host not found in request");
-        let response = static_response(
-            http::StatusCode::BAD_REQUEST,
-            None,
-            "Host not found in request".to_string(),
-        );
-        Ok(response)
+        Response::builder()
+            .status(http::StatusCode::BAD_REQUEST)
+            .body(HttpBody::empty())
+            .map_err(|e| VetisError::Handler(e.to_string()))
     }
 }
 
 #[cfg(feature = "http1")]
 fn handle_http1_request<T>(
     port: Arc<u16>,
-    io: TokioIo<T>,
+    io: FuturesIo<T>,
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
@@ -397,7 +390,7 @@ where
         }
     };
 
-    tokio::spawn(future);
+    compio::runtime::spawn(future).detach();
 
     Ok(())
 }
@@ -405,12 +398,14 @@ where
 #[cfg(feature = "http2")]
 pub fn handle_http2_request<T>(
     port: Arc<u16>,
-    io: TokioIo<T>,
+    io: HyperStream<T>,
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where
-    T: AsyncRead + AsyncWrite + Unpin + Send + 'static,
+    T: AsyncRead + AsyncWrite + Splittable + Unpin + 'static,
+    T::ReadHalf: AsyncRead + Unpin,
+    T::WriteHalf: AsyncWrite + Unpin,
 {
     let service_fn = service_fn(move |req| {
         let value = virtual_hosts.clone();
@@ -419,7 +414,7 @@ where
     });
 
     let future = async move {
-        if let Err(err) = http2::Builder::new(TokioExecutor::new())
+        if let Err(err) = http2::Builder::new(CompioExecutor)
             .serve_connection(io, service_fn)
             .await
         {
@@ -427,7 +422,7 @@ where
         }
     };
 
-    tokio::spawn(future);
+    compio::runtime::spawn(future).detach();
 
     Ok(())
 }

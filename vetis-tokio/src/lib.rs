@@ -3,6 +3,9 @@
 #[cfg(all(any(feature = "http2", feature = "http3"), not(feature = "rust-tls")))]
 compile_error!("http2 and http3 requires rust-tls!");
 
+/// Module for handling basic authentication
+#[cfg(feature = "auth")]
+pub mod auth;
 /// HTTP module
 pub mod http;
 /// Listener module

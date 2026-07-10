@@ -1,0 +1,96 @@
+[package]
+name = "vetis-compio"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[features]
+default = ["http2", "rust-tls"]
+
+auth = ["vetis/auth"]
+
+rust-tls = ["compio-tls", "rustls", "rustls-provider"]
+
+rustls-provider = ["__rustls_awc_lc_rs"]
+__rustls_awc_lc_rs = ["compio-tls/rustls", "quinn/rustls-aws-lc-rs"]
+__rustls_ring = ["compio-tls/ring", "quinn/rustls-ring"]
+
+http1 = ["hyper/http1", "hyper/server", "hyper-util/server", "hyper-util/http1"]
+http2 = ["hyper/http2", "hyper/server", "hyper-util/server", "hyper-util/http2"]
+http3 = [
+  "hyper/server",
+  "hyper-util/server",
+  "dep:h3",
+  "dep:h3-quinn",
+  "hyper-body-utils/http3",
+]
+
+[dependencies]
+async-lock = "3.4.1"
+bytes = "1.12.1"
+clap = "4.5.61"
+compio-runtime = { version = "0.12.3", default-features = false }
+compio-tls = { version = "0.10.0", default-features = false, optional = true }
+cyper-core = "0.9.0"
+env_logger = "0.11.11"
+futures-util = "0.3.32"
+h3 = { version = "0.0.8", optional = true, default-features = false }
+h3-quinn = { version = "0.0.10", optional = true, default-features = false }
+http = "1.4.2"
+http-body-util = { version = "0.1.3" }
+hyper = { version = "1.10.1", optional = true, default-features = false }
+hyper-body-utils = { version = "0.1.7" }
+hyper-util = { version = "0.1.20", optional = true, default-features = false }
+log = "0.4.33"
+peekable = { path = "../../peekable", features = [
+  "compio"
+], default-features = false }
+quinn = { version = "0.11.9", optional = true, default-features = false }
+radix_trie = { version = "0.3.0", default-features = false }
+rand = { version = "0.10.1", default-features = false }
+rustls = { version = "0.23.40", optional = true, default-features = false }
+send_wrapper = { version = "0.6.0", default-features = false }
+serde = "1.0.228"
+serde_yaml_ng = "0.10.0"
+socket2 = "0.6.4"
+thiserror = "2.0.17"
+time = { version = "0.3.41", features = ["formatting"] }
+typetag = "0.2.22"
+url = "2.5.7"
+vetis = { workspace = true, default-features = false }
+
+[target.'cfg(all(unix, not(target_os = "linux")))'.dependencies]
+compio = { version = "0.19.1", features = [
+  "fs",
+  "io",
+  "net",
+  "macros",
+  "polling",
+  "runtime",
+  "signal",
+], default-features = false }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+compio = { version = "0.19.1", features = [
+  "fs",
+  "io",
+  "net",
+  "macros",
+  "polling",
+  "runtime",
+  "signal",
+], default-features = false }
+
+[dev-dependencies]
+deboa = { version = "0.1.0-beta.19" }
+deboa-compio = { version = "0.1.0", default-features = false, features = [
+  "http2",
+  "rust-tls",
+  "default-rustls-provider",
+  "default-rustls-verifier",
+] }
+vetis-macros = { workspace = true }

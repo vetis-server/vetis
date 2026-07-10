@@ -95,8 +95,8 @@ url = "2.5.7"
 vetis = { workspace = true, default-features = false }
 
 [dev-dependencies]
-deboa = { version = "0.1.0-beta.17" }
-deboa-tokio = { version = "0.1.0-beta.2", default-features = false, features = [
+deboa = { version = "0.1.0-beta.19" }
+deboa-tokio = { version = "0.1.0-beta.7", default-features = false, features = [
   "http2",
   "rust-tls",
   "default-rustls-provider",

@@ -1,8 +1,11 @@
 use crate::{
-    tests::{CA_CERT, SERVER_CERT, SERVER_KEY, deboa_default_protocol, vetis_default_protocol}, virtual_host::{VirtualHostImpl, path::HandlerPath},
+    tests::{deboa_default_protocol, vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
-use deboa::request;
-use deboa_tokio::cert::{Certificate, ContentEncoding};
+use deboa::{
+    cert::{Certificate, ContentEncoding},
+    request,
+};
 use http::StatusCode;
 use rand::random_range;
 use vetis::{

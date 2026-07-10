@@ -2,6 +2,18 @@
 use deboa::HttpVersion;
 use vetis::server::Protocol;
 
+#[cfg(feature = "auth")]
+mod auth;
+mod config;
+mod lib;
+mod paths;
+
+#[cfg(target_os = "linux")]
+mod server;
+
+mod tls;
+mod virtual_host;
+
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../../../certs/ca.der");
 
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../../../certs/server.der");

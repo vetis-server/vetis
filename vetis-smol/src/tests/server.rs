@@ -5,8 +5,10 @@ use crate::{
     },
     virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
-use deboa::request;
-use deboa_smol::cert::{Certificate, ContentEncoding};
+use deboa::{
+    cert::{Certificate, ContentEncoding},
+    request,
+};
 use http::StatusCode;
 use macro_rules_attribute::apply;
 use smol_macros::test;

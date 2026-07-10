@@ -1,0 +1,103 @@
+mod virtual_host_tests {
+
+    use crate::virtual_host::{path::HandlerPath, VirtualHostImpl};
+    use http::StatusCode;
+    use http_body_util::BodyExt;
+    use hyper_body_utils::HttpBody;
+    use vetis::virtual_host::{handler_fn, VirtualHost, VirtualHostConfig};
+
+    async fn do_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
+        let config = VirtualHostConfig::builder()
+            .hostname("localhost")
+            .root_directory("src/tests")
+            .build()
+            .unwrap();
+
+        let mut virtual_host = VirtualHostImpl::new(config);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_request| async move {
+                Ok(vetis::Response::builder()
+                    .status(StatusCode::OK)
+                    .text("Hello, world!"))
+            }))
+            .build()
+            .unwrap();
+        virtual_host.add_path(handler_path);
+
+        assert_eq!(
+            virtual_host
+                .config()
+                .hostname(),
+            "localhost"
+        );
+
+        Ok(())
+    }
+
+    async fn test_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
+        do_add_virtual_host().await
+    }
+
+    async fn do_handle_request() -> Result<(), Box<dyn std::error::Error>> {
+        let config = VirtualHostConfig::builder()
+            .hostname("localhost")
+            .root_directory("src/tests")
+            .build()
+            .unwrap();
+
+        let mut virtual_host = VirtualHostImpl::new(config);
+        let handler_path = HandlerPath::builder()
+            .uri("/")
+            .handler(handler_fn(|_request| async move {
+                Ok(vetis::Response::builder()
+                    .status(StatusCode::OK)
+                    .text("Hello, world!"))
+            }))
+            .build()
+            .unwrap();
+        virtual_host.add_path(handler_path);
+
+        assert_eq!(
+            virtual_host
+                .config()
+                .hostname(),
+            "localhost"
+        );
+
+        let body = HttpBody::from_text("Hello, world!");
+
+        let request = http::Request::builder()
+            .uri("/")
+            .body(body)
+            .unwrap();
+
+        let (parts, body) = request.into_parts();
+
+        let request = vetis::Request::from_parts(parts, body);
+
+        let response = virtual_host
+            .route(request)
+            .await?;
+
+        let (parts, body) = response
+            .into_inner()
+            .into_parts();
+        assert_eq!(parts.status, StatusCode::OK);
+        assert_eq!(
+            body.collect()
+                .await
+                .unwrap()
+                .to_bytes()
+                .as_ref(),
+            b"Hello, world!"
+        );
+
+        Ok(())
+    }
+
+    #[compio::test]
+    async fn test_handle_request() -> Result<(), Box<dyn std::error::Error>> {
+        do_handle_request().await
+    }
+}

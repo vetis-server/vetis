@@ -1,9 +1,9 @@
 use crate::common::{deboa_default_protocol, vetis_default_protocol};
-use deboa::request::get;
-use deboa_smol::{
+use deboa::{
     cert::{Certificate, ContentEncoding},
-    Client,
+    request::get,
 };
+use deboa_smol::Client;
 use macro_rules_attribute::apply;
 use smol_macros::test;
 use vetis::{virtual_host::handler_fn, Response, Vetis as _};
@@ -58,7 +58,7 @@ async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
         hostname => "localhost",
         root_directory => "src",
         protocol => vetis_default_protocol(),
-        port => 8080,
+        port => 60000,
         interface => "0.0.0.0",
         handler => handler,
         security_config => security! {
@@ -81,7 +81,7 @@ async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
         .certificate(certificate)
         .build();
 
-    let response = get("https://localhost:8080")?
+    let response = get("https://localhost:60000")?
         .send_with(&client)
         .await?;
 

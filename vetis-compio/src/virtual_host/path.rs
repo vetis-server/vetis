@@ -10,10 +10,6 @@ use vetis::{
     Request, Response,
 };
 
-/// Module for handling basic authentication
-#[cfg(feature = "auth")]
-pub mod auth;
-
 /// Builder for handler path
 pub struct HandlerPathBuilder {
     uri: Arc<String>,
@@ -53,7 +49,7 @@ impl HandlerPathBuilder {
     ///
     /// # Returns
     ///
-    /// * `Result<HandlerPath, VetisError>` - The handler path or error
+    /// * `Result<HostPath, VetisError>` - The handler path or error
     pub fn build(self) -> Result<HandlerPath, VetisError> {
         if self.uri.is_empty() {
             return Err(VetisError::VirtualHost(VirtualHostError::Handler(HandlerError::Uri(
@@ -107,7 +103,7 @@ impl Path for HandlerPath {
     ///
     /// * `request` - The request to handle
     /// * `uri` - The URI of the path
-    ///'
+    ///
     /// # Returns
     ///
     /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request

@@ -1,16 +1,10 @@
 use crate::{
-    tests::{deboa_default_protocol, vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
+    tests::{CA_CERT, SERVER_CERT, SERVER_KEY, deboa_default_protocol, vetis_default_protocol}, virtual_host::{VirtualHostImpl, path::HandlerPath},
 };
-use deboa::{
-    cert::{Certificate, ContentEncoding},
-    request,
-};
-use deboa_smol::Client;
+use deboa::{cert::{Certificate, ContentEncoding}, request};
+use deboa_compio::Client;
 use http::StatusCode;
-use macro_rules_attribute::apply;
 use rand::random_range;
-use smol_macros::test;
 use std::error::Error;
 use vetis::{
     listener::ListenerConfig,
@@ -86,7 +80,7 @@ async fn do_test_handler() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[apply(test!)]
+#[compio::test]
 async fn test_handler() -> Result<(), Box<dyn Error>> {
     do_test_handler().await
 }

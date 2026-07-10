@@ -1,13 +1,14 @@
+use vetis::{
+    listener::{Listener, ListenerConfig, ListenerResult},
+    server::Protocol,
+};
+
 #[cfg(any(feature = "http1", feature = "http2"))]
 use crate::listener::tcp::TcpListener;
 #[cfg(feature = "http3")]
 use crate::listener::udp::UdpListener;
-use crate::virtual_host::VirtualHostImpl;
-use vetis::{
-    listener::{Listener, ListenerConfig, ListenerResult},
-    server::Protocol,
-    VetisVirtualHosts,
-};
+
+use crate::{virtual_host::VirtualHostImpl, VetisVirtualHosts};
 
 #[cfg(any(feature = "http1", feature = "http2"))]
 pub(crate) mod tcp;
@@ -15,7 +16,7 @@ pub(crate) mod tcp;
 #[cfg(feature = "http3")]
 pub(crate) mod udp;
 
-/// Server listener enum
+/// Server listener
 pub enum ServerListener {
     /// TCP listener
     #[cfg(any(feature = "http1", feature = "http2"))]
@@ -43,7 +44,8 @@ impl Listener for ServerListener {
         }
     }
 
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<Self::VirtualHost>) {
+    /// Set the virtual hosts
+    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
         match self {
             #[cfg(any(feature = "http1", feature = "http2"))]
             ServerListener::Tcp(tcp_listener) => {

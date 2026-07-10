@@ -10,10 +10,6 @@ use vetis::{
     Request, Response,
 };
 
-/// Basic auth module
-#[cfg(feature = "auth")]
-pub mod auth;
-
 /// Builder for handler path
 pub struct HandlerPathBuilder {
     uri: Arc<String>,

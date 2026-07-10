@@ -1,8 +1,8 @@
-use deboa::request::get;
-use deboa_tokio::{
+use deboa::{
     cert::{Certificate, ContentEncoding},
-    Client,
+    request::get,
 };
+use deboa_tokio::Client;
 use vetis::{virtual_host::handler_fn, Response, Vetis as _};
 use vetis_macros::{http, security};
 
@@ -13,7 +13,7 @@ use crate::common::{deboa_default_protocol, vetis_default_protocol};
 async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
         from_crate => vetis_tokio,
-        port => 8888,
+        port => 60002,
         protocol => vetis_default_protocol(),
         handler => handler_fn(
             |_req| async move { Ok(Response::builder().text("Hello, World!")) }
@@ -29,7 +29,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
         .protocol(deboa_default_protocol())
         .build();
 
-    let response = get("http://localhost:8888")?
+    let response = get("http://localhost:60002")?
         .send_with(&client)
         .await?;
 
@@ -49,7 +49,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[tokio::test]
-async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
     let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
 
     let mut server = http!(
@@ -57,7 +57,7 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         hostname => "localhost",
         root_directory => "src",
         protocol => vetis_default_protocol(),
-        port => 8080,
+        port => 60001,
         interface => "0.0.0.0",
         handler => handler,
         security_config => security! {
@@ -80,7 +80,7 @@ async fn do_test_http() -> Result<(), Box<dyn std::error::Error>> {
         .certificate(certificate)
         .build();
 
-    let response = get("http://localhost:8080")?
+    let response = get("https://localhost:60001")?
         .send_with(&client)
         .await?;
 

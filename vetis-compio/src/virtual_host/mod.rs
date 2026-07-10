@@ -2,14 +2,18 @@
 //!
 //! This module provides functionality for creating and managing virtual hosts,
 //! including path routing and request handling.
+use compio::{
+    fs::File, io::{AsyncReadExt},
+};
 use futures_util::TryStreamExt;
 use http::StatusCode;
 use http_body_util::StreamBody;
 use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;
-use std::{future::Future, path::PathBuf, pin::Pin, sync::Arc};
-use tokio::fs::File;
+use send_wrapper::SendWrapper;
+use std::{io::Cursor, sync::Arc};
+use std::{future::Future, path::PathBuf, pin::Pin};
 use vetis::{
     errors::{VetisError, VirtualHostError},
     virtual_host::{path::Path, VirtualHost, VirtualHostConfig},
@@ -20,7 +24,9 @@ pub mod path;
 
 /// Virtual host structure
 pub struct VirtualHostImpl {
+    /// Virtual host configuration
     config: VirtualHostConfig,
+    /// Trie of paths
     paths: Trie<String, Arc<Box<dyn Path>>>,
 }
 
@@ -68,9 +74,11 @@ impl VirtualHost for VirtualHostImpl {
                     if file.exists() {
                         let result = File::open(file).await;
                         if let Ok(data) = result {
-                            let content =
-                                tokio_util::io::ReaderStream::new(data).map_ok(Frame::data);
-                            let body = StreamBody::new(content);
+                            let content = Cursor::new(data)
+                                .read_only()
+                                .bytes()
+                                .map_ok(|data| Frame::data(data));
+                            let body = StreamBody::new(SendWrapper::new(content));
                             return Ok(Response::builder()
                                 .status(status_code)
                                 .body(HttpBody::from_stream(body)));
@@ -80,7 +88,8 @@ impl VirtualHost for VirtualHostImpl {
             }
             Ok(static_status_response)
         };
-        Box::pin(future)
+
+        Box::pin(SendWrapper::new(future))
     }
 }
 
