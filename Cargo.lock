@@ -936,9 +936,9 @@ dependencies = [
 
 [[package]]
 name = "embed-collections"
-version = "0.12.4"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f49c327886cdc0e7eda24cd0827f195db19a5f941425914bc6db76c79c64bc21"
+checksum = "489fe6fafc65e6b24571610064755face3e369f6d28731e9fca4290aabb20a15"
 
 [[package]]
 name = "endian-type"
