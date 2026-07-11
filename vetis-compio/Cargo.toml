@@ -46,9 +46,6 @@ hyper = { version = "1.10.1", optional = true, default-features = false }
 hyper-body-utils = { version = "0.1.7" }
 hyper-util = { version = "0.1.20", optional = true, default-features = false }
 log = "0.4.33"
-peekable = { path = "../../peekable", features = [
-  "compio"
-], default-features = false }
 quinn = { version = "0.11.9", optional = true, default-features = false }
 radix_trie = { version = "0.3.0", default-features = false }
 rand = { version = "0.10.1", default-features = false }

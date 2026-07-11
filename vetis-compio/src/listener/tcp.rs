@@ -4,7 +4,7 @@ use crate::{
     virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
 };
-use compio::io::compat::AsyncStream;
+use compio::{buf::IoBufMut, io::compat::AsyncStream};
 #[cfg(feature = "http2")]
 use compio::io::{util::Splittable, AsyncRead, AsyncWrite};
 use compio_runtime::JoinHandle;
@@ -20,7 +20,6 @@ use hyper::server::conn::http2;
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
-use peekable::compio::AsyncPeekExt;
 use send_wrapper::SendWrapper;
 use std::{
     collections::HashMap,
@@ -170,18 +169,14 @@ impl TcpListener {
 
                 // TODO: Check ACL before proceeding
 
-                let mut peekable = AsyncStream::new(stream).peekable();
-                let mut peeked = [0; 2];
-                let result = peekable
-                    .peek_exact(&mut peeked)
-                    .await;
-
-                if let Err(e) = result {
-                    error!("Cannot peek connection: {:?}", e);
+                let result = stream.peek([0u8; 2]).await;
+                if result.is_err() {
+                    error!("Cannot peek connection");
                     continue;
                 }
 
-                let is_tls = peeked.starts_with(&[0x16, 0x03]);
+                let (_, data) =  result.unwrap();
+                let is_tls = data.starts_with(&[0x16, 0x03]);
                 if is_tls {
                     let tls_stream = tls_acceptor
                         .accept(stream)
