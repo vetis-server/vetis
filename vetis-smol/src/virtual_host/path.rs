@@ -1,9 +1,6 @@
 //! Path module for handling different types of paths in the server
-
-use std::{future::Future, pin::Pin};
-
 use std::sync::Arc;
-
+use std::{future::Future, pin::Pin};
 use vetis::{
     errors::{HandlerError, VetisError, VirtualHostError},
     virtual_host::{path::Path, BoxedHandlerClosure},

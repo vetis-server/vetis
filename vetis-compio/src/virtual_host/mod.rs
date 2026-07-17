@@ -106,7 +106,7 @@ impl VirtualHost for VirtualHostImpl {
                             let content = Cursor::new(data)
                                 .read_only()
                                 .bytes()
-                                .map_ok(|data| Frame::data(data));
+                                .map_ok(Frame::data);
                             let body = StreamBody::new(SendWrapper::new(content));
                             return Ok(Response::builder()
                                 .status(status_code)
