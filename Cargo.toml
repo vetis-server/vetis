@@ -21,7 +21,7 @@ rust-version = "1.75.0"
 
 [workspace.dependencies]
 hyper-body-utils = { version = "0.1.9" }
-vetis = { path = "vetis" }
+vetis = { version = ">= 0.1.4-beta.12" }
 vetis-macros = { path = "vetis-macros" }
 
 [profile.release]

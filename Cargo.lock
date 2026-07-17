@@ -3799,7 +3799,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vetis"
-version = "0.1.4-beta.11"
+version = "0.1.4-beta.12"
 dependencies = [
  "argon2",
  "async-lock",
@@ -3826,6 +3826,33 @@ dependencies = [
  "serde",
  "serde_yaml_ng",
  "signal-hook",
+ "socket2",
+ "thiserror",
+ "time",
+ "typetag",
+ "url",
+]
+
+[[package]]
+name = "vetis"
+version = "0.1.4-beta.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3214b925436e76a35b33b7d643a5f9c30a9d7c4d19d273f693c570b095a330c3"
+dependencies = [
+ "argon2",
+ "async-lock",
+ "base64",
+ "bcrypt",
+ "bytes",
+ "futures-util",
+ "http",
+ "http-body-util",
+ "hyper-body-utils",
+ "log",
+ "radix_trie",
+ "rand 0.10.2",
+ "serde",
+ "serde_yaml_ng",
  "socket2",
  "thiserror",
  "time",
@@ -3865,7 +3892,7 @@ dependencies = [
  "time",
  "typetag",
  "url",
- "vetis",
+ "vetis 0.1.4-beta.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "vetis-macros",
 ]
 
@@ -3876,12 +3903,12 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
- "vetis",
+ "vetis 0.1.4-beta.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "vetis-smol"
-version = "0.1.0-beta.6"
+version = "0.1.0-beta.7"
 dependencies = [
  "async-lock",
  "async-net",
@@ -3926,13 +3953,13 @@ dependencies = [
  "time",
  "typetag",
  "url",
- "vetis",
+ "vetis 0.1.4-beta.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "vetis-macros",
 ]
 
 [[package]]
 name = "vetis-tokio"
-version = "0.1.0-beta.6"
+version = "0.1.0-beta.7"
 dependencies = [
  "async-lock",
  "base64",
@@ -3973,7 +4000,7 @@ dependencies = [
  "tokio-util",
  "typetag",
  "url",
- "vetis",
+ "vetis 0.1.4-beta.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "vetis-macros",
 ]
 
