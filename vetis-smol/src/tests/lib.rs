@@ -11,7 +11,7 @@ use vetis::{
     listener::ListenerConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Response, Vetis as _,
+    Response, VetisServer as _,
 };
 
 fn create_listener() -> ListenerConfig {

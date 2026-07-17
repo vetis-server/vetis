@@ -12,6 +12,7 @@ use hyper::server::conn::http1;
 use hyper::server::conn::http2;
 use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
+#[cfg(feature = "http2")]
 use hyper_util::rt::TokioExecutor;
 #[cfg(any(feature = "http1", feature = "http2"))]
 use hyper_util::rt::TokioIo;
@@ -119,7 +120,7 @@ impl Listener for TcpListener {
     /// * `ListenerResult<'_, ()>` - A `ListenerResult` instance containing the result of the listener.
     fn stop(&mut self) -> ListenerResult<'_, ()> {
         let future = async move {
-            if let Some(mut task) = self.task.take() {
+            if let Some(task) = self.task.take() {
                 task.abort();
             }
             Ok(())

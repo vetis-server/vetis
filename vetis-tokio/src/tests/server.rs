@@ -8,14 +8,13 @@ use crate::{
 };
 use deboa::cert::{Certificate, ContentEncoding};
 use http::StatusCode;
-use serde::de;
 use std::error::Error;
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Vetis,
+    VetisServer,
 };
 
 #[tokio::test]

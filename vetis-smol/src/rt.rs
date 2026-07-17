@@ -27,7 +27,7 @@ use vetis::{
 /// ```rust,no_run
 /// use macro_rules_attribute::apply;
 /// use smol_macros::main;
-/// use vetis::{server::ServerConfig, Vetis as _};
+/// use vetis::{server::ServerConfig, VetisServer as _};
 /// use vetis_smol::Vetis;
 ///
 /// #[apply(main!)]
@@ -72,7 +72,7 @@ impl Vetis {
     }
 }
 
-impl base::Vetis for Vetis {
+impl base::VetisServer for Vetis {
     /// Virtual host type
     type VirtualHost = VirtualHostImpl;
     /// Virtual host configuration type
@@ -98,7 +98,7 @@ impl base::Vetis for Vetis {
     /// use vetis::{
     ///     server::ServerConfig,
     ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
-    ///     Vetis as _
+    ///     VetisServer as _
     /// };
     ///
     /// use vetis_smol::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
@@ -153,7 +153,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
+    /// use vetis::{server::ServerConfig, VetisServer as _};
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -209,7 +209,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
+    /// use vetis::{server::ServerConfig, VetisServer as _};
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -262,7 +262,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
+    /// use vetis::{server::ServerConfig, VetisServer as _};
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -339,7 +339,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
+    /// use vetis::{server::ServerConfig, VetisServer as _};
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -371,7 +371,7 @@ impl base::Vetis for Vetis {
     /// ```rust,no_run
     /// use macro_rules_attribute::apply;
     /// use smol_macros::main;
-    /// use vetis::Vetis as _;
+    /// use vetis::VetisServer as _;
     /// use vetis_smol::Vetis;
     ///
     /// #[apply(main!)]
@@ -389,7 +389,7 @@ impl base::Vetis for Vetis {
     async fn reload(
         &mut self,
         new_config: ServerConfig,
-        new_virtual_hosts: Vec<Self::VirtualHostConfig>,
+        _new_virtual_hosts: Vec<Self::VirtualHostConfig>,
     ) -> VetisResult<()> {
         if self.config() != &new_config {
             self.config = new_config;

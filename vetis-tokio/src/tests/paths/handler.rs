@@ -13,7 +13,7 @@ use vetis::{
     security::SecurityConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Vetis as _,
+    VetisServer as _,
 };
 
 #[tokio::test]

@@ -5,7 +5,11 @@ use crate::{
     },
     virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
-use deboa::{cert::{Certificate, ContentEncoding}, request};
+use deboa::{
+    cert::{Certificate as _, ContentEncoding},
+    request,
+};
+use deboa_compio::cert::DeboaCertificate;
 use http::StatusCode;
 use std::error::Error;
 use vetis::{
@@ -13,7 +17,7 @@ use vetis::{
     security::SecurityConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Response, Vetis as _,
+    Response, VetisServer as _,
 };
 
 #[compio::test]
@@ -110,7 +114,7 @@ async fn test_multiple_interfaces() -> Result<(), Box<dyn Error>> {
         .await?;
 
     let client = deboa_compio::Client::builder()
-        .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
+        .certificate(DeboaCertificate::from_slice(CA_CERT, ContentEncoding::DER))
         .protocol(deboa_default_protocol())
         .build();
 
@@ -127,7 +131,7 @@ async fn test_multiple_interfaces() -> Result<(), Box<dyn Error>> {
     );
 
     let client = deboa_compio::Client::builder()
-        .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
+        .certificate(DeboaCertificate::from_slice(CA_CERT, ContentEncoding::DER))
         .bind_addr(
             "::1"
                 .parse()

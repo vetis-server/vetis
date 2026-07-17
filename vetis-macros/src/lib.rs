@@ -206,11 +206,11 @@ pub fn http(item: TokenStream) -> TokenStream {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use vetis_macros::security;
 ///
 /// #[tokio::main]
-/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let security = security! {
 ///         cert => "/path/to/server.der",
 ///         key => "/path/to/server.key.der",

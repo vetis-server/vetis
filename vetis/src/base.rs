@@ -2,7 +2,7 @@ use crate::{server::ServerConfig, VetisResult, VetisVirtualHosts};
 use std::future::Future;
 
 /// Base trait for Vetis server
-pub trait Vetis {
+pub trait VetisServer {
     /// Virtual host type
     type VirtualHost;
     /// Virtual host configuration type

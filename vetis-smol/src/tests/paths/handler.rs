@@ -17,7 +17,7 @@ use vetis::{
     security::SecurityConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Response, Vetis as _,
+    Response, VetisServer as _,
 };
 
 async fn do_test_handler() -> Result<(), Box<dyn Error>> {

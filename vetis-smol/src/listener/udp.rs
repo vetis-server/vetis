@@ -217,7 +217,7 @@ fn handle_http_request(
             let (parts, _) = req.into_parts();
             let method = parts.method.clone();
             let uri = parts.uri.clone();
-            let body = HttpBody::from_quic_server(recv_stream);
+            let body = HttpBody::from_generic_server(recv_stream);
             let request = http::Request::from_parts(parts, body);
 
             let host = request

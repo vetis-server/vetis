@@ -13,7 +13,7 @@ Tokio runtime support for Vetis HTTP server.
 ```toml
 [dependencies]
 vetis = { version = "0.1.4-beta.23" }
-vetis-tokio = { version = "0.1.0-beta.12", features = ["http2", "rust-tls"] }
+vetis-compio = { version = "0.1.1-beta.7", features = ["http2", "rust-tls"] }
 ```
 
 ## Usage
@@ -27,7 +27,7 @@ use vetis::{
     virtual_host::{handler_fn, VirtualHostConfig},
     VetisServer as _
 };
-use vetis_tokio::{
+use vetis_compio::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
 };
@@ -36,7 +36,7 @@ pub(crate) const CA_CERT: &[u8] = include_bytes!("../../certs/ca.der");
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../certs/server.key.der");
 
-#[tokio::main]
+#[compio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 

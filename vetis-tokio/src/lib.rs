@@ -22,6 +22,7 @@ pub mod virtual_host;
 
 pub use crate::rt::Vetis;
 pub use vetis::{
+    base::VetisServer,
     errors,
     listener::ListenerConfig,
     security::SecurityConfig,

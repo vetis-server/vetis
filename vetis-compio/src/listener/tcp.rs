@@ -4,10 +4,8 @@ use crate::{
     virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
 };
-use compio::{buf::IoBufMut, io::compat::AsyncStream};
-#[cfg(feature = "http2")]
 use compio::io::{util::Splittable, AsyncRead, AsyncWrite};
-use compio_runtime::JoinHandle;
+use compio::runtime::JoinHandle;
 use compio_tls::TlsAcceptor;
 #[cfg(feature = "http2")]
 use cyper_core::CompioExecutor;
@@ -96,7 +94,7 @@ impl Listener for TcpListener {
                     self.config
                         .protocol()
                         .clone(),
-                    listener.into(),
+                    listener,
                     self.virtual_hosts
                         .clone(),
                 )
@@ -169,13 +167,15 @@ impl TcpListener {
 
                 // TODO: Check ACL before proceeding
 
-                let result = stream.peek([0u8; 2]).await;
+                let result = stream
+                    .peek([0u8; 2])
+                    .await;
                 if result.is_err() {
                     error!("Cannot peek connection");
                     continue;
                 }
 
-                let (_, data) =  result.unwrap();
+                let (_, data) = result.unwrap();
                 let is_tls = data.starts_with(&[0x16, 0x03]);
                 if is_tls {
                     let tls_stream = tls_acceptor
@@ -363,12 +363,14 @@ async fn process_request(
 #[cfg(feature = "http1")]
 fn handle_http1_request<T>(
     port: Arc<u16>,
-    io: FuturesIo<T>,
+    io: HyperStream<T>,
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where
-    T: AsyncRead + AsyncWrite + Unpin + Send + 'static,
+    T: AsyncRead + AsyncWrite + Splittable + Unpin + 'static,
+    T::ReadHalf: AsyncRead + Unpin,
+    T::WriteHalf: AsyncWrite + Unpin,
 {
     let service_fn = service_fn(move |req| {
         let value = virtual_hosts.clone();

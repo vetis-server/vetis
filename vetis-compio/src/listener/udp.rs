@@ -6,15 +6,14 @@ use crate::{
     VetisRwLock, VetisVirtualHosts,
 };
 use bytes::Bytes;
-use futures_util::StreamExt;
-use h3::server::{Connection, RequestResolver};
-use h3_quinn::{
-    quinn::{self, crypto::rustls::QuicServerConfig},
-    Connection as QuinnConnection,
+use compio::runtime::JoinHandle;
+use compio_quic::{
+    crypto::rustls::QuicServerConfig, h3::server::RequestResolver, Endpoint, ServerConfig,
 };
+use futures_util::StreamExt;
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
-use smol::Task;
+use send_wrapper::SendWrapper;
 use std::{
     collections::HashMap,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
@@ -30,7 +29,7 @@ use vetis::{
 /// UDP listener
 pub struct UdpListener {
     config: ListenerConfig,
-    task: Option<Task<()>>,
+    task: Option<JoinHandle<()>>,
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
 }
 
@@ -95,9 +94,10 @@ impl Listener for UdpListener {
                 let quic_config = QuicServerConfig::try_from(tls_config)
                     .map_err(|e| VetisError::Start(StartError::Tls(e.to_string())))?;
 
-                let server_config = quinn::ServerConfig::with_crypto(Arc::new(quic_config));
+                let server_config = ServerConfig::with_crypto(Arc::new(quic_config));
 
-                let endpoint = quinn::Endpoint::server(server_config, addr)
+                let endpoint = Endpoint::server(addr, server_config)
+                    .await
                     .map_err(|e| VetisError::Bind(e.to_string()))?;
 
                 let server_task = self
@@ -113,7 +113,7 @@ impl Listener for UdpListener {
 
             Ok(())
         };
-        Box::pin(future)
+        Box::pin(SendWrapper::new(future))
     }
 
     /// Stop the listener
@@ -134,28 +134,30 @@ impl Listener for UdpListener {
 impl UdpListener {
     async fn handle_connections(
         &mut self,
-        endpoint: quinn::Endpoint,
+        endpoint: Endpoint,
         virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
-    ) -> Result<Task<()>, VetisError> {
+    ) -> Result<JoinHandle<()>, VetisError> {
         let port = self.config.port();
-        let task = smol::spawn(async move {
+        let task = compio::runtime::spawn(async move {
             while let Some(new_conn) = endpoint
-                .accept()
+                .wait_incoming()
                 .await
             {
                 let virtual_hosts = virtual_hosts.clone();
                 let addr = new_conn.remote_address();
-                smol::spawn(async move {
+                compio::runtime::spawn(async move {
                     match new_conn.await {
                         Ok(conn) => {
-                            let mut h3_conn: Connection<QuinnConnection, Bytes> =
-                                match Connection::new(QuinnConnection::new(conn)).await {
-                                    Ok(conn) => conn,
-                                    Err(err) => {
-                                        error!("Cannot create connection: {:?}", err);
-                                        return;
-                                    }
-                                };
+                            let mut h3_conn = match compio_quic::h3::server::builder()
+                                .build(conn)
+                                .await
+                            {
+                                Ok(conn) => conn,
+                                Err(err) => {
+                                    error!("Cannot create connection: {:?}", err);
+                                    return;
+                                }
+                            };
 
                             loop {
                                 match h3_conn
@@ -191,10 +193,6 @@ impl UdpListener {
                 })
                 .detach();
             }
-
-            endpoint
-                .wait_idle()
-                .await;
         });
 
         Ok(task)
@@ -203,12 +201,12 @@ impl UdpListener {
 
 fn handle_http_request(
     port: u16,
-    resolver: RequestResolver<QuinnConnection, Bytes>,
+    resolver: RequestResolver<compio_quic::Connection, Bytes>,
     virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()> {
     let virtual_hosts = virtual_hosts.clone();
-    smol::spawn(async move {
+    compio::runtime::spawn(async move {
         let result = resolver
             .resolve_request()
             .await;
@@ -217,7 +215,7 @@ fn handle_http_request(
             let (parts, _) = req.into_parts();
             let method = parts.method.clone();
             let uri = parts.uri.clone();
-            let body = HttpBody::from_quic_server(recv_stream);
+            let body = HttpBody::from_compio_server(recv_stream);
             let request = http::Request::from_parts(parts, body);
 
             let host = request

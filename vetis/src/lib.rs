@@ -35,6 +35,6 @@ pub type VetisRwLock<T> = RwLock<T>;
 /// A type alias for a vector of virtual hosts
 pub type VetisVirtualHosts<T> = Arc<VetisRwLock<HashMap<(Arc<str>, u16), T>>>;
 
-pub use base::Vetis;
+pub use base::VetisServer;
 pub use request::Request;
 pub use response::Response;

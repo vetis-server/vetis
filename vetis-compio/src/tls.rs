@@ -25,8 +25,6 @@ impl TlsFactory {
         let provider = rustls::crypto::aws_lc_rs::default_provider();
         #[cfg(feature = "__rustls_ring")]
         let provider = rustls::crypto::ring::default_provider();
-        #[cfg(feature = "__rustls_rustcrypto")]
-        let provider = rustls_rustcrypto::provider();
         let mut resolver = ResolvesServerCertUsingSni::new();
         let virtual_hosts = virtual_hosts
             .read()

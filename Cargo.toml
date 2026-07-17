@@ -4,7 +4,7 @@ resolver = "3"
 # Include both parts of the library in the workspace
 members = [
   "vetis",
-  #"vetis-compio",
+  "vetis-compio",
   "vetis-macros",
   "vetis-smol",
   "vetis-tokio",
@@ -20,8 +20,9 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.75.0"
 
 [workspace.dependencies]
-vetis = { path = "vetis", version = "0.1.4-beta.9" }
-vetis-macros = { path = "vetis-macros", version = "0.1.1-beta.2" }
+hyper-body-utils = { version = "0.1.9" }
+vetis = { path = "vetis" }
+vetis-macros = { path = "vetis-macros" }
 
 [profile.release]
 strip = true

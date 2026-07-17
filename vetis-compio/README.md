@@ -28,18 +28,13 @@ Here's how simple it is to create a web server with VeTiS:
 
 ```rust,no_run
 use hyper::StatusCode;
-
-use macro_rules_attribute::apply;
-use smol_macros::main;
-
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
-    Vetis as _
+    VetisServer as _
 };
-
 use vetis_compio::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
@@ -49,7 +44,7 @@ pub(crate) const CA_CERT: &[u8] = include_bytes!("../../certs/ca.der");
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../certs/server.key.der");
 
-#[apply(main!)]
+#[compio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 

@@ -1,6 +1,6 @@
 [package]
 name = "vetis-smol"
-version = "0.1.0-beta.4"
+version = "0.1.0-beta.6"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -36,12 +36,13 @@ __rustls_rustcrypto = ["dep:rustls-rustcrypto"]
 http1 = ["hyper/http1", "hyper/server", "hyper-util/server", "hyper-util/http1"]
 http2 = ["hyper/http2", "hyper/server", "hyper-util/server", "hyper-util/http2"]
 http3 = [
-  "hyper/server",
-  "hyper-util/server",
   "dep:h3",
   "dep:h3-quinn",
-  "quinn/runtime-smol",
+  "hyper/server",
+  "hyper-util/server",
   "hyper-body-utils/http3",
+  "hyper-body-utils/generic",
+  "quinn/runtime-smol",
 ]
 
 [dependencies]
@@ -65,7 +66,7 @@ h3-quinn = { version = "0.0.10", optional = true, default-features = false }
 http = "1.4.2"
 http-body-util = { version = "0.1.3" }
 hyper = { version = "1.10.1", optional = true, default-features = false }
-hyper-body-utils = { version = "0.1.7" }
+hyper-body-utils = { workspace = true, default-features = false  }
 hyper-util = { version = "0.1.20", optional = true, default-features = false }
 log = "0.4.32"
 macro_rules_attribute = { version = "0.2.2", default-features = false }
@@ -94,8 +95,8 @@ url = "2.5.7"
 vetis = { workspace = true, default-features = false }
 
 [dev-dependencies]
-deboa = { version = "0.1.0-beta.19" }
-deboa-smol = { version = "0.1.0-beta.7", default-features = false, features = [
+deboa = { version = ">= 0.1.0-beta.24" }
+deboa-smol = { version = ">= 0.1.0-beta.14", default-features = false, features = [
   "http2",
   "rust-tls",
   "default-rustls-provider",

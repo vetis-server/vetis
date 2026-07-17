@@ -3,7 +3,7 @@ use log::error;
 #[cfg(target_env = "musl")]
 use mimalloc::MiMalloc;
 use serde::Deserialize;
-use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig, Vetis as _};
+use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig, VetisServer as _};
 #[global_allocator]
 #[cfg(target_env = "musl")]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -13,8 +13,8 @@ use vetis_smol::{virtual_host::VirtualHostImpl, Vetis};
 #[derive(Deserialize)]
 pub struct VetisServerConfig {
     log_level: String,
-    worker_threads: usize,
-    max_blocking_threads: usize,
+    _worker_threads: usize,
+    _max_blocking_threads: usize,
     server: ServerConfig,
     virtual_hosts: Vec<VirtualHostConfig>,
 }

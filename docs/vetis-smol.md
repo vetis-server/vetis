@@ -11,8 +11,8 @@ Smol runtime support for Vetis HTTP server.
 ## Installation
 
 ```toml
-vetis = { version = "0.1.4-beta.7" }
-vetis-smol = { version = "0.1.0-beta.2", features = ["http2", "rust-tls"] }
+vetis = { version = "0.1.4-beta.23" }
+vetis-smol = { version = "0.1.0-beta.12", features = ["http2", "rust-tls"] }
 ```
 
 ## Usage
@@ -26,6 +26,7 @@ use vetis::{
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
+    VetisServer as _
 };
 use vetis_smol::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},

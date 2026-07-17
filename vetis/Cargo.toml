@@ -1,6 +1,6 @@
 [package]
 name = "vetis"
-version = "0.1.4-beta.9"
+version = "0.1.4-beta.11"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -38,31 +38,18 @@ base64 = { version = "0.22.1", optional = true, default-features = false }
 bcrypt = { version = "0.19.1", optional = true, default-features = false }
 blocking = { version = "1.6.2", optional = true, default-features = false }
 bytes = "1.11.1"
-clap = { version = "4.5.61", features = [
-  "derive",
-  "std",
-], default-features = false }
-crossfire = { version = "3.1.16", optional = true, default-features = false }
-deboa = { version = "0.1.0-beta.11", optional = true, default-features = false }
-env_logger = "0.11.9"
 futures-lite = { version = "2.6.1", optional = true, default-features = false }
 futures-util = "0.3.32"
-h3 = { version = "0.0.8", optional = true, default-features = false }
-h3-quinn = { version = "0.0.10", optional = true, default-features = false }
 http = "1.4.2"
 http-body-util = { version = "0.1.3" }
 hyper = { version = "1.10.1", optional = true, default-features = false }
-hyper-body-utils = { version = "0.1.7" }
+hyper-body-utils = { workspace = true, default-features = false }
 hyper-util = { version = "0.1.20", optional = true, default-features = false }
 log = "0.4.32"
-macro_rules_attribute = { version = "0.2.2", optional = true, default-features = false }
-mimalloc = "0.1.52"
 mime = { version = "0.3.17", optional = true, default-features = false }
 minimime = { version = "1.0.0", optional = true, default-features = false }
 moka = { version = "0.12.14", optional = true, default-features = false }
 parse_duration = { version = "2.1.1", optional = true, default-features = false }
-peekable = { version = "0.6.1", optional = true, default-features = false }
-quinn = { version = "0.11.9", optional = true, default-features = false }
 radix_trie = "0.3.0"
 rand = "0.10.1"
 regex = { version = "1.12.4", optional = true, default-features = false }

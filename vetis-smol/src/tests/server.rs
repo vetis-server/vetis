@@ -18,7 +18,7 @@ use vetis::{
     security::SecurityConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Response, Vetis as _,
+    Response, VetisServer as _,
 };
 
 #[apply(test!)]

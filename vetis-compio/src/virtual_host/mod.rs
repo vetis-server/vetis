@@ -2,9 +2,7 @@
 //!
 //! This module provides functionality for creating and managing virtual hosts,
 //! including path routing and request handling.
-use compio::{
-    fs::File, io::{AsyncReadExt},
-};
+use compio::{fs::File, io::AsyncReadExt};
 use futures_util::TryStreamExt;
 use http::StatusCode;
 use http_body_util::StreamBody;
@@ -12,12 +10,12 @@ use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;
 use send_wrapper::SendWrapper;
-use std::{io::Cursor, sync::Arc};
 use std::{future::Future, path::PathBuf, pin::Pin};
+use std::{io::Cursor, sync::Arc};
 use vetis::{
-    errors::{VetisError, VirtualHostError},
+    errors::{FileError, VetisError, VirtualHostError},
     virtual_host::{path::Path, VirtualHost, VirtualHostConfig},
-    Response,
+    Request, Response,
 };
 
 pub mod path;
@@ -28,6 +26,37 @@ pub struct VirtualHostImpl {
     config: VirtualHostConfig,
     /// Trie of paths
     paths: Trie<String, Arc<Box<dyn Path>>>,
+}
+
+impl VirtualHostImpl {
+    /// Create a new virtual host
+    ///
+    /// # Arguments
+    ///
+    /// * `host_config` - A `VirtualHostConfig` instance containing the virtual host configuration.
+    ///
+    /// # Returns
+    ///
+    /// * `Self` - A new `VirtualHost` instance.
+    pub fn new(host_config: VirtualHostConfig) -> Self {
+        Self { config: host_config, paths: Trie::new() }
+    }
+
+    /// Add a path to the virtual host
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - A `HostPath` instance containing the path configuration.
+    pub fn add_path<P>(&mut self, path: P)
+    where
+        P: Path + 'static,
+    {
+        self.paths.insert(
+            path.uri()
+                .to_string(),
+            Arc::new(Box::new(path)),
+        );
+    }
 }
 
 impl VirtualHost for VirtualHostImpl {
@@ -91,35 +120,79 @@ impl VirtualHost for VirtualHostImpl {
 
         Box::pin(SendWrapper::new(future))
     }
-}
 
-impl VirtualHostImpl {
-    /// Create a new virtual host
+    /// Route request to the appropriate handler
     ///
     /// # Arguments
     ///
-    /// * `host_config` - A `VirtualHostConfig` instance containing the virtual host configuration.
+    /// * `request` - A `Request` instance containing the request information.
     ///
     /// # Returns
     ///
-    /// * `Self` - A new `VirtualHost` instance.
-    pub fn new(host_config: VirtualHostConfig) -> Self {
-        Self { config: host_config, paths: Trie::new() }
-    }
-
-    /// Add a path to the virtual host
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - A `HostPath` instance containing the path configuration.
-    pub fn add_path<P>(&mut self, path: P)
+    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn route<'a>(
+        &'a self,
+        request: Request,
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>
     where
-        P: Path + 'static,
+        Self: Sync,
     {
-        self.paths.insert(
-            path.uri()
-                .to_string(),
-            Arc::new(Box::new(path)),
-        );
+        let uri_path: String = request
+            .uri()
+            .path()
+            .into();
+
+        if uri_path.starts_with("..") {
+            return self.serve_status_page(http::StatusCode::FORBIDDEN.as_u16());
+        }
+
+        let paths = self.paths();
+
+        let matches = paths.get_ancestor_value(&uri_path);
+
+        let Some(path) = matches else {
+            return self.serve_status_page(http::StatusCode::NOT_FOUND.as_u16());
+        };
+
+        let path = path.clone();
+
+        let target_path: String = uri_path
+            .strip_prefix(path.uri())
+            .unwrap_or(&uri_path)
+            .into();
+
+        let future = async move {
+            let result = path.handle(request, Arc::from(target_path));
+            match result.await {
+                Ok(response) => Ok(response),
+                Err(error) => {
+                    match error {
+                        VetisError::VirtualHost(VirtualHostError::File(FileError::NotFound)) => {
+                            log::error!("Invalid path: {}", error);
+                            return self
+                                .serve_status_page(http::StatusCode::NOT_FOUND.as_u16())
+                                .await;
+                        }
+                        VetisError::VirtualHost(VirtualHostError::Proxy(ref error)) => {
+                            log::error!("Proxy error: {}", error);
+                            return self
+                                .serve_status_page(http::StatusCode::BAD_GATEWAY.as_u16())
+                                .await;
+                        }
+                        VetisError::VirtualHost(VirtualHostError::Auth(e)) => {
+                            log::error!("Auth error: {}", e);
+                            return self
+                                .serve_status_page(http::StatusCode::UNAUTHORIZED.as_u16())
+                                .await;
+                        }
+                        _ => {}
+                    }
+
+                    Err(error)
+                }
+            }
+        };
+
+        Box::pin(SendWrapper::new(future))
     }
 }

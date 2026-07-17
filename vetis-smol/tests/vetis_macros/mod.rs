@@ -6,7 +6,7 @@ use deboa::{
 use deboa_smol::Client;
 use macro_rules_attribute::apply;
 use smol_macros::test;
-use vetis::{virtual_host::handler_fn, Response, Vetis as _};
+use vetis::{virtual_host::handler_fn, Response, VetisServer as _};
 use vetis_macros::{http, security};
 
 #[cfg(feature = "http1")]

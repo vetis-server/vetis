@@ -2,8 +2,6 @@
 //!
 //! This module provides functionality for creating and managing virtual hosts,
 //! including path routing and request handling.
-use std::{future::Future, path::PathBuf, pin::Pin};
-
 use bytes::Bytes;
 use futures_lite::AsyncReadExt;
 use futures_util::TryStreamExt;
@@ -12,14 +10,13 @@ use http_body_util::StreamBody;
 use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;
-use std::sync::Arc;
-use vetis::{
-    errors::{VetisError, VirtualHostError},
-    virtual_host::{path::Path, VirtualHost, VirtualHostConfig},
-    Response,
-};
-
 use smol::fs::File;
+use std::{future::Future, path::PathBuf, pin::Pin, sync::Arc};
+use vetis::{
+    errors::{FileError, VetisError, VirtualHostError},
+    virtual_host::{path::Path, VirtualHost, VirtualHostConfig},
+    Request, Response,
+};
 
 pub mod path;
 
@@ -87,6 +84,81 @@ impl VirtualHost for VirtualHostImpl {
                 }
             }
             Ok(static_status_response)
+        };
+
+        Box::pin(future)
+    }
+
+    /// Route request to the appropriate handler
+    ///
+    /// # Arguments
+    ///
+    /// * `request` - A `Request` instance containing the request information.
+    ///
+    /// # Returns
+    ///
+    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn route<'a>(
+        &'a self,
+        request: Request,
+    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>
+    where
+        Self: Sync,
+    {
+        let uri_path: String = request
+            .uri()
+            .path()
+            .into();
+
+        if uri_path.starts_with("..") {
+            return self.serve_status_page(http::StatusCode::FORBIDDEN.as_u16());
+        }
+
+        let paths = self.paths();
+
+        let matches = paths.get_ancestor_value(&uri_path);
+
+        let Some(path) = matches else {
+            return self.serve_status_page(http::StatusCode::NOT_FOUND.as_u16());
+        };
+
+        let path = path.clone();
+
+        let target_path: String = uri_path
+            .strip_prefix(path.uri())
+            .unwrap_or(&uri_path)
+            .into();
+
+        let future = async move {
+            let result = path.handle(request, Arc::from(target_path));
+            match result.await {
+                Ok(response) => Ok(response),
+                Err(error) => {
+                    match error {
+                        VetisError::VirtualHost(VirtualHostError::File(FileError::NotFound)) => {
+                            log::error!("Invalid path: {}", error);
+                            return self
+                                .serve_status_page(http::StatusCode::NOT_FOUND.as_u16())
+                                .await;
+                        }
+                        VetisError::VirtualHost(VirtualHostError::Proxy(ref error)) => {
+                            log::error!("Proxy error: {}", error);
+                            return self
+                                .serve_status_page(http::StatusCode::BAD_GATEWAY.as_u16())
+                                .await;
+                        }
+                        VetisError::VirtualHost(VirtualHostError::Auth(e)) => {
+                            log::error!("Auth error: {}", e);
+                            return self
+                                .serve_status_page(http::StatusCode::UNAUTHORIZED.as_u16())
+                                .await;
+                        }
+                        _ => {}
+                    }
+
+                    Err(error)
+                }
+            }
         };
 
         Box::pin(future)

@@ -3,11 +3,10 @@ use compio::signal::ctrl_c;
 use log::{error, info};
 use std::{collections::HashMap, sync::Arc};
 use vetis::{
-    base,
     errors::{ListenerError, StartError, VetisError, VirtualHostError},
     server::{Server, ServerConfig},
     virtual_host::{VirtualHost, VirtualHostConfig},
-    VetisResult, VetisRwLock, VetisVirtualHosts,
+    VetisResult, VetisRwLock, VetisServer, VetisVirtualHosts,
 };
 
 #[derive(Default)]
@@ -22,12 +21,10 @@ use vetis::{
 /// # Examples
 ///
 /// ```rust,no_run
-/// use macro_rules_attribute::apply;
-/// use smol_macros::main;
-/// use vetis::{server::ServerConfig, Vetis as _};
-/// use vetis_smol::Vetis;
+/// use vetis::{server::ServerConfig, VetisServer as _};
+/// use vetis_compio::Vetis;
 ///
-/// #[apply(main!)]
+/// #[compio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let config = ServerConfig::builder().build()?;
 ///     let mut server = Vetis::new(config);
@@ -55,7 +52,7 @@ impl Vetis {
     ///
     /// ```rust,no_run
     /// use vetis::server::ServerConfig;
-    /// use vetis_smol::Vetis;
+    /// use vetis_compio::Vetis;
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
@@ -69,7 +66,7 @@ impl Vetis {
     }
 }
 
-impl base::Vetis for Vetis {
+impl VetisServer for Vetis {
     /// Virtual host type
     type VirtualHost = VirtualHostImpl;
     /// Virtual host configuration type
@@ -88,19 +85,14 @@ impl base::Vetis for Vetis {
     ///
     /// ```rust,no_run
     /// use http::StatusCode;
-    ///
-    /// use macro_rules_attribute::apply;
-    /// use smol_macros::main;
-    ///
     /// use vetis::{
     ///     server::ServerConfig,
     ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
-    ///     Vetis as _
+    ///     VetisServer as _
     /// };
+    /// use vetis_compio::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
     ///
-    /// use vetis_smol::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
-    ///
-    /// #[apply(main!)]
+    /// #[compio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
@@ -148,12 +140,10 @@ impl base::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use macro_rules_attribute::apply;
-    /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
-    /// use vetis_smol::Vetis;
+    /// use vetis::{server::ServerConfig, VetisServer as _};
+    /// use vetis_compio::Vetis;
     ///
-    /// #[apply(main!)]
+    /// #[compio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = vetis::server::ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
@@ -204,12 +194,10 @@ impl base::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use macro_rules_attribute::apply;
-    /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
-    /// use vetis_smol::Vetis;
+    /// use vetis::{server::ServerConfig, VetisServer as _};
+    /// use vetis_compio::Vetis;
     ///
-    /// #[apply(main!)]
+    /// #[compio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
@@ -230,7 +218,7 @@ impl base::Vetis for Vetis {
             info!("Server listening on port {}:{}", listener.interface(), listener.port());
         }
 
-        ctrl_c().await;
+        let _ = ctrl_c().await;
 
         info!("\nStopping server...");
 
@@ -254,12 +242,10 @@ impl base::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use macro_rules_attribute::apply;
-    /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
-    /// use vetis_smol::Vetis;
+    /// use vetis::{server::ServerConfig, VetisServer as _};
+    /// use vetis_compio::Vetis;
     ///
-    /// #[apply(main!)]
+    /// #[compio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
@@ -331,12 +317,10 @@ impl base::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use macro_rules_attribute::apply;
-    /// use smol_macros::main;
-    /// use vetis::{server::ServerConfig, Vetis as _};
-    /// use vetis_smol::Vetis;
+    /// use vetis::{server::ServerConfig, VetisServer as _};
+    /// use vetis_compio::Vetis;
     ///
-    /// #[apply(main!)]
+    /// #[compio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
@@ -363,12 +347,10 @@ impl base::Vetis for Vetis {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use macro_rules_attribute::apply;
-    /// use smol_macros::main;
-    /// use vetis::Vetis as _;
-    /// use vetis_smol::Vetis;
+    /// use vetis::VetisServer as _;
+    /// use vetis_compio::Vetis;
     ///
-    /// #[apply(main!)]
+    /// #[compio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = vetis::server::ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);

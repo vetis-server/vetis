@@ -1,7 +1,11 @@
 use crate::{
-    tests::{CA_CERT, SERVER_CERT, SERVER_KEY, deboa_default_protocol, vetis_default_protocol}, virtual_host::{VirtualHostImpl, path::HandlerPath},
+    tests::{deboa_default_protocol, vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
-use deboa::{cert::{Certificate, ContentEncoding}, request};
+use deboa::{
+    cert::{Certificate, ContentEncoding},
+    request,
+};
 use deboa_compio::Client;
 use http::StatusCode;
 use rand::random_range;
@@ -11,7 +15,7 @@ use vetis::{
     security::SecurityConfig,
     server::ServerConfig,
     virtual_host::{handler_fn, VirtualHostConfig},
-    Response, Vetis as _,
+    Response, VetisServer as _,
 };
 
 async fn do_test_handler() -> Result<(), Box<dyn Error>> {

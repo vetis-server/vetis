@@ -1,5 +1,5 @@
 use crate::{
-    errors::{ConfigError, FileError, VetisError, VirtualHostError},
+    errors::{ConfigError, VetisError},
     security::SecurityConfig,
     Request, Response,
 };
@@ -532,62 +532,5 @@ pub trait VirtualHost {
         request: Request,
     ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>
     where
-        Self: Sync,
-    {
-        let uri_path: String = request
-            .uri()
-            .path()
-            .into();
-
-        if uri_path.starts_with("..") {
-            return self.serve_status_page(http::StatusCode::FORBIDDEN.as_u16());
-        }
-
-        let paths = self.paths();
-
-        let matches = paths.get_ancestor_value(&uri_path);
-
-        let Some(path) = matches else {
-            return self.serve_status_page(http::StatusCode::NOT_FOUND.as_u16());
-        };
-
-        let path = path.clone();
-
-        let target_path: String = uri_path
-            .strip_prefix(path.uri())
-            .unwrap_or(&uri_path)
-            .into();
-
-        Box::pin(async move {
-            let result = path.handle(request, Arc::from(target_path));
-            match result.await {
-                Ok(response) => Ok(response),
-                Err(error) => {
-                    match error {
-                        VetisError::VirtualHost(VirtualHostError::File(FileError::NotFound)) => {
-                            log::error!("Invalid path: {}", error);
-                            return self
-                                .serve_status_page(http::StatusCode::NOT_FOUND.as_u16())
-                                .await;
-                        }
-                        VetisError::VirtualHost(VirtualHostError::Proxy(ref error)) => {
-                            log::error!("Proxy error: {}", error);
-                            return self
-                                .serve_status_page(http::StatusCode::BAD_GATEWAY.as_u16())
-                                .await;
-                        }
-                        VetisError::VirtualHost(VirtualHostError::Auth(e)) => {
-                            log::error!("Auth error: {}", e);
-                            return self
-                                .serve_status_page(http::StatusCode::UNAUTHORIZED.as_u16())
-                                .await;
-                        }
-                        _ => {}
-                    }
-
-                    Err(error)
-                }
-            }
-        })
-    }
+        Self: Sync;
 }

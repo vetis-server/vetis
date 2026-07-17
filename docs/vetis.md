@@ -31,6 +31,7 @@ use vetis::{
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
+    VetisServer as _
 };
 use vetis_macros::status_pages;
 use vetis_tokio::{

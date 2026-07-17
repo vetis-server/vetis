@@ -28,18 +28,15 @@ Here's how simple it is to create a web server with VeTiS:
 
 ```rust,no_run
 use hyper::StatusCode;
-
 use macro_rules_attribute::apply;
 use smol_macros::main;
-
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::{Protocol, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
-    Vetis as _
+    VetisServer as _
 };
-
 use vetis_smol::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
