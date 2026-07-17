@@ -1000,9 +1000,9 @@ dependencies = [
 
 [[package]]
 name = "deboa-compio"
-version = "0.1.1-beta.9"
+version = "0.1.1-beta.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "059599f0eeed0f38e939df122a68ba2966eb4f02ff7f7c99654f42b86a51576d"
+checksum = "8cf1d07dbbd6c0aa588a77bc30c11b87b522c6fc93d84e9910f48aebce54a7b1"
 dependencies = [
  "async-trait",
  "base64",
@@ -1041,9 +1041,9 @@ dependencies = [
 
 [[package]]
 name = "deboa-smol"
-version = "0.1.0-beta.14"
+version = "0.1.0-beta.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76ad74febfa6d4d8c4349cc052d778d5cbbf4fbd2581817bc28f074cf85d7a07"
+checksum = "592ae00699ab3f2c1d3f10b158cdf7eafe8dd43417cc7ae67397befd14fdc115"
 dependencies = [
  "async-trait",
  "base64",
@@ -1082,9 +1082,9 @@ dependencies = [
 
 [[package]]
 name = "deboa-tokio"
-version = "0.1.0-beta.14"
+version = "0.1.0-beta.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "453c81c29db4ca6eb697149737769e48a0bba7fc8c33dcb2ce18289564774340"
+checksum = "2e8460dce7128eb16245ef967f5a2465f4636da3fa1e16434d53686f31a41f02"
 dependencies = [
  "async-trait",
  "base64",
