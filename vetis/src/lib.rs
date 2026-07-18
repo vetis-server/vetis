@@ -4,7 +4,6 @@ use async_lock::RwLock;
 use std::{collections::HashMap, sync::Arc};
 
 /// Basic authentication module
-#[cfg(feature = "auth")]
 pub mod auth;
 /// Base module
 pub mod base;
