@@ -327,6 +327,7 @@ async fn process_request(
             let default_headers = virtual_host
                 .config()
                 .default_headers();
+
             if let Some(default_headers) = default_headers {
                 for (key, value) in default_headers {
                     let header_name = header::HeaderName::from_bytes(key.as_bytes());

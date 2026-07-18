@@ -1,6 +1,6 @@
 [package]
 name = "vetis-macros"
-version = "0.1.1-beta.2"
+version = "0.1.1-beta.3"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -20,4 +20,3 @@ proc-macro2 = "1.0.106"
 quote = "1.0.45"
 syn = "2.0.117"
 vetis = { workspace = true, default-features = false }
-
