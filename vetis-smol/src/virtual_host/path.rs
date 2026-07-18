@@ -6,6 +6,7 @@ use vetis::{
     virtual_host::{path::Path, BoxedHandlerClosure},
     Request, Response,
 };
+use vetis::{VetisFutureResult, VetisResult};
 
 /// Builder for handler path
 pub struct HandlerPathBuilder {
@@ -47,7 +48,7 @@ impl HandlerPathBuilder {
     /// # Returns
     ///
     /// * `Result<HostPath, VetisError>` - The handler path or error
-    pub fn build(self) -> Result<HandlerPath, VetisError> {
+    pub fn build(self) -> VetisResult<HandlerPath> {
         if self.uri.is_empty() {
             return Err(VetisError::VirtualHost(VirtualHostError::Handler(HandlerError::Uri(
                 "URI cannot be empty".to_string(),
@@ -103,12 +104,12 @@ impl Path for HandlerPath {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
+    /// * `VetisFutureResult<'a, Response>` - The future that will handle the request
     fn handle<'a>(
         &'a self,
         request: Request,
         _uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>> {
+    ) -> VetisFutureResult<'a, Response> {
         (self.handler)(request)
     }
 }

@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 use async_lock::RwLock;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 
 /// Basic authentication module
 pub mod auth;
@@ -33,6 +33,8 @@ pub type VetisResult<T> = Result<T, crate::errors::VetisError>;
 pub type VetisRwLock<T> = RwLock<T>;
 /// A type alias for a vector of virtual hosts
 pub type VetisVirtualHosts<T> = Arc<VetisRwLock<HashMap<(Arc<str>, u16), T>>>;
+/// A pinned future that resolves to a result of type T or a VetisError
+pub type VetisFutureResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> + Send + 'a>>;
 
 pub use base::VetisServer;
 pub use request::Request;

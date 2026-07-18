@@ -1,4 +1,7 @@
-use crate::errors::{ConfigError, VetisError};
+use crate::{
+    errors::{ConfigError, VetisError},
+    VetisResult,
+};
 use log::error;
 use serde::{Deserialize, Deserializer};
 use std::fs;
@@ -191,7 +194,7 @@ impl SecurityConfigBuilder {
     /// # Returns
     ///
     /// * `Result<SecurityConfig, VetisError>` - The `SecurityConfig` with the configured settings.
-    pub fn build(self) -> Result<SecurityConfig, VetisError> {
+    pub fn build(self) -> VetisResult<SecurityConfig> {
         if self.cert.is_empty() {
             return Err(VetisError::Config(ConfigError::Security(
                 "Missing certificate".to_string(),

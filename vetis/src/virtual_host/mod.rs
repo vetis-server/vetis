@@ -1,11 +1,11 @@
 use crate::{
     errors::{ConfigError, VetisError},
     security::SecurityConfig,
-    Request, Response,
+    Request, Response, VetisFutureResult, VetisResult,
 };
 use radix_trie::Trie;
 use serde::Deserialize;
-use std::{collections::HashMap, future::Future, path::Path, pin::Pin, sync::Arc};
+use std::{collections::HashMap, future::Future, path::Path, sync::Arc};
 
 /// Path configuration for virtual hosts.
 pub mod path;
@@ -31,11 +31,8 @@ pub mod path;
 ///     })
 /// });
 /// ```
-pub type BoxedHandlerClosure = Box<
-    dyn Fn(Request) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + Sync>>
-        + Send
-        + Sync,
->;
+pub type BoxedHandlerClosure =
+    Box<dyn Fn(Request) -> VetisFutureResult<'static, Response> + Send + Sync>;
 
 /// Creates a handler closure from a function.
 ///
@@ -44,7 +41,7 @@ pub type BoxedHandlerClosure = Box<
 ///
 /// # Arguments
 ///
-/// * `f` - An async function that takes a `Request` and returns a `Result<Response, VetisError>`
+/// * `f` - An async function that takes a `Request` and returns a `VetisResult<Response>`
 ///
 /// # Examples
 ///
@@ -64,7 +61,7 @@ pub type BoxedHandlerClosure = Box<
 pub fn handler_fn<F, Fut>(f: F) -> BoxedHandlerClosure
 where
     F: Fn(Request) -> Fut + Send + Sync + 'static,
-    Fut: Future<Output = Result<Response, VetisError>> + Send + Sync + 'static,
+    Fut: Future<Output = VetisResult<Response>> + Send + Sync + 'static,
 {
     Box::new(move |req| Box::pin(f(req)))
 }
@@ -279,7 +276,7 @@ impl VirtualHostConfigBuilder {
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn build(self) -> Result<VirtualHostConfig, VetisError> {
+    pub fn build(self) -> VetisResult<VirtualHostConfig> {
         if self
             .hostname
             .is_empty()
@@ -512,11 +509,8 @@ pub trait VirtualHost {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
-    fn serve_status_page<'a>(
-        &'a self,
-        status: u16,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>;
+    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn serve_status_page<'a>(&'a self, status: u16) -> VetisFutureResult<'a, Response>;
 
     /// Route request to the appropriate handler
     ///
@@ -526,11 +520,8 @@ pub trait VirtualHost {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
-    fn route<'a>(
-        &'a self,
-        request: Request,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>
+    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn route<'a>(&'a self, request: Request) -> VetisFutureResult<'a, Response>
     where
         Self: Sync;
 }

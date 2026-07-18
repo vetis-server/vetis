@@ -9,16 +9,16 @@ use hyper_body_utils::HttpBody;
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::{Request, Response, errors::VetisError};
+/// use vetis::{Request, Response, VetisResult};
 ///
 /// // In a request handler:
-/// async fn handler(request: Request) -> Result<Response, VetisError> {
+/// async fn handler(request: Request) -> VetisResult<Response> {
 ///     let method = request.method();
 ///     let uri = request.uri();
 ///     let user_agent = request.headers().get("user-agent");
-///     
+///
 ///     // Process request...
-///     
+///
 ///     Ok(Response::builder()
 ///         .status(http::StatusCode::OK)
 ///         .text("Hello"))

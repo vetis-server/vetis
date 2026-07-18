@@ -11,11 +11,11 @@ use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;
 use smol::fs::File;
-use std::{future::Future, path::PathBuf, pin::Pin, sync::Arc};
+use std::{path::PathBuf, sync::Arc};
 use vetis::{
     errors::{FileError, VetisError, VirtualHostError},
     virtual_host::{path::Path, VirtualHost, VirtualHostConfig},
-    Request, Response,
+    Request, Response, VetisFutureResult,
 };
 
 pub mod path;
@@ -37,10 +37,7 @@ impl VirtualHost for VirtualHostImpl {
         &self.config
     }
 
-    fn serve_status_page<'a>(
-        &'a self,
-        status: u16,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>> {
+    fn serve_status_page<'a>(&'a self, status: u16) -> VetisFutureResult<'a, Response> {
         let future = async move {
             let status_code = match StatusCode::from_u16(status) {
                 Ok(code) => code,
@@ -97,11 +94,8 @@ impl VirtualHost for VirtualHostImpl {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
-    fn route<'a>(
-        &'a self,
-        request: Request,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>
+    /// * `VetisFutureResult<'a, Response>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn route<'a>(&'a self, request: Request) -> VetisFutureResult<'a, Response>
     where
         Self: Sync,
     {

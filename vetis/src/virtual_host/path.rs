@@ -1,10 +1,9 @@
 //! Path module for virtual host configuration.
-
-use crate::{errors::VetisError, Request, Response};
-use std::{future::Future, pin::Pin, sync::Arc};
+use crate::{Request, Response, VetisFutureResult};
+use std::sync::Arc;
 
 /// Trait for handling different types of paths in the server
-pub trait Path: Sync + Send {
+pub trait Path: Send + Sync {
     /// Returns the URI of the path
     ///
     /// # Returns
@@ -21,12 +20,8 @@ pub trait Path: Sync + Send {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
-    fn handle<'a>(
-        &'a self,
-        request: Request,
-        uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>>;
+    /// * `VetisFutureResult<'a, Response>` - The future that will handle the request
+    fn handle<'a>(&'a self, request: Request, uri: Arc<String>) -> VetisFutureResult<'a, Response>;
 }
 
 #[typetag::serde]

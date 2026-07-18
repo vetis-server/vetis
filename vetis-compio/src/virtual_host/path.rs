@@ -4,6 +4,7 @@ use std::{future::Future, pin::Pin};
 
 use std::sync::Arc;
 
+use vetis::VetisFutureResult;
 use vetis::{
     errors::{HandlerError, VetisError, VirtualHostError},
     virtual_host::{path::Path, BoxedHandlerClosure},
@@ -106,12 +107,12 @@ impl Path for HandlerPath {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + '_>>` - The future that will handle the request
+    /// * `VetisFutureResult<'a, Response>` - The future that will handle the request
     fn handle<'a>(
         &'a self,
         request: Request,
         _uri: Arc<String>,
-    ) -> Pin<Box<dyn Future<Output = Result<Response, VetisError>> + Send + 'a>> {
+    ) -> VetisFutureResult<'a, Response> {
         (self.handler)(request)
     }
 }

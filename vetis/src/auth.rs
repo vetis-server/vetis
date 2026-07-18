@@ -1,4 +1,4 @@
-use crate::errors::VetisError;
+use crate::VetisResult;
 use futures_util::future::BoxFuture;
 use http::HeaderMap;
 
@@ -13,5 +13,5 @@ pub trait Auth {
     /// # Returns
     ///
     /// * `Result<bool, VetisError>` - A result containing a boolean indicating whether the authentication was successful, or a `VetisError` if the authentication failed.
-    fn authenticate(&self, headers: &HeaderMap) -> BoxFuture<'_, Result<bool, VetisError>>;
+    fn authenticate(&self, headers: &HeaderMap) -> BoxFuture<'_, VetisResult<bool>>;
 }

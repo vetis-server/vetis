@@ -15,8 +15,6 @@ rust-version.workspace = true
 [features]
 default = ["http2", "rust-tls"]
 
-auth = ["vetis/auth"]
-
 rust-tls = ["compio-tls/rustls", "rustls-provider"]
 
 rustls-provider = ["__rustls_awc_lc_rs"]

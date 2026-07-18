@@ -1,14 +1,13 @@
 use crate::{
     errors::{ConfigError, VetisError},
     server::Protocol,
-    VetisVirtualHosts,
+    VetisResult, VetisVirtualHosts,
 };
 use serde::Deserialize;
 use std::{future::Future, pin::Pin};
 
 /// A pinned future that resolves to a result of type T or a VetisError
-pub type ListenerResult<'a, T> =
-    Pin<Box<dyn Future<Output = Result<T, VetisError>> + Send + Sync + 'a>>;
+pub type ListenerResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> + Send + 'a>>;
 
 /// A trait for defining server listeners that can handle HTTP requests
 pub trait Listener {
@@ -108,16 +107,18 @@ impl ListenerConfigBuilder {
     }
 
     /// Creates the `ListenerConfig` with the configured settings.
-    pub fn build(self) -> Result<ListenerConfig, ConfigError> {
+    pub fn build(self) -> VetisResult<ListenerConfig> {
         if self.port == 0 {
-            return Err(ConfigError::Listener("Port cannot be 0".to_string()));
+            return Err(VetisError::Config(ConfigError::Listener("Port cannot be 0".to_string())));
         }
 
         if self
             .interface
             .is_empty()
         {
-            return Err(ConfigError::Listener("Interface cannot be empty".to_string()));
+            return Err(VetisError::Config(ConfigError::Listener(
+                "Interface cannot be empty".to_string(),
+            )));
         }
 
         Ok(ListenerConfig { port: self.port, protocol: self.protocol, interface: self.interface })
