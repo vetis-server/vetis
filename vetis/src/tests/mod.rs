@@ -1,5 +1,3 @@
-#[cfg(feature = "auth")]
-//mod auth;
 mod listener;
 mod request;
 mod response;

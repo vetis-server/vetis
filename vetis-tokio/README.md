@@ -28,15 +28,14 @@ Here's how simple it is to create a web server with VeTiS:
 
 ```rust,no_run
 use hyper::StatusCode;
-
+use http::Version;
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
-    server::{Protocol, ServerConfig},
+    server::{ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
     VetisServer as _
 };
-
 use vetis_tokio::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
@@ -52,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let https = ListenerConfig::builder()
         .port(8443)
-        .protocol(Protocol::Http1)
+        .protocol_version(Version::HTTP_11)
         .interface("0.0.0.0")
         .build()?;
 

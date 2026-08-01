@@ -3,9 +3,9 @@ use crate::listener::tcp::TcpListener;
 #[cfg(feature = "http3")]
 use crate::listener::udp::UdpListener;
 use crate::virtual_host::VirtualHostImpl;
+use http::Version;
 use vetis::{
     listener::{Listener, ListenerConfig, ListenerResult},
-    server::Protocol,
     VetisVirtualHosts,
 };
 
@@ -32,13 +32,13 @@ impl Listener for ServerListener {
     where
         Self: Sized,
     {
-        match config.protocol() {
+        match config.protocol_version() {
             #[cfg(feature = "http1")]
-            Protocol::Http1 => ServerListener::Tcp(TcpListener::new(config)),
+            &Version::HTTP_11 => ServerListener::Tcp(TcpListener::new(config)),
             #[cfg(feature = "http2")]
-            Protocol::Http2 => ServerListener::Tcp(TcpListener::new(config)),
+            &Version::HTTP_2 => ServerListener::Tcp(TcpListener::new(config)),
             #[cfg(feature = "http3")]
-            Protocol::Http3 => ServerListener::Udp(UdpListener::new(config)),
+            &Version::HTTP_3 => ServerListener::Udp(UdpListener::new(config)),
             _ => panic!("Unsupported protocol"),
         }
     }

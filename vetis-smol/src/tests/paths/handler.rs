@@ -1,12 +1,12 @@
 use crate::{
-    tests::{deboa_default_protocol, vetis_default_protocol, CA_CERT, SERVER_CERT, SERVER_KEY},
+    tests::{default_protocol_version, CA_CERT, SERVER_CERT, SERVER_KEY},
     virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 use deboa::{
-    cert::{Certificate, ContentEncoding},
+    cert::{CertificateExt, ContentEncoding},
     request,
 };
-use deboa_smol::Client;
+use deboa_smol::{cert::DeboaCertificate, Client};
 use http::StatusCode;
 use macro_rules_attribute::apply;
 use rand::random_range;
@@ -20,11 +20,12 @@ use vetis::{
     Response, VetisServer as _,
 };
 
-async fn do_test_handler() -> Result<(), Box<dyn Error>> {
+#[apply(test!)]
+async fn test_handler() -> Result<(), Box<dyn Error>> {
     let port = random_range(9000..=20000);
     let ipv4 = ListenerConfig::builder()
         .port(port)
-        .protocol(vetis_default_protocol())
+        .protocol_version(default_protocol_version())
         .interface("0.0.0.0")
         .build()?;
 
@@ -69,8 +70,7 @@ async fn do_test_handler() -> Result<(), Box<dyn Error>> {
         .await?;
 
     let client = Client::builder()
-        .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
-        .protocol(deboa_default_protocol())
+        .certificate(DeboaCertificate::from_slice(CA_CERT, ContentEncoding::DER))
         .build();
 
     let request = request::get(format!("https://localhost:{}{}", port, "/hello"))?
@@ -84,9 +84,4 @@ async fn do_test_handler() -> Result<(), Box<dyn Error>> {
         .await?;
 
     Ok(())
-}
-
-#[apply(test!)]
-async fn test_handler() -> Result<(), Box<dyn Error>> {
-    do_test_handler().await
 }

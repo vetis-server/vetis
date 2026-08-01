@@ -1,6 +1,6 @@
 use crate::{
     rt::Vetis,
-    tests::vetis_default_protocol,
+    tests::default_protocol_version,
     virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 use http::StatusCode;
@@ -15,7 +15,7 @@ use vetis::{
 fn create_listener() -> ListenerConfig {
     ListenerConfig::builder()
         .port(8080)
-        .protocol(vetis_default_protocol())
+        .protocol_version(default_protocol_version())
         .interface("0.0.0.0")
         .build()
         .unwrap()

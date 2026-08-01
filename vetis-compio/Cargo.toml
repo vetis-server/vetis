@@ -1,6 +1,6 @@
 [package]
 name = "vetis-compio"
-version = "0.1.0-beta.3"
+version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
@@ -85,8 +85,8 @@ compio = { version = "0.19.1", features = [
 ], default-features = false }
 
 [dev-dependencies]
-deboa = { version = "0.1.0-beta.24" }
-deboa-compio = { version = "0.1.1-beta.10", features = [
+deboa = { version = "0.1.0" }
+deboa-compio = { version = "0.1.1", features = [
   "http2",
   "rust-tls",
   "default-rustls-provider",

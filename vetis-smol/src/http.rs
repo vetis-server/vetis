@@ -6,7 +6,7 @@ use hyper_body_utils::HttpBody;
 use std::{collections::HashMap, sync::Arc};
 use vetis::{
     listener::Listener,
-    server::{Protocol, Server, ServerConfig},
+    server::{Server, ServerConfig},
     VetisResult,
 };
 
@@ -57,9 +57,9 @@ impl Server for HttpServer {
             .config
             .listeners()
             .iter()
-            .map(|listener_config| match listener_config.protocol() {
+            .map(|listener_config| match listener_config.protocol_version() {
                 #[cfg(feature = "http1")]
-                Protocol::Http1 => {
+                Version_HTTP_11 => {
                     let mut listener = ServerListener::new(listener_config.clone());
                     listener.set_virtual_hosts(
                         self.virtual_hosts
@@ -68,7 +68,7 @@ impl Server for HttpServer {
                     listener
                 }
                 #[cfg(feature = "http2")]
-                Protocol::Http2 => {
+                Version_HTTP_2 => {
                     let mut listener = ServerListener::new(listener_config.clone());
                     listener.set_virtual_hosts(
                         self.virtual_hosts
@@ -77,7 +77,7 @@ impl Server for HttpServer {
                     listener
                 }
                 #[cfg(feature = "http3")]
-                Protocol::Http3 => {
+                Version_HTTP_3 => {
                     let mut listener = ServerListener::new(listener_config.clone());
                     listener.set_virtual_hosts(
                         self.virtual_hosts

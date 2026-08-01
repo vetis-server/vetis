@@ -1,4 +1,6 @@
-use crate::{listener::ListenerConfig, server::Protocol};
+use http::Version;
+
+use crate::listener::ListenerConfig;
 
 #[test]
 fn test_listener_config_builder_default() {
@@ -8,7 +10,7 @@ fn test_listener_config_builder_default() {
         .unwrap();
 
     assert_eq!(config.port(), 80);
-    assert_eq!(config.protocol(), &Protocol::Http1);
+    assert_eq!(config.protocol_version(), &Version::HTTP_11);
     assert_eq!(config.interface(), "0.0.0.0");
 }
 
@@ -33,13 +35,13 @@ fn test_listener_config_builder_with_interface() {
 }
 
 #[test]
-fn test_listener_config_builder_with_protocol() {
+fn test_listener_config_builder_with_protocol_version() {
     let config = ListenerConfig::builder()
-        .protocol(Protocol::Http2)
+        .protocol_version(Version::HTTP_2)
         .build()
         .unwrap();
 
-    assert_eq!(config.protocol(), &Protocol::Http2);
+    assert_eq!(config.protocol_version(), &Version::HTTP_2);
 }
 
 #[test]
@@ -47,13 +49,13 @@ fn test_listener_config_builder_chain() {
     let config = ListenerConfig::builder()
         .port(8443)
         .interface("127.0.0.1")
-        .protocol(Protocol::Http2)
+        .protocol_version(Version::HTTP_2)
         .build()
         .unwrap();
 
     assert_eq!(config.port(), 8443);
     assert_eq!(config.interface(), "127.0.0.1");
-    assert_eq!(config.protocol(), &Protocol::Http2);
+    assert_eq!(config.protocol_version(), &Version::HTTP_2);
 }
 
 #[test]
@@ -87,18 +89,18 @@ fn test_listener_config_port_getter() {
 #[test]
 fn test_listener_config_protocol_getter() {
     let config = ListenerConfig::builder()
-        .protocol(Protocol::Http1)
+        .protocol_version(Version::HTTP_11)
         .build()
         .unwrap();
 
-    assert_eq!(config.protocol(), &Protocol::Http1);
+    assert_eq!(config.protocol_version(), &Version::HTTP_11);
 
     let config = ListenerConfig::builder()
-        .protocol(Protocol::Http2)
+        .protocol_version(Version::HTTP_2)
         .build()
         .unwrap();
 
-    assert_eq!(config.protocol(), &Protocol::Http2);
+    assert_eq!(config.protocol_version(), &Version::HTTP_2);
 }
 
 #[test]
@@ -116,7 +118,7 @@ fn test_listener_config_clone() {
     let config = ListenerConfig::builder()
         .port(8080)
         .interface("127.0.0.1")
-        .protocol(Protocol::Http2)
+        .protocol_version(Version::HTTP_2)
         .build()
         .unwrap();
 
@@ -124,7 +126,7 @@ fn test_listener_config_clone() {
 
     assert_eq!(cloned_config.port(), config.port());
     assert_eq!(cloned_config.interface(), config.interface());
-    assert_eq!(cloned_config.protocol(), config.protocol());
+    assert_eq!(cloned_config.protocol_version(), config.protocol_version());
 }
 
 #[test]
@@ -160,13 +162,13 @@ fn test_listener_config_builder_preserves_settings() {
     let config = ListenerConfig::builder()
         .port(3000)
         .interface("localhost")
-        .protocol(Protocol::Http1)
+        .protocol_version(Version::HTTP_11)
         .build()
         .unwrap();
 
     assert_eq!(config.port(), 3000);
     assert_eq!(config.interface(), "localhost");
-    assert_eq!(config.protocol(), &Protocol::Http1);
+    assert_eq!(config.protocol_version(), &Version::HTTP_11);
 }
 
 #[test]

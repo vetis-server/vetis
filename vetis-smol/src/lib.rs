@@ -3,9 +3,6 @@
 #[cfg(all(any(feature = "http2", feature = "http3"), not(feature = "rust-tls")))]
 compile_error!("http2 and http3 requires rust-tls!");
 
-/// Basic auth module
-#[cfg(feature = "auth")]
-pub mod auth;
 /// HTTP server module
 pub mod http;
 /// Listener module
@@ -26,7 +23,7 @@ pub use vetis::{
     errors,
     listener::ListenerConfig,
     security::SecurityConfig,
-    server::{Protocol, Server, ServerConfig},
+    server::{Server, ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
     VetisRwLock, VetisVirtualHosts,
 };

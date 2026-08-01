@@ -1,12 +1,11 @@
+use crate::common::default_protocol_version;
 use deboa::{
-    cert::{Certificate, ContentEncoding},
+    cert::{CertificateExt as _, ContentEncoding},
     request::get,
 };
-use deboa_tokio::Client;
+use deboa_tokio::{cert::DeboaCertificate, Client};
 use vetis::{virtual_host::handler_fn, Response, VetisServer as _};
 use vetis_macros::{http, security};
-
-use crate::common::{deboa_default_protocol, vetis_default_protocol};
 
 #[cfg(feature = "http1")]
 #[tokio::test]
@@ -14,7 +13,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
         from_crate => vetis_tokio,
         port => 60002,
-        protocol => vetis_default_protocol(),
+        protocol_version => default_protocol_version(),
         handler => handler_fn(
             |_req| async move { Ok(Response::builder().text("Hello, World!")) }
         )
@@ -26,7 +25,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     let client = Client::builder()
-        .protocol(deboa_default_protocol())
+        .version(default_protocol_version())
         .build();
 
     let response = get("http://localhost:60002")?
@@ -56,7 +55,7 @@ async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
         from_crate => vetis_tokio,
         hostname => "localhost",
         root_directory => "src",
-        protocol => vetis_default_protocol(),
+        protocol_version => default_protocol_version(),
         port => 60001,
         interface => "0.0.0.0",
         handler => handler,
@@ -73,14 +72,14 @@ async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
         .start()
         .await?;
 
-    let certificate = Certificate::from_file("../certs/ca.der", ContentEncoding::DER)?;
+    let certificate = DeboaCertificate::from_file("../certs/ca.der", ContentEncoding::DER).await?;
 
     let client = Client::builder()
-        .protocol(deboa_default_protocol())
         .certificate(certificate)
         .build();
 
     let response = get("https://localhost:60001")?
+        .version(default_protocol_version())
         .send_with(&client)
         .await?;
 

@@ -5,36 +5,6 @@ use crate::{
 use serde::Deserialize;
 use std::future::Future;
 
-/// Supported HTTP protocols.
-///
-/// The protocol enum is feature-gated to only include protocols
-/// that are enabled in the crate's feature flags.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::server::Protocol;
-///
-/// #[cfg(feature = "http1")]
-/// let protocol = Protocol::Http1;
-///
-/// #[cfg(feature = "http2")]
-/// let protocol = Protocol::Http2;
-///
-/// #[cfg(feature = "http3")]
-/// let protocol = Protocol::Http3;
-/// ```
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
-#[non_exhaustive]
-pub enum Protocol {
-    /// HTTP/1.1 protocol
-    Http1,
-    /// HTTP/2 protocol (requires TLS)
-    Http2,
-    /// HTTP/3 protocol over QUIC (requires TLS)
-    Http3,
-}
-
 /// Trait for server implementations.
 ///
 /// This trait defines the interface that all server implementations must provide.
@@ -85,17 +55,18 @@ pub trait Server {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::{listener::ListenerConfig, server::{ServerConfig, Protocol}};
+/// use vetis::{listener::ListenerConfig, server::{ServerConfig}};
+/// use http::Version;
 ///
 /// let http_listener = ListenerConfig::builder()
 ///     .port(80)
-///     .protocol(Protocol::Http1)
+///     .protocol_version(Version::HTTP_11)
 ///     .build()
 ///     .unwrap();
 ///
 /// let https_listener = ListenerConfig::builder()
 ///     .port(443)
-///     .protocol(Protocol::Http1)
+///     .protocol_version(Version::HTTP_11)
 ///     .build()
 ///     .unwrap();
 ///

@@ -1,7 +1,7 @@
 use crate::{
     errors::{ConfigError, VetisError},
     security::SecurityConfig,
-    Request, Response, VetisFutureResult, VetisResult,
+    HandlerFn, Request, Response, VetisFutureResult, VetisResult,
 };
 use radix_trie::Trie;
 use serde::Deserialize;
@@ -10,34 +10,10 @@ use std::{collections::HashMap, future::Future, path::Path, sync::Arc};
 /// Path configuration for virtual hosts.
 pub mod path;
 
-/// Type alias for boxed handler closures.
-///
-/// This represents an async function that takes a `Request` and returns
-/// a `Response` or an error. Handlers are the core of request processing
-/// in VeTiS virtual hosts.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::virtual_host::BoxedHandlerClosure;
-/// use vetis::{Request, Response, errors::VetisError};
-///
-/// let handler: BoxedHandlerClosure = Box::new(|request: Request| {
-///     Box::pin(async move {
-///         // Process request...
-///         Ok(Response::builder()
-///             .status(http::StatusCode::OK)
-///             .text("OK"))
-///     })
-/// });
-/// ```
-pub type BoxedHandlerClosure =
-    Box<dyn Fn(Request) -> VetisFutureResult<'static, Response> + Send + Sync>;
-
-/// Creates a handler closure from a function.
+/// Creates a handler function from a function.
 ///
 /// This utility function converts any compatible async function into a
-/// `BoxedHandlerClosure` that can be used with virtual hosts.
+/// `HandlerFn` that can be used with virtual hosts.
 ///
 /// # Arguments
 ///
@@ -58,7 +34,7 @@ pub type BoxedHandlerClosure =
 ///
 /// assert_eq!(80, config.port());
 /// ```
-pub fn handler_fn<F, Fut>(f: F) -> BoxedHandlerClosure
+pub fn handler_fn<F, Fut>(f: F) -> HandlerFn
 where
     F: Fn(Request) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = VetisResult<Response>> + Send + Sync + 'static,

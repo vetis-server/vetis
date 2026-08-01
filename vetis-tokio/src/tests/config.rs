@@ -1,4 +1,4 @@
-use crate::tests::vetis_default_protocol;
+use crate::tests::default_protocol_version;
 use std::error::Error;
 use vetis::errors::{ConfigError, VetisError};
 use vetis::{
@@ -8,15 +8,15 @@ use vetis::{
 
 #[test]
 fn test_listener_config() -> Result<(), Box<dyn Error>> {
-    let protocol = vetis_default_protocol();
+    let protocol = default_protocol_version();
 
     let listener_config = ListenerConfig::builder()
         .port(8080)
-        .protocol(protocol.clone())
+        .protocol_version(protocol.clone())
         .interface("127.0.0.1")
         .build()?;
     assert_eq!(listener_config.port(), 8080);
-    assert_eq!(listener_config.protocol(), &protocol);
+    assert_eq!(listener_config.protocol_version(), &protocol);
     assert_eq!(listener_config.interface(), "127.0.0.1");
 
     Ok(())
@@ -94,19 +94,4 @@ fn test_invalid_virtual_host_config() -> Result<(), Box<dyn std::error::Error>> 
         Some(VetisError::Config(ConfigError::VirtualHost("Missing hostname".to_string())))
     );
     Ok(())
-}
-#[cfg(feature = "auth")]
-mod auth_tests {
-    use vetis::virtual_host::path::auth::{Algorithm, BasicAuthConfig};
-
-    #[test]
-    fn test_auth_config() -> Result<(), Box<dyn std::error::Error>> {
-        let auth_config = BasicAuthConfig::builder()
-            .algorithm(Algorithm::BCrypt)
-            .htpasswd(Some("src/tests/files/.htpasswd".to_string()))
-            .build()?;
-        assert_eq!(auth_config.algorithm(), &Algorithm::BCrypt);
-        assert_eq!(auth_config.htpasswd(), &Some("src/tests/files/.htpasswd".to_string()));
-        Ok(())
-    }
 }

@@ -1,5 +1,5 @@
 use crate::{
-    tests::vetis_default_protocol,
+    tests::default_protocol_version,
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
 };
@@ -17,7 +17,7 @@ use vetis::{
 fn create_listener() -> ListenerConfig {
     ListenerConfig::builder()
         .port(8080)
-        .protocol(vetis_default_protocol())
+        .protocol_version(default_protocol_version())
         .interface("0.0.0.0")
         .build()
         .unwrap()
@@ -44,7 +44,7 @@ fn test_vetis_new() {
 fn test_vetis_config() {
     let listener = ListenerConfig::builder()
         .port(8080)
-        .protocol(vetis_default_protocol())
+        .protocol_version(default_protocol_version())
         .interface("0.0.0.0")
         .build()
         .unwrap();

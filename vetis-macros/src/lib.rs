@@ -39,6 +39,7 @@ mod parsers;
 /// # Examples
 ///
 /// ```rust, ignore
+/// use http::Version;
 /// use vetis::{Response, virtual_host::handler_fn};
 /// use vetis_macros::http;
 ///
@@ -51,7 +52,7 @@ mod parsers;
 ///         from_crate => vetis_tokio,
 ///         hostname => "localhost",
 ///         root_directory => "src",
-///         protocol => vetis::server::Protocol::Http1,
+///         protocol_version => Version::Http1,
 ///         port => 8080,
 ///         interface => "0.0.0.0",
 ///         handler => handler
@@ -91,10 +92,10 @@ pub fn http(item: TokenStream) -> TokenStream {
         }
     };
 
-    let protocol = match args.protocol {
+    let protocol_version = match args.protocol_version {
         Some(e) => e,
         None => {
-            return syn::Error::new(Span::call_site(), "Missing required field: 'protocol'")
+            return syn::Error::new(Span::call_site(), "Missing required field: 'protocol_version'")
                 .to_compile_error()
                 .into()
         }
@@ -152,7 +153,7 @@ pub fn http(item: TokenStream) -> TokenStream {
 
             let listener = ListenerConfig::builder()
                 .port(#port)
-                .protocol(#protocol)
+                .protocol_version(#protocol_version)
                 .interface(#interface)
                 .build()?;
 

@@ -1,17 +1,10 @@
 #![allow(unreachable_code, dead_code)]
-use deboa::HttpVersion;
-use vetis::server::Protocol;
+use ::http::Version;
 
-#[cfg(feature = "auth")]
-mod auth;
-mod config;
-mod http;
 mod lib;
 mod paths;
-
 #[cfg(target_os = "linux")]
 mod server;
-
 mod tls;
 mod virtual_host;
 
@@ -23,20 +16,11 @@ pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../../certs/server.key.d
 pub(crate) const IP6_SERVER_CERT: &[u8] = include_bytes!("../../../certs/ip6-server.der");
 pub(crate) const IP6_SERVER_KEY: &[u8] = include_bytes!("../../../certs/ip6-server.key.der");
 
-pub(crate) const fn vetis_default_protocol() -> Protocol {
+pub(crate) const fn default_protocol_version() -> Version {
     #[cfg(feature = "http1")]
-    return Protocol::Http1;
+    return Version::HTTP_11;
     #[cfg(feature = "http2")]
-    return Protocol::Http2;
+    return Version::HTTP_2;
     #[cfg(feature = "http3")]
-    return Protocol::Http3;
-}
-
-pub(crate) const fn deboa_default_protocol() -> HttpVersion {
-    #[cfg(feature = "http1")]
-    return HttpVersion::Http1;
-    #[cfg(feature = "http2")]
-    return HttpVersion::Http2;
-    #[cfg(feature = "http3")]
-    return HttpVersion::Http3;
+    return Version::HTTP_3;
 }

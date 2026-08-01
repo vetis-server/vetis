@@ -2,7 +2,7 @@
 
 [![Crates.io downloads](https://img.shields.io/crates/d/vetis)](https://crates.io/crates/vetis) [![crates.io](https://img.shields.io/crates/v/vetis?style=flat-square)](https://crates.io/crates/vetis) [![Build Status](https://github.com/vetis-server/vetis/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/ararog/vetis-server/actions/workflows/rust.yml) ![Crates.io MSRV](https://img.shields.io/crates/msrv/vetis) [![Documentation](https://docs.rs/vetis/badge.svg)](https://docs.rs/vetis/latest/vetis) [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vetis-server/vetis/blob/main/LICENSE.md)  [![codecov](https://codecov.io/gh/vetis-server/vetis/graph/badge.svg?token=T0HSBAPVSI)](https://codecov.io/gh/vetis-server/vetis)
 
-**A blazingly fast, minimalist HTTP server built for modern Rust applications**
+## A blazingly fast, minimalist HTTP server built for modern Rust applications
 
 VeTiS is a lightweight yet powerful web server that brings simplicity and performance together. Designed with Rust's safety guarantees in mind, it delivers HTTP/1, HTTP/2, and HTTP/3 support with a clean, intuitive API that makes building web services a breeze.
 
@@ -54,17 +54,15 @@ vetis = { version = "0.1.0" }
 Here's how simple it is to create a web server with VeTiS:
 
 ```rust
+use http::Version;
 use hyper::StatusCode;
-
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
-    server::{Protocol, ServerConfig},
+    server::{ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
 };
-
 use vetis_macros::status_pages;
-
 use vetis_tokio::{
     virtual_host::{path::HandlerPath, VirtualHostImpl},
     Vetis,
@@ -80,7 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let https = ListenerConfig::builder()
         .port(8443)
-        .protocol(Protocol::Http1)
+        .protocol_version(Version::HTTP_11)
         .interface("0.0.0.0")
         .build()?;
 
@@ -174,7 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 VeTiS is continuously evolving! Here's what we're working on:
 
-### Core Features
+### Extra Features
 
 - **WebSockets** - Real-time bidirectional communication
 - **Load Balancing** - Distribute traffic across multiple servers
@@ -218,9 +216,9 @@ See [BENCHMARKS.md](BENCHMARKS.md) for detailed benchmark results.
 Licensed under either of
 
 - Apache License, Version 2.0
-  (LICENSE-APACHE or https://www.apache.org/licenses/LICENSE-2.0)
+  (LICENSE-APACHE or <https://www.apache.org/licenses/LICENSE-2.0>)
 - MIT license
-  (LICENSE-MIT or https://opensource.org/licenses/MIT)
+  (LICENSE-MIT or <https://opensource.org/licenses/MIT>)
 
 at your option.
 

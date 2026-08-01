@@ -27,11 +27,12 @@ vetis-compio = { version = "0.1.0-beta.2", features = ["http2", "rust-tls"] }
 Here's how simple it is to create a web server with VeTiS:
 
 ```rust,no_run
+use http::Version;
 use hyper::StatusCode;
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
-    server::{Protocol, ServerConfig},
+    server::{ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
     VetisServer as _
 };
@@ -50,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let https = ListenerConfig::builder()
         .port(8443)
-        .protocol(Protocol::Http2)
+        .protocol_version(Version::HTTP_2)
         .interface("0.0.0.0")
         .build()?;
 

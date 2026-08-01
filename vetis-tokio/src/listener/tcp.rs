@@ -5,7 +5,7 @@ use crate::{
     virtual_host::VirtualHostImpl,
     VetisRwLock, VetisVirtualHosts,
 };
-use http::header;
+use http::{header, Version};
 #[cfg(feature = "http1")]
 use hyper::server::conn::http1;
 #[cfg(feature = "http2")]
@@ -29,8 +29,7 @@ use tokio::{
 };
 use tokio_rustls::TlsAcceptor;
 use vetis::{
-    errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
-    Request, VetisResult,
+    errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHost, Request, VetisResult,
 };
 
 /// TCP listener
@@ -96,9 +95,9 @@ impl Listener for TcpListener {
 
             let task = self
                 .handle_connections(
-                    self.config
-                        .protocol()
-                        .clone(),
+                    *self
+                        .config
+                        .protocol_version(),
                     listener,
                     self.virtual_hosts
                         .clone(),
@@ -134,7 +133,7 @@ impl Listener for TcpListener {
 impl TcpListener {
     async fn handle_connections(
         &mut self,
-        protocol: Protocol,
+        protocol: Version,
         listener: tokio::net::TcpListener,
         virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     ) -> Result<JoinHandle<VetisResult<()>>, VetisError> {
@@ -202,7 +201,7 @@ impl TcpListener {
                     let io = TokioIo::new(tls_stream);
                     match protocol {
                         #[cfg(feature = "http1")]
-                        Protocol::Http1 => {
+                        Version::HTTP_11 => {
                             let _ = handle_http1_request(
                                 port.clone(),
                                 io,
@@ -211,7 +210,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http2")]
-                        Protocol::Http2 => {
+                        Version::HTTP_2 => {
                             let _ = handle_http2_request(
                                 port.clone(),
                                 io,
@@ -220,7 +219,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http3")]
-                        Protocol::Http3 => {
+                        Version::HTTP_3 => {
                             // HTTP/3 is handled by UDP listener
                         }
                         _ => {
@@ -231,7 +230,7 @@ impl TcpListener {
                     let io = TokioIo::new(peekable);
                     match protocol {
                         #[cfg(feature = "http1")]
-                        Protocol::Http1 => {
+                        Version::HTTP_11 => {
                             let _ = handle_http1_request(
                                 port.clone(),
                                 io,
@@ -240,7 +239,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http2")]
-                        Protocol::Http2 => {
+                        Version::HTTP_2 => {
                             let _ = handle_http2_request(
                                 port.clone(),
                                 io,
@@ -249,7 +248,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http3")]
-                        Protocol::Http3 => {
+                        Version::HTTP_3 => {
                             // HTTP/3 is handled by UDP listener
                         }
                         _ => {

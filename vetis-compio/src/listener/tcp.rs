@@ -10,7 +10,7 @@ use compio_tls::TlsAcceptor;
 #[cfg(feature = "http2")]
 use cyper_core::CompioExecutor;
 use cyper_core::HyperStream;
-use http::{header, Response};
+use http::{header, Response, Version};
 #[cfg(feature = "http1")]
 use hyper::server::conn::http1;
 #[cfg(feature = "http2")]
@@ -25,8 +25,7 @@ use std::{
     sync::Arc,
 };
 use vetis::{
-    errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
-    Request, VetisResult,
+    errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHost, Request, VetisResult,
 };
 
 /// TCP listener
@@ -91,9 +90,9 @@ impl Listener for TcpListener {
 
             let task = self
                 .handle_connections(
-                    self.config
-                        .protocol()
-                        .clone(),
+                    *self
+                        .config
+                        .protocol_version(),
                     listener,
                     self.virtual_hosts
                         .clone(),
@@ -129,7 +128,7 @@ impl Listener for TcpListener {
 impl TcpListener {
     async fn handle_connections(
         &mut self,
-        protocol: Protocol,
+        protocol: Version,
         listener: compio::net::TcpListener,
         virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     ) -> VetisResult<JoinHandle<()>> {
@@ -193,7 +192,7 @@ impl TcpListener {
                     let io = HyperStream::new_tls(tls_stream);
                     match protocol {
                         #[cfg(feature = "http1")]
-                        Protocol::Http1 => {
+                        Version::HTTP_11 => {
                             let _ = handle_http1_request(
                                 port.clone(),
                                 io,
@@ -202,7 +201,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http2")]
-                        Protocol::Http2 => {
+                        Version::HTTP_2 => {
                             let _ = handle_http2_request(
                                 port.clone(),
                                 io,
@@ -211,7 +210,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http3")]
-                        Protocol::Http3 => {
+                        Version::HTTP_3 => {
                             // HTTP/3 is handled by UDP listener
                         }
                         _ => {
@@ -222,7 +221,7 @@ impl TcpListener {
                     let io = HyperStream::new_plain(stream);
                     match protocol {
                         #[cfg(feature = "http1")]
-                        Protocol::Http1 => {
+                        Version::HTTP_11 => {
                             let _ = handle_http1_request(
                                 port.clone(),
                                 io,
@@ -231,7 +230,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http2")]
-                        Protocol::Http2 => {
+                        Version::HTTP_2 => {
                             let _ = handle_http2_request(
                                 port.clone(),
                                 io,
@@ -240,7 +239,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http3")]
-                        Protocol::Http3 => {
+                        Version::HTTP_3 => {
                             // HTTP/3 is handled by UDP listener
                         }
                         _ => {

@@ -1,6 +1,6 @@
 [package]
 name = "vetis"
-version = "0.1.4-beta.12"
+version = "0.1.4"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -30,6 +30,7 @@ bytes = "1.11.1"
 futures-util = "0.3.32"
 http = "1.4.2"
 http-body-util = { version = "0.1.3" }
+http-serde = "2.1.1"
 hyper-body-utils = { workspace = true, default-features = false }
 log = "0.4.32"
 radix_trie = "0.3.0"

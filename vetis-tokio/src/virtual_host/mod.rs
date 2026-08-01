@@ -8,7 +8,7 @@ use http_body_util::StreamBody;
 use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;
-use std::{future::Future, path::PathBuf, pin::Pin, sync::Arc};
+use std::{path::PathBuf, sync::Arc};
 use tokio::fs::File;
 use vetis::{
     errors::{FileError, VetisError, VirtualHostError},

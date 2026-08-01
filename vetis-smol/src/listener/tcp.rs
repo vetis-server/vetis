@@ -7,7 +7,7 @@ use crate::{
     VetisRwLock, VetisVirtualHosts,
 };
 use futures_rustls::TlsAcceptor;
-use http::{header, Response};
+use http::{header, Response, Version};
 #[cfg(feature = "http1")]
 use hyper::server::conn::http1;
 #[cfg(feature = "http2")]
@@ -28,8 +28,7 @@ use std::{
     sync::Arc,
 };
 use vetis::{
-    errors::VetisError, listener::ListenerConfig, server::Protocol, virtual_host::VirtualHost,
-    Request, VetisResult,
+    errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHost, Request, VetisResult,
 };
 
 /// TCP listener
@@ -93,9 +92,9 @@ impl Listener for TcpListener {
 
             let task = self
                 .handle_connections(
-                    self.config
-                        .protocol()
-                        .clone(),
+                    *self
+                        .config
+                        .protocol_version(),
                     listener.into(),
                     self.virtual_hosts
                         .clone(),
@@ -131,7 +130,7 @@ impl Listener for TcpListener {
 impl TcpListener {
     async fn handle_connections(
         &mut self,
-        protocol: Protocol,
+        protocol: Version,
         listener: smol::net::TcpListener,
         virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
     ) -> VetisResult<Task<()>> {
@@ -199,7 +198,7 @@ impl TcpListener {
                     let io = FuturesIo::new(tls_stream);
                     match protocol {
                         #[cfg(feature = "http1")]
-                        Protocol::Http1 => {
+                        Version::HTTP_11 => {
                             let _ = handle_http1_request(
                                 port.clone(),
                                 io,
@@ -208,7 +207,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http2")]
-                        Protocol::Http2 => {
+                        Version::HTTP_2 => {
                             let _ = handle_http2_request(
                                 port.clone(),
                                 io,
@@ -217,7 +216,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http3")]
-                        Protocol::Http3 => {
+                        Version::HTTP_3 => {
                             // HTTP/3 is handled by UDP listener
                         }
                         _ => {
@@ -228,7 +227,7 @@ impl TcpListener {
                     let io = FuturesIo::new(peekable);
                     match protocol {
                         #[cfg(feature = "http1")]
-                        Protocol::Http1 => {
+                        Version::HTTP_11 => {
                             let _ = handle_http1_request(
                                 port.clone(),
                                 io,
@@ -237,7 +236,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http2")]
-                        Protocol::Http2 => {
+                        Version::HTTP_2 => {
                             let _ = handle_http2_request(
                                 port.clone(),
                                 io,
@@ -246,7 +245,7 @@ impl TcpListener {
                             );
                         }
                         #[cfg(feature = "http3")]
-                        Protocol::Http3 => {
+                        Version::HTTP_3 => {
                             // HTTP/3 is handled by UDP listener
                         }
                         _ => {

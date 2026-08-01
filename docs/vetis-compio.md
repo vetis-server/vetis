@@ -19,11 +19,12 @@ vetis-compio = { version = "0.1.1-beta.7", features = ["http2", "rust-tls"] }
 ## Usage
 
 ```rust
+use http::Version;
 use hyper::StatusCode;
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
-    server::{Protocol, ServerConfig},
+    server::{ServerConfig},
     virtual_host::{handler_fn, VirtualHostConfig},
     VetisServer as _
 };
@@ -42,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let https = ListenerConfig::builder()
         .port(8443)
-        .protocol(Protocol::Http1)
+        .protocol_version(Version::HTTP_11)
         .interface("0.0.0.0")
         .build()?;
 

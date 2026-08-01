@@ -15,6 +15,7 @@ vetis-smol  = { version = "0.1.0" }
 ## Usage Example
 
 ```rust, ignore
+use http::Version;
 use vetis::{virtual_host::handler_fn, Response};
 use vetis_macros::http;
 
@@ -26,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         from_crate => vetis_tokio,
         hostname => "localhost",
         root_directory => "src",
-        protocol => vetis::server::Protocol::Http1,
+        protocol_version => Version::HTTP_11,
         port => 8080,
         interface => "0.0.0.0",
         handler => handler
@@ -52,9 +53,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 Licensed under either of
 
 - Apache License, Version 2.0
-  (LICENSE-APACHE or https://www.apache.org/licenses/LICENSE-2.0)
+  (LICENSE-APACHE or <https://www.apache.org/licenses/LICENSE-2.0>)
 - MIT license
-  (LICENSE-MIT or https://opensource.org/licenses/MIT)
+  (LICENSE-MIT or <https://opensource.org/licenses/MIT>)
 
 at your option.
 

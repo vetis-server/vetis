@@ -1,14 +1,14 @@
 use crate::{
     tests::{
-        deboa_default_protocol, vetis_default_protocol, CA_CERT, IP6_SERVER_CERT, IP6_SERVER_KEY,
-        SERVER_CERT, SERVER_KEY,
+        default_protocol_version, CA_CERT, IP6_SERVER_CERT, IP6_SERVER_KEY, SERVER_CERT, SERVER_KEY,
     },
     virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 use deboa::{
-    cert::{Certificate, ContentEncoding},
+    cert::{CertificateExt, ContentEncoding},
     request,
 };
+use deboa_smol::{cert::DeboaCertificate, Client};
 use http::StatusCode;
 use macro_rules_attribute::apply;
 use smol_macros::test;
@@ -27,13 +27,13 @@ async fn test_multiple_interfaces() -> Result<(), Box<dyn Error>> {
 
     let ipv4 = ListenerConfig::builder()
         .port(8080)
-        .protocol(vetis_default_protocol())
+        .protocol_version(default_protocol_version())
         .interface("0.0.0.0")
         .build()?;
 
     let ipv6 = ListenerConfig::builder()
         .port(8081)
-        .protocol(vetis_default_protocol())
+        .protocol_version(default_protocol_version())
         .interface("::")
         .build()?;
 
@@ -114,9 +114,8 @@ async fn test_multiple_interfaces() -> Result<(), Box<dyn Error>> {
         .start()
         .await?;
 
-    let client = deboa_smol::Client::builder()
-        .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
-        .protocol(deboa_default_protocol())
+    let client = Client::builder()
+        .certificate(DeboaCertificate::from_slice(CA_CERT, ContentEncoding::DER))
         .build();
 
     let request = request::get("https://localhost:8080/hello")?
@@ -131,14 +130,13 @@ async fn test_multiple_interfaces() -> Result<(), Box<dyn Error>> {
         "Hello from ipv4"
     );
 
-    let client = deboa_smol::Client::builder()
-        .certificate(Certificate::from_slice(CA_CERT, ContentEncoding::DER))
+    let client = Client::builder()
+        .certificate(DeboaCertificate::from_slice(CA_CERT, ContentEncoding::DER))
         .bind_addr(
             "::1"
                 .parse()
                 .unwrap(),
         )
-        .protocol(deboa_default_protocol())
         .build();
 
     let request = request::get(format!("https://{}:8081/hello", host))?

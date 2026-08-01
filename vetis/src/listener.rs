@@ -1,8 +1,8 @@
 use crate::{
     errors::{ConfigError, VetisError},
-    server::Protocol,
     VetisResult, VetisVirtualHosts,
 };
+use http::Version;
 use serde::Deserialize;
 use std::{future::Future, pin::Pin};
 
@@ -36,18 +36,19 @@ pub trait Listener {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::{listener::ListenerConfig, server::Protocol};
+/// use http::Version;
+/// use vetis::{listener::ListenerConfig};
 ///
 /// let config = ListenerConfig::builder()
 ///     .port(8080)
-///     .protocol(Protocol::Http1)
+///     .protocol_version(Version::HTTP_11)
 ///     .interface("127.0.0.1")
 ///     .build();
 /// ```
 #[derive(Clone)]
 pub struct ListenerConfigBuilder {
     port: u16,
-    protocol: Protocol,
+    protocol_version: Version,
     interface: String,
 }
 
@@ -94,15 +95,16 @@ impl ListenerConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::{listener::ListenerConfig, server::Protocol};
+    /// use http::Version;
+    /// use vetis::{listener::ListenerConfig};
     ///
     /// #[cfg(feature = "http1")]
     /// let config = ListenerConfig::builder()
-    ///     .protocol(Protocol::HTTP1)
+    ///     .protocol_version(Version::HTTP_11)
     ///     .build();
     /// ```
-    pub fn protocol(mut self, protocol: Protocol) -> Self {
-        self.protocol = protocol;
+    pub fn protocol_version(mut self, protocol_version: Version) -> Self {
+        self.protocol_version = protocol_version;
         self
     }
 
@@ -121,7 +123,11 @@ impl ListenerConfigBuilder {
             )));
         }
 
-        Ok(ListenerConfig { port: self.port, protocol: self.protocol, interface: self.interface })
+        Ok(ListenerConfig {
+            port: self.port,
+            protocol_version: self.protocol_version,
+            interface: self.interface,
+        })
     }
 }
 
@@ -133,11 +139,12 @@ impl ListenerConfigBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::{listener::ListenerConfig, server::Protocol};
+/// use http::Version;
+/// use vetis::{listener::ListenerConfig};
 ///
 /// let config = ListenerConfig::builder()
 ///     .port(8443)
-///     .protocol(Protocol::Http1)
+///     .protocol_version(Version::HTTP_11)
 ///     .interface("0.0.0.0")
 ///     .build()
 ///     .unwrap();
@@ -147,7 +154,8 @@ impl ListenerConfigBuilder {
 #[derive(Clone, Deserialize, PartialEq)]
 pub struct ListenerConfig {
     port: u16,
-    protocol: Protocol,
+    #[serde(with = "http_serde::version")]
+    protocol_version: Version,
     interface: String,
 }
 
@@ -169,7 +177,11 @@ impl ListenerConfig {
     /// let config = builder.port(8080).build();
     /// ```
     pub fn builder() -> ListenerConfigBuilder {
-        ListenerConfigBuilder { port: 80, protocol: Protocol::Http1, interface: "0.0.0.0".into() }
+        ListenerConfigBuilder {
+            port: 80,
+            protocol_version: Version::HTTP_11,
+            interface: "0.0.0.0".into(),
+        }
     }
 
     /// Returns the port number.
@@ -178,8 +190,8 @@ impl ListenerConfig {
     }
 
     /// Returns the HTTP protocol.
-    pub fn protocol(&self) -> &Protocol {
-        &self.protocol
+    pub fn protocol_version(&self) -> &Version {
+        &self.protocol_version
     }
 
     /// Returns the network interface.

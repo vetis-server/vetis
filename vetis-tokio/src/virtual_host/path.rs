@@ -2,14 +2,14 @@
 use std::sync::Arc;
 use vetis::{
     errors::{HandlerError, VetisError, VirtualHostError},
-    virtual_host::{path::Path, BoxedHandlerClosure},
-    Request, Response, VetisFutureResult,
+    virtual_host::path::Path,
+    HandlerFn, Request, Response, VetisFutureResult,
 };
 
 /// Builder for handler path
 pub struct HandlerPathBuilder {
     uri: Arc<String>,
-    handler: Option<BoxedHandlerClosure>,
+    handler: Option<HandlerFn>,
 }
 
 impl HandlerPathBuilder {
@@ -36,7 +36,7 @@ impl HandlerPathBuilder {
     /// # Returns
     ///
     /// * `Self` - The builder
-    pub fn handler(mut self, handler: BoxedHandlerClosure) -> Self {
+    pub fn handler(mut self, handler: HandlerFn) -> Self {
         self.handler = Some(handler);
         self
     }
@@ -69,7 +69,7 @@ impl HandlerPathBuilder {
 /// Handler path
 pub struct HandlerPath {
     uri: Arc<String>,
-    handler: BoxedHandlerClosure,
+    handler: HandlerFn,
 }
 
 impl HandlerPath {
