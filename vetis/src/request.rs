@@ -109,6 +109,30 @@ impl Request {
         }
     }
 
+    /// Returns the HTTP version.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use vetis::{Request, Response, VetisResult};
+    /// use http::{Method, StatusCode};
+    ///
+    /// async fn handler(request: Request) -> VetisResult<Response> {
+    ///     match request.version() {
+    ///         &http::Version::HTTP_11 => { /* handle HTTP/1.1 */ }
+    ///         &http::Version::HTTP_2 => { /* handle HTTP/2 */ }
+    ///         _ => { /* handle other versions */ }
+    ///     }
+    ///     Ok(Response::builder().status(StatusCode::OK).text("Hello"))
+    /// }
+    /// ```
+    pub fn version(&self) -> http::Version {
+        match &self.inner {
+            Some(req) => req.version(),
+            None => panic!("No request"),
+        }
+    }
+
     /// Convert the request into parts.
     pub fn into_parts(self) -> (http::request::Parts, HttpBody) {
         match self.inner {
