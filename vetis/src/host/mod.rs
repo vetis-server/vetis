@@ -28,11 +28,10 @@ pub mod path;
 ///
 /// let config = HostConfig::builder()
 ///     .hostname("example.com")
-///     .port(80)
 ///     .build()
 ///     .unwrap();
 ///
-/// assert_eq!(80, config.port());
+/// assert_eq!("example.com", config.hostname());
 /// ```
 pub fn handler_fn<F, Fut>(f: F) -> HandlerFn
 where
@@ -63,7 +62,6 @@ where
 ///
 /// let config = HostConfig::builder()
 ///     .hostname("example.com")
-///     .port(443)
 ///     .security(security)
 ///     .build()
 ///     .unwrap();
@@ -75,6 +73,7 @@ pub struct HostConfigBuilder {
     security: Option<SecurityConfig>,
     status_pages: Option<HashMap<u16, String>>,
     enable_logging: bool,
+    enable_hsts: bool,
     paths: Option<Vec<Box<dyn path::PathConfig>>>,
 }
 
@@ -108,7 +107,7 @@ impl HostConfigBuilder {
     /// use vetis::host::HostConfig;
     ///
     /// let config = HostConfig::builder()
-    ///     .root_directory("/var/www")
+    ///     .root_directory("/var/www".into())
     ///     .build()
     ///     .unwrap();
     /// ```
@@ -227,7 +226,6 @@ impl HostConfigBuilder {
     ///
     /// let config = HostConfig::builder()
     ///     .hostname("example.com")
-    ///     .port(443)
     ///     .header("X-Custom", "value")
     ///     .build()
     ///     .unwrap();
@@ -256,6 +254,7 @@ impl HostConfigBuilder {
             security: self.security,
             status_pages: self.status_pages,
             enable_logging: self.enable_logging,
+            enable_hsts: self.enable_hsts,
             paths: self.paths,
         })
     }
@@ -276,11 +275,10 @@ impl HostConfigBuilder {
 ///
 /// let config = HostConfig::builder()
 ///     .hostname("api.example.com")
-///     .port(443)
 ///     .build()
 ///     .unwrap();
 ///
-/// println!("Host: {}:{}", config.hostname(), config.port());
+/// println!("Host: {}", config.hostname());
 /// ```
 #[derive(Deserialize)]
 pub struct HostConfig {
@@ -291,6 +289,7 @@ pub struct HostConfig {
     security: Option<SecurityConfig>,
     status_pages: Option<HashMap<u16, String>>,
     enable_logging: bool,
+    enable_hsts: bool,
     paths: Option<Vec<Box<dyn path::PathConfig>>>,
 }
 
@@ -309,7 +308,6 @@ impl HostConfig {
     ///
     /// let config = HostConfig::builder()
     ///     .hostname("example.com")
-    ///     .port(443)
     ///     .build()
     ///     .unwrap();
     /// ```
@@ -321,6 +319,7 @@ impl HostConfig {
             security: None,
             status_pages: None,
             enable_logging: true,
+            enable_hsts: false,
             paths: None,
         }
     }
@@ -379,6 +378,15 @@ impl HostConfig {
         self.enable_logging
     }
 
+    /// Returns the hsts setting.
+    ///
+    /// # Returns
+    ///
+    /// * `bool` - The hsts setting.
+    pub fn enable_hsts(&self) -> bool {
+        self.enable_hsts
+    }
+
     /// Returns the paths.
     ///
     /// # Returns
@@ -398,6 +406,7 @@ impl Default for HostConfig {
             security: None,
             status_pages: None,
             enable_logging: true,
+            enable_hsts: false,
             paths: None,
         }
     }
@@ -405,15 +414,7 @@ impl Default for HostConfig {
 
 impl From<&str> for HostConfig {
     fn from(hostname: &str) -> Self {
-        HostConfig {
-            hostname: hostname.to_string(),
-            root_directory: None,
-            default_headers: None,
-            security: None,
-            status_pages: None,
-            enable_logging: true,
-            paths: None,
-        }
+        HostConfig { hostname: hostname.to_string(), ..Default::default() }
     }
 }
 
@@ -422,11 +423,7 @@ impl From<(&str, &str)> for HostConfig {
         HostConfig {
             hostname: hostname.to_string(),
             root_directory: Some(root_directory.into()),
-            default_headers: None,
-            security: None,
-            status_pages: None,
-            enable_logging: true,
-            paths: None,
+            ..Default::default()
         }
     }
 }

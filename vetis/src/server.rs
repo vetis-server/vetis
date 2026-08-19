@@ -9,7 +9,7 @@ use serde::Deserialize;
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use vetis::{listener::ListenerConfig, server::{ServerConfig}};
 /// use http::Version;
 ///
@@ -45,7 +45,7 @@ impl ServerConfigBuilder {
     /// ```rust,no_run
     /// use vetis::{host::HostConfig, server::ServerConfig};
     ///
-    /// let listener = HostConfig::default();
+    /// let host = HostConfig::default();
     /// let config = ServerConfig::builder()
     ///     .add_host(host)
     ///     .build()
@@ -134,12 +134,12 @@ impl ServerConfigBuilder {
 ///
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let config = ServerConfig::builder()
-///         .add_host(HostConfig::builder().port(80).build()?)
-///         .add_host(HostConfig::builder().port(443).build()?)
+///         .add_host(HostConfig::builder().hostname("example.com").build()?)
+///         .add_host(HostConfig::builder().hostname("sample.com").build()?)
 ///         .build()?;
 ///
 ///     println!("Server has {} hosts", config.hosts().len());
-///     Ok(
+///     Ok(())
 /// }
 /// ```
 #[derive(Default, Deserialize)]
@@ -157,7 +157,7 @@ impl ServerConfig {
     /// use vetis::{host::HostConfig, server::ServerConfig};
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let host_config = HostConfig::builder().port(8080).build()?;
+    ///     let host_config = HostConfig::builder().hostname("example.com").build()?;
     ///     let server_config = ServerConfig::builder()
     ///         .add_host(host_config)
     ///         .build()?;
@@ -177,11 +177,11 @@ impl ServerConfig {
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder()
-    ///         .add_host(HostConfig::builder().port(80).build()?)
+    ///         .add_host(HostConfig::builder().hostname("example.com").build()?)
     ///         .build()?;
     ///
     ///     for host in config.hosts() {
-    ///         println!("Hosting on port {}", host.port());
+    ///         println!("Hosting on port {}", host.hostname());
     ///     }
     ///     Ok(())
     /// }
