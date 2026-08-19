@@ -12,6 +12,15 @@ keywords = ["http", "networking", "compio", "rest-server"]
 publish = true
 rust-version.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+
+[package.metadata.wix]
+upgrade-guid = "76DF79DF-E1F9-40A7-89D1-3190562C7851"
+path-guid = "FEA82F70-7E57-447F-A361-76FB5E25BA5F"
+license = false
+eula = false
+
 [features]
 default = [
   "http1",
@@ -50,34 +59,31 @@ http3 = [
 ]
 
 [dependencies]
-async-lock = "3.4.1"
-bytes = "1.12.1"
-clap = { version = "4.5.61", default-features = false, features = [
-  "std",
-  "derive",
-] }
+async-lock = { workspace = true }
+bytes = { workspace = true }
+clap = { workspace = true }
 compio-quic = { version = "0.8.2", default-features = false, optional = true }
 compio-tls = { version = "0.10.0", default-features = false, optional = true }
 cyper-core = "0.9.0"
-env_logger = "0.11.11"
-futures-util = "0.3.32"
-http = "1.4.2"
-http-body-util = { version = "0.1.3" }
-hyper = { version = "1.10.1", optional = true, default-features = false }
-hyper-body-utils = { workspace = true, default-features = false }
-hyper-util = { version = "0.1.20", optional = true, default-features = false }
-log = "0.4.33"
-radix_trie = { version = "0.3.0", default-features = false }
-rand = { version = "0.10.1", default-features = false }
-rustls = { version = "0.23.40", optional = true, default-features = false }
+env_logger = { workspace = true }
+futures-util = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+hyper = { workspace = true, optional = true }
+hyper-body-utils = { workspace = true }
+hyper-util = { workspace = true, optional = true }
+log = { workspace = true }
+radix_trie = { workspace = true }
+rand = { workspace = true }
+rustls = { workspace = true, optional = true }
 send_wrapper = { version = "0.6.0", default-features = false }
-serde = "1.0.228"
-serde_yaml_ng = "0.10.0"
-socket2 = "0.6.4"
-thiserror = "2.0.17"
-time = { version = "0.3.55", features = ["formatting"] }
-typetag = "0.2.22"
-url = "2.5.7"
+serde = { workspace = true }
+serde_yaml_ng = { workspace = true }
+socket2 = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+typetag = { workspace = true }
+url = { workspace = true }
 vetis = { workspace = true, default-features = false }
 
 [target.'cfg(target_os = "linux")'.dependencies]
@@ -105,9 +111,11 @@ compio = { version = "0.19.2", features = [
 ], default-features = false }
 
 [dev-dependencies]
-deboa = { version = "0.1.0" }
+deboa = { workspace = true }
 deboa-compio = { version = "0.1.1", features = [
+  "http1",
   "http2",
+  #"http3",
   "rust-tls",
   "default-rustls-provider",
   "default-rustls-verifier",
