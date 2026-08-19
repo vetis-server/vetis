@@ -1,12 +1,11 @@
+use crate::host::HostImpl;
 #[cfg(any(feature = "http1", feature = "http2"))]
 use crate::listener::tcp::TcpListener;
 #[cfg(feature = "http3")]
 use crate::listener::udp::UdpListener;
-use crate::virtual_host::VirtualHostImpl;
-use http::Version;
 use vetis::{
-    listener::{Listener, ListenerConfig, ListenerResult},
-    VetisVirtualHosts,
+    listener::{Listener, ListenerResult},
+    VetisHosts,
 };
 
 #[cfg(any(feature = "http1", feature = "http2"))]
@@ -25,33 +24,32 @@ pub enum ServerListener {
     Udp(UdpListener),
 }
 
-impl Listener for ServerListener {
-    type VirtualHost = VirtualHostImpl;
-
-    fn new(config: ListenerConfig) -> Self
-    where
-        Self: Sized,
-    {
-        match config.protocol_version() {
-            #[cfg(feature = "http1")]
-            &Version::HTTP_11 => ServerListener::Tcp(TcpListener::new(config)),
-            #[cfg(feature = "http2")]
-            &Version::HTTP_2 => ServerListener::Tcp(TcpListener::new(config)),
-            #[cfg(feature = "http3")]
-            &Version::HTTP_3 => ServerListener::Udp(UdpListener::new(config)),
-            _ => panic!("Unsupported protocol"),
-        }
+#[cfg(any(feature = "http1", feature = "http2"))]
+impl From<TcpListener> for ServerListener {
+    fn from(value: TcpListener) -> Self {
+        ServerListener::Tcp(value)
     }
+}
 
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<Self::VirtualHost>) {
+#[cfg(feature = "http3")]
+impl From<UdpListener> for ServerListener {
+    fn from(value: UdpListener) -> Self {
+        ServerListener::Udp(value)
+    }
+}
+
+impl Listener for ServerListener {
+    type Host = HostImpl;
+
+    fn set_hosts(&mut self, hosts: VetisHosts<Self::Host>) {
         match self {
             #[cfg(any(feature = "http1", feature = "http2"))]
             ServerListener::Tcp(tcp_listener) => {
-                tcp_listener.set_virtual_hosts(virtual_hosts);
+                tcp_listener.set_hosts(hosts);
             }
             #[cfg(feature = "http3")]
             ServerListener::Udp(ref mut udp_listener) => {
-                udp_listener.set_virtual_hosts(virtual_hosts);
+                udp_listener.set_hosts(hosts);
             }
         }
     }

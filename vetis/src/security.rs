@@ -232,12 +232,18 @@ impl SecurityConfigBuilder {
 ///
 /// println!("Certificate length: {} bytes", security.cert().len());
 /// ```
-#[derive(Clone, Deserialize, PartialEq)]
+#[derive(Clone, Deserialize, PartialEq, Debug)]
 pub struct SecurityConfig {
     cert: Vec<u8>,
     key: Vec<u8>,
     ca_cert: Option<Vec<u8>>,
     client_auth: bool,
+}
+
+impl From<(Vec<u8>, Vec<u8>, Option<Vec<u8>>)> for SecurityConfig {
+    fn from((cert, key, ca_cert): (Vec<u8>, Vec<u8>, Option<Vec<u8>>)) -> Self {
+        SecurityConfig { cert, key, ca_cert, client_auth: false }
+    }
 }
 
 impl SecurityConfig {

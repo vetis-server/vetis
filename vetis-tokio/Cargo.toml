@@ -29,17 +29,28 @@ rust-tls = ["tokio-rustls", "rustls", "rustls-provider"]
 rustls-provider = ["__rustls_awc_lc_rs"]
 __rustls_awc_lc_rs = ["futures-rustls/aws-lc-rs", "quinn/rustls-aws-lc-rs"]
 __rustls_ring = ["futures-rustls/ring", "quinn/rustls-ring"]
-__rustls_rustcrypto = ["dep:rustls-rustcrypto"]
 
-http1 = ["hyper/http1", "hyper/server", "hyper-util/server", "hyper-util/http1"]
-http2 = ["hyper/http2", "hyper/server", "hyper-util/server", "hyper-util/http2"]
+http1 = [
+  "hyper/http1",
+  "hyper/server",
+  "hyper-util/server",
+  "hyper-body-utils/generic",
+  "hyper-util/http1",
+]
+http2 = [
+  "hyper/http2",
+  "hyper/server",
+  "hyper-util/server",
+  "hyper-body-utils/generic",
+  "hyper-util/http2",
+]
 http3 = [
   "dep:h3",
   "dep:h3-quinn",
   "hyper/server",
   "hyper-util/server",
-  "hyper-body-utils/http3",
   "hyper-body-utils/generic",
+  "hyper-body-utils/generic-h3",
   "quinn/runtime-tokio",
 ]
 
@@ -68,19 +79,17 @@ hyper-util = { version = "0.1.20", features = [
 ], default-features = false }
 log = "0.4.32"
 mimalloc = "0.1.52"
-moka = { version = "0.12.14", features = ["future"], default-features = false }
 peekable = { version = "0.6.1", features = ["tokio"], default-features = false }
 quinn = { version = "0.11.9", optional = true, default-features = false }
 radix_trie = { version = "0.3.0", default-features = false }
 rand = { version = "0.10.1", default-features = false }
 regex = { version = "1.12.4", default-features = false }
 rustls = { version = "0.23.40", optional = true, default-features = false }
-rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
 serde = { version = "1.0.226", features = ["derive"] }
 serde_yaml_ng = "0.10.0"
 socket2 = "0.6.4"
 thiserror = "2.0.17"
-time = { version = "0.3.41", features = ["formatting"] }
+time = { version = "0.3.55", features = ["formatting"] }
 tokio = { version = "1.52.3", features = [
   "fs",
   "signal",

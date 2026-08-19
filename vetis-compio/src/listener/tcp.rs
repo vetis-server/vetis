@@ -1,8 +1,8 @@
 use crate::{
-    listener::{Listener, ListenerResult},
+    host::HostImpl,
+    listener::{supported_alpns, Listener, ListenerResult},
     tls::TlsFactory,
-    virtual_host::VirtualHostImpl,
-    VetisRwLock, VetisVirtualHosts,
+    VetisHosts, VetisRwLock,
 };
 use compio::io::{util::Splittable, AsyncRead, AsyncWrite};
 use compio::runtime::JoinHandle;
@@ -10,7 +10,7 @@ use compio_tls::TlsAcceptor;
 #[cfg(feature = "http2")]
 use cyper_core::CompioExecutor;
 use cyper_core::HyperStream;
-use http::{header, Response, Version};
+use http::{header, HeaderName, HeaderValue, Response, Version};
 #[cfg(feature = "http1")]
 use hyper::server::conn::http1;
 #[cfg(feature = "http2")]
@@ -19,24 +19,17 @@ use hyper::{body::Incoming, service::service_fn};
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
 use send_wrapper::SendWrapper;
-use std::{
-    collections::HashMap,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
-    sync::Arc,
-};
-use vetis::{
-    errors::VetisError, listener::ListenerConfig, virtual_host::VirtualHost, Request, VetisResult,
-};
+use std::{borrow::Cow, collections::HashMap, net::SocketAddr, sync::Arc};
+use vetis::{errors::VetisError, host::Host, listener::ListenerConfig, Request, VetisResult};
 
 /// TCP listener
 pub struct TcpListener {
     task: Option<JoinHandle<()>>,
     config: ListenerConfig,
-    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+    hosts: VetisHosts<HostImpl>,
 }
 
-impl Listener for TcpListener {
-    type VirtualHost = VirtualHostImpl;
+impl TcpListener {
     /// Create a new listener
     ///
     /// # Arguments
@@ -46,17 +39,21 @@ impl Listener for TcpListener {
     /// # Returns
     ///
     /// * `Self` - A new `TcpListener` instance.
-    fn new(config: ListenerConfig) -> Self {
-        Self { task: None, config, virtual_hosts: Arc::new(VetisRwLock::new(HashMap::new())) }
+    pub fn new(config: ListenerConfig) -> Self {
+        Self { task: None, config, hosts: Arc::new(VetisRwLock::new(HashMap::new())) }
     }
+}
+
+impl Listener for TcpListener {
+    type Host = HostImpl;
 
     /// Set the virtual hosts
     ///
     /// # Arguments
     ///
-    /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual hosts.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
-        self.virtual_hosts = virtual_hosts;
+    /// * `hosts` - A `VetisHosts` instance containing the virtual hosts.
+    fn set_hosts(&mut self, hosts: VetisHosts<HostImpl>) {
+        self.hosts = hosts;
     }
 
     /// Listen for incoming connections
@@ -66,37 +63,19 @@ impl Listener for TcpListener {
     /// * `ListenerResult<'_, ()>` - A `ListenerResult` instance containing the result of the listener.
     fn listen(&mut self) -> ListenerResult<'_, ()> {
         let future = async move {
-            let addr = if let Ok(ip) = self
-                .config
-                .interface()
-                .parse::<Ipv4Addr>()
-            {
-                SocketAddr::from((ip, self.config.port()))
-            } else {
-                let addr = self
+            let addr = SocketAddr::new(
+                *self
                     .config
-                    .interface()
-                    .parse::<Ipv6Addr>();
-                if let Ok(addr) = addr {
-                    SocketAddr::from((addr, self.config.port()))
-                } else {
-                    SocketAddr::from(([0, 0, 0, 0], self.config.port()))
-                }
-            };
+                    .interface(),
+                self.config.port(),
+            );
 
             let listener = compio::net::TcpListener::bind(addr)
                 .await
                 .map_err(|e| VetisError::Bind(e.to_string()))?;
 
             let task = self
-                .handle_connections(
-                    *self
-                        .config
-                        .protocol_version(),
-                    listener,
-                    self.virtual_hosts
-                        .clone(),
-                )
+                .handle_connections(listener, self.hosts.clone())
                 .await?;
 
             self.task = Some(task);
@@ -128,20 +107,10 @@ impl Listener for TcpListener {
 impl TcpListener {
     async fn handle_connections(
         &mut self,
-        protocol: Version,
         listener: compio::net::TcpListener,
-        virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+        hosts: VetisHosts<HostImpl>,
     ) -> VetisResult<JoinHandle<()>> {
-        let alpn = vec![
-            #[cfg(feature = "http1")]
-            b"http/1.1".to_vec(),
-            #[cfg(feature = "http2")]
-            b"h2".to_vec(),
-            #[cfg(feature = "http3")]
-            b"h3".to_vec(),
-        ];
-        let tls_config = TlsFactory::create_tls_config(virtual_hosts.clone(), alpn).await?;
-        let port = Arc::new(self.config.port());
+        let tls_config = TlsFactory::create_tls_config(hosts.clone(), supported_alpns()).await?;
         let tls_config = match tls_config {
             Some(config) => config,
             None => {
@@ -149,6 +118,12 @@ impl TcpListener {
                 return Err(VetisError::Tls("Missing TLS config".to_string()));
             }
         };
+
+        let http11_only = self
+            .config
+            .protos()
+            .contains(&Version::HTTP_11);
+
         let tls_acceptor = TlsAcceptor::from(Arc::new(tls_config));
         let future = async move {
             loop {
@@ -189,62 +164,49 @@ impl TcpListener {
                         }
                     };
 
-                    let io = HyperStream::new_tls(tls_stream);
-                    match protocol {
-                        #[cfg(feature = "http1")]
-                        Version::HTTP_11 => {
-                            let _ = handle_http1_request(
-                                port.clone(),
-                                io,
-                                virtual_hosts.clone(),
-                                client_addr,
-                            );
-                        }
-                        #[cfg(feature = "http2")]
-                        Version::HTTP_2 => {
-                            let _ = handle_http2_request(
-                                port.clone(),
-                                io,
-                                virtual_hosts.clone(),
-                                client_addr,
-                            );
-                        }
-                        #[cfg(feature = "http3")]
-                        Version::HTTP_3 => {
-                            // HTTP/3 is handled by UDP listener
-                        }
-                        _ => {
-                            panic!("Unsupported protocol");
+                    let alpn = &tls_stream.negotiated_alpn();
+                    if let Some(alpn_code) = alpn {
+                        let Cow::Borrowed(alpn_code) = String::from_utf8_lossy(alpn_code) else {
+                            error!("Cannot accept connection");
+                            continue;
+                        };
+
+                        match alpn_code {
+                            #[cfg(feature = "http1")]
+                            "http1.1" => {
+                                let _ = handle_http1_request(
+                                    HyperStream::new_tls(tls_stream),
+                                    hosts.clone(),
+                                    client_addr,
+                                );
+                            }
+                            #[cfg(feature = "http2")]
+                            "h2" => {
+                                let _ = handle_http2_request(
+                                    HyperStream::new_tls(tls_stream),
+                                    hosts.clone(),
+                                    client_addr,
+                                );
+                            }
+                            _ => {
+                                panic!("Unsupported protocol");
+                            }
                         }
                     }
                 } else {
-                    let io = HyperStream::new_plain(stream);
-                    match protocol {
-                        #[cfg(feature = "http1")]
-                        Version::HTTP_11 => {
-                            let _ = handle_http1_request(
-                                port.clone(),
-                                io,
-                                virtual_hosts.clone(),
-                                client_addr,
-                            );
-                        }
-                        #[cfg(feature = "http2")]
-                        Version::HTTP_2 => {
-                            let _ = handle_http2_request(
-                                port.clone(),
-                                io,
-                                virtual_hosts.clone(),
-                                client_addr,
-                            );
-                        }
-                        #[cfg(feature = "http3")]
-                        Version::HTTP_3 => {
-                            // HTTP/3 is handled by UDP listener
-                        }
-                        _ => {
+                    #[cfg(feature = "http1")]
+                    {
+                        let io = HyperStream::new_plain(stream);
+                        if http11_only {
+                            let _ = handle_http1_request(io, hosts.clone(), client_addr);
+                        } else {
                             panic!("Unsupported protocol");
                         }
+                    }
+
+                    #[cfg(any(feature = "http2", feature = "http3"))]
+                    {
+                        panic!("Unsupported protocol");
                     }
                 }
             }
@@ -258,15 +220,14 @@ impl TcpListener {
 
 async fn process_request(
     req: http::Request<Incoming>,
-    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
-    port: Arc<u16>,
+    hosts: VetisHosts<HostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<http::Response<HttpBody>> {
-    let host = req
+    let host_header = req
         .headers()
         .get(header::HOST);
 
-    let host = if let Some(host) = host {
+    let hostname = if let Some(host) = host_header {
         let host_port = host.to_str();
         match host_port {
             Ok(host_port) => Some(
@@ -287,15 +248,11 @@ async fn process_request(
         }
     };
 
-    if let Some(host) = host {
-        debug!("Serving request for host: {}", host);
-        let virtual_hosts = virtual_hosts
-            .read()
-            .await;
-
-        let virtual_host = virtual_hosts.get(&(host.into(), *port.clone()));
-
-        if let Some(virtual_host) = virtual_host {
+    if let Some(hostname) = hostname {
+        debug!("Serving request for host: {}", hostname);
+        let hosts = hosts.read().await;
+        let host = hosts.get(hostname);
+        if let Some(host) = host {
             // TODO: Save client_addr in request, grab url from request for logging
             let (parts, body) = req.into_parts();
             let request = Request::from_parts(parts, HttpBody::from_incoming(body));
@@ -308,30 +265,26 @@ async fn process_request(
                 .uri()
                 .clone();
 
-            let vetis_response = virtual_host
+            let vetis_response = host
                 .route(request)
                 .await?;
 
             let mut response = vetis_response.into_inner();
 
-            let default_headers = virtual_host
+            let default_headers = host
                 .config()
                 .default_headers();
             if let Some(default_headers) = default_headers {
                 for (key, value) in default_headers {
-                    let header_name = header::HeaderName::from_bytes(key.as_bytes());
-                    if header_name.is_err() {
+                    let Ok(header_name) = HeaderName::from_bytes(key.as_bytes()) else {
                         error!("Invalid header name: {}", key);
                         continue;
-                    }
-                    let header_name = header_name.unwrap();
+                    };
 
-                    let header_value = header::HeaderValue::from_str(value);
-                    if header_value.is_err() {
+                    let Ok(header_value) = HeaderValue::from_str(value) else {
                         error!("Invalid header value: {}", value);
                         continue;
-                    }
-                    let header_value = header_value.unwrap();
+                    };
 
                     response
                         .headers_mut()
@@ -344,9 +297,9 @@ async fn process_request(
 
             Ok::<http::Response<HttpBody>, VetisError>(response)
         } else {
-            error!("Virtual host not found: {}", host);
+            error!("Host not found: {}", hostname);
             Response::builder()
-                .status(http::StatusCode::NOT_FOUND)
+                .status(http::StatusCode::BAD_GATEWAY)
                 .body(HttpBody::empty())
                 .map_err(|e| VetisError::Handler(e.to_string()))
         }
@@ -361,9 +314,8 @@ async fn process_request(
 
 #[cfg(feature = "http1")]
 fn handle_http1_request<T>(
-    port: Arc<u16>,
     io: HyperStream<T>,
-    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+    hosts: VetisHosts<HostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where
@@ -372,9 +324,8 @@ where
     T::WriteHalf: AsyncWrite + Unpin,
 {
     let service_fn = service_fn(move |req| {
-        let value = virtual_hosts.clone();
-        let port = port.clone();
-        async move { process_request(req, value, port, client_addr).await }
+        let value = hosts.clone();
+        async move { process_request(req, value, client_addr).await }
     });
 
     let future = async move {
@@ -393,9 +344,8 @@ where
 
 #[cfg(feature = "http2")]
 pub fn handle_http2_request<T>(
-    port: Arc<u16>,
     io: HyperStream<T>,
-    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+    hosts: VetisHosts<HostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()>
 where
@@ -404,9 +354,8 @@ where
     T::WriteHalf: AsyncWrite + Unpin,
 {
     let service_fn = service_fn(move |req| {
-        let value = virtual_hosts.clone();
-        let port = port.clone();
-        async move { process_request(req, value, port, client_addr).await }
+        let value = hosts.clone();
+        async move { process_request(req, value, client_addr).await }
     });
 
     let future = async move {

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{virtual_host::VirtualHostImpl, VetisVirtualHosts};
+use crate::{host::HostImpl, VetisHosts};
 
 use rustls::{
     pki_types::{CertificateDer, PrivateKeyDer},
@@ -10,29 +10,25 @@ use rustls::{
 };
 use vetis::{
     errors::{StartError, VetisError},
-    virtual_host::VirtualHost,
+    host::Host,
 };
 
 pub struct TlsFactory {}
 
 impl TlsFactory {
     pub async fn create_tls_config(
-        virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+        hosts: VetisHosts<HostImpl>,
         alpn_protocols: Vec<Vec<u8>>,
     ) -> Result<Option<ServerConfig>, VetisError> {
-        let virtual_hosts = virtual_hosts.clone();
+        let hosts = hosts.clone();
         #[cfg(feature = "__rustls_awc_lc_rs")]
         let provider = rustls::crypto::aws_lc_rs::default_provider();
         #[cfg(feature = "__rustls_ring")]
         let provider = rustls::crypto::ring::default_provider();
-        #[cfg(feature = "__rustls_rustcrypto")]
-        let provider = rustls_rustcrypto::provider();
         let mut resolver = ResolvesServerCertUsingSni::new();
-        let virtual_hosts = virtual_hosts
-            .read()
-            .await;
-        for (hostname, virtual_host) in virtual_hosts.iter() {
-            if let Some(security) = virtual_host
+        let hosts = hosts.read().await;
+        for (hostname, host) in hosts.iter() {
+            if let Some(security) = host
                 .config()
                 .security()
             {
@@ -52,7 +48,7 @@ impl TlsFactory {
                     VetisError::Tls(format!("Failed to create certified key: {}", e))
                 })?;
 
-                let hostname = hostname.0.clone();
+                let hostname = hostname.clone();
 
                 resolver
                     .add(&hostname, certified_key)
@@ -61,7 +57,7 @@ impl TlsFactory {
         }
 
         let builder = rustls::ServerConfig::builder_with_provider(Arc::new(provider))
-            .with_protocol_versions(&[&rustls::version::TLS13])
+            .with_protocol_versions(rustls::ALL_VERSIONS)
             .map_err(|e| VetisError::Start(StartError::Tls(e.to_string())))?;
 
         let mut tls_config = builder

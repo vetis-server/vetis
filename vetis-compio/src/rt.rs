@@ -1,12 +1,15 @@
-use crate::{http::HttpServer, virtual_host::VirtualHostImpl};
+use crate::{host::HostImpl, listener::ServerListener};
 use compio::signal::ctrl_c;
+#[cfg(any(feature = "http1", feature = "http2"))]
+use http::Version;
 use log::{error, info};
 use std::{collections::HashMap, sync::Arc};
 use vetis::{
-    errors::{ListenerError, StartError, VetisError, VirtualHostError},
-    server::{Server, ServerConfig},
-    virtual_host::{VirtualHost, VirtualHostConfig},
-    VetisResult, VetisRwLock, VetisServer, VetisVirtualHosts,
+    errors::{HostError, ListenerError, VetisError},
+    host::{Host, HostConfig},
+    listener::Listener as _,
+    server::ServerConfig,
+    VetisHosts, VetisResult, VetisRwLock, VetisServer,
 };
 
 #[derive(Default)]
@@ -37,8 +40,8 @@ use vetis::{
 /// ```
 pub struct Vetis {
     config: ServerConfig,
-    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
-    instance: Option<HttpServer>,
+    hosts: VetisHosts<HostImpl>,
+    listeners: Vec<ServerListener>,
 }
 
 impl Vetis {
@@ -62,15 +65,15 @@ impl Vetis {
     /// }
     /// ```
     pub fn new(config: ServerConfig) -> Vetis {
-        Vetis { config, virtual_hosts: Arc::new(VetisRwLock::new(HashMap::new())), instance: None }
+        Vetis { config, hosts: Arc::new(VetisRwLock::new(HashMap::new())), listeners: Vec::new() }
     }
 }
 
 impl VetisServer for Vetis {
     /// Virtual host type
-    type VirtualHost = VirtualHostImpl;
+    type Host = HostImpl;
     /// Virtual host configuration type
-    type VirtualHostConfig = VirtualHostConfig;
+    type HostConfig = HostConfig;
 
     /// Adds a virtual host to the server.
     ///
@@ -79,7 +82,7 @@ impl VetisServer for Vetis {
     ///
     /// # Arguments
     ///
-    /// * `virtual_host` - A type implementing the `VirtualHost` trait
+    /// * `host` - A type implementing the `Host` trait
     ///
     /// # Examples
     ///
@@ -87,22 +90,22 @@ impl VetisServer for Vetis {
     /// use http::StatusCode;
     /// use vetis::{
     ///     server::ServerConfig,
-    ///     virtual_host::{path::Path, handler_fn, VirtualHostConfig},
+    ///     host::{path::Path, handler_fn, HostConfig},
     ///     VetisServer as _
     /// };
-    /// use vetis_compio::{Vetis, virtual_host::{VirtualHostImpl, path::HandlerPath}};
+    /// use vetis_compio::{Vetis, host::{HostImpl, path::HandlerPath}};
     ///
     /// #[compio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let config = ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///
-    ///     let vhost_config = VirtualHostConfig::builder()
+    ///     let vhost_config = HostConfig::builder()
     ///         .hostname("example.com")
     ///         .port(80)
     ///         .build()?;
     ///
-    ///     let mut vhost = VirtualHostImpl::new(vhost_config);
+    ///     let mut vhost = HostImpl::new(vhost_config);
     ///
     ///     let mut root_path = HandlerPath::builder()
     ///         .uri("/")
@@ -116,18 +119,16 @@ impl VetisServer for Vetis {
     ///
     ///     vhost.add_path(root_path);
     ///
-    ///     server.add_virtual_host(vhost).await;
+    ///     server.add_host(vhost).await;
     ///
     ///     Ok(())
     /// }
     /// ```
-    async fn add_virtual_host(&mut self, virtual_host: Self::VirtualHost) {
-        let key = (Arc::from(virtual_host.hostname()), virtual_host.port());
-
-        self.virtual_hosts
+    async fn add_host(&mut self, host: Self::Host) {
+        self.hosts
             .write()
             .await
-            .insert(key, virtual_host);
+            .insert(Arc::from(host.hostname()), host);
     }
 
     /// Remove a virtual host from the server
@@ -148,25 +149,23 @@ impl VetisServer for Vetis {
     ///     let config = vetis::server::ServerConfig::builder().build()?;
     ///     let mut server = Vetis::new(config);
     ///
-    ///     server.remove_virtual_host("example.com", 80).await;
+    ///     server.remove_host("example.com", 80).await;
     ///
     ///     Ok(())
     /// }
     /// ```
-    async fn remove_virtual_host(&mut self, hostname: &str, port: u16) {
-        let key = (Arc::from(hostname), port);
-
-        self.virtual_hosts
+    async fn remove_host(&mut self, hostname: &str) {
+        self.hosts
             .write()
             .await
-            .remove(&key);
+            .remove(&Arc::from(hostname));
     }
 
     /// Returns a reference to the virtual hosts.
     ///
     /// This provides access to the virtual hosts configured when the server was created.
-    fn virtual_hosts(&self) -> &VetisVirtualHosts<Self::VirtualHost> {
-        &self.virtual_hosts
+    fn hosts(&self) -> &VetisHosts<Self::Host> {
+        &self.hosts
     }
 
     /// Returns a reference to the server configuration.
@@ -262,14 +261,6 @@ impl VetisServer for Vetis {
     /// ```
     async fn start(&mut self) -> VetisResult<()> {
         if self
-            .instance
-            .is_some()
-        {
-            error!("Server is already running");
-            return Err(VetisError::Start(StartError::AlreadyRunning));
-        }
-
-        if self
             .config
             .listeners()
             .is_empty()
@@ -279,26 +270,52 @@ impl VetisServer for Vetis {
         }
 
         if self
-            .virtual_hosts
+            .hosts
             .read()
             .await
             .is_empty()
         {
             error!("You must add at least one virtual host");
-            return Err(VetisError::VirtualHost(VirtualHostError::NoVirtualHosts));
+            return Err(VetisError::Host(HostError::NoHosts));
         }
 
-        let mut server = HttpServer::new(self.config.clone());
+        for listener_config in self
+            .config
+            .listeners()
+        {
+            #[cfg(any(feature = "http1", feature = "http2"))]
+            if listener_config
+                .protos()
+                .iter()
+                .any(|proto| *proto == Version::HTTP_11 || *proto == Version::HTTP_2)
+            {
+                use crate::listener::tcp::TcpListener;
+                use vetis::listener::Listener as _;
+                let mut listener: ServerListener = TcpListener::new(listener_config.clone()).into();
+                listener.set_hosts(self.hosts.clone());
+                listener
+                    .listen()
+                    .await?;
+                self.listeners
+                    .push(listener);
+            }
 
-        server.set_virtual_hosts(
-            self.virtual_hosts
-                .clone(),
-        );
-
-        server
-            .start()
-            .await?;
-        self.instance = Some(server);
+            #[cfg(feature = "http3")]
+            if listener_config
+                .protos()
+                .contains(&Version::HTTP_3)
+            {
+                use crate::listener::udp::UdpListener;
+                use vetis::listener::Listener as _;
+                let mut listener: ServerListener = UdpListener::new(listener_config.clone()).into();
+                listener.set_hosts(self.hosts.clone());
+                listener
+                    .listen()
+                    .await?;
+                self.listeners
+                    .push(listener);
+            }
+        }
 
         Ok(())
     }
@@ -332,12 +349,10 @@ impl VetisServer for Vetis {
     /// }
     /// ```
     async fn stop(&mut self) -> VetisResult<()> {
-        if let Some(instance) = &mut self.instance {
-            instance
+        for listener in &mut self.listeners {
+            listener
                 .stop()
-                .await?;
-        } else {
-            return Err(VetisError::NoInstances);
+                .await?
         }
         Ok(())
     }
@@ -364,14 +379,9 @@ impl VetisServer for Vetis {
     /// ```
     async fn reload(
         &mut self,
-        new_config: ServerConfig,
-        _new_virtual_hosts: Vec<Self::VirtualHostConfig>,
+        _new_config: ServerConfig,
+        _new_hosts: Vec<Self::HostConfig>,
     ) -> VetisResult<()> {
-        if self.config() != &new_config {
-            self.config = new_config;
-            self.stop().await?;
-            self.start().await?;
-        }
         Ok(())
     }
 }

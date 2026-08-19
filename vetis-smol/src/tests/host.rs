@@ -1,19 +1,23 @@
-mod virtual_host_tests {
+mod host_tests {
 
-    use crate::virtual_host::{path::HandlerPath, VirtualHostImpl};
     use http::StatusCode;
     use http_body_util::BodyExt;
     use hyper_body_utils::HttpBody;
-    use vetis::virtual_host::{handler_fn, VirtualHost, VirtualHostConfig};
+    use macro_rules_attribute::apply;
+    use smol_macros::test;
 
-    async fn do_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
-        let config = VirtualHostConfig::builder()
+    use vetis::host::{handler_fn, Host, HostConfig};
+
+    use crate::host::{path::HandlerPath, HostImpl};
+
+    async fn do_add_host() -> Result<(), Box<dyn std::error::Error>> {
+        let config = HostConfig::builder()
             .hostname("localhost")
-            .root_directory("src/tests")
+            .root_directory("src/tests".into())
             .build()
             .unwrap();
 
-        let mut virtual_host = VirtualHostImpl::new(config);
+        let mut host = HostImpl::new(config);
         let handler_path = HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_request| async move {
@@ -23,11 +27,10 @@ mod virtual_host_tests {
             }))
             .build()
             .unwrap();
-        virtual_host.add_path(handler_path);
+        host.add_path(handler_path);
 
         assert_eq!(
-            virtual_host
-                .config()
+            host.config()
                 .hostname(),
             "localhost"
         );
@@ -35,18 +38,18 @@ mod virtual_host_tests {
         Ok(())
     }
 
-    async fn test_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
-        do_add_virtual_host().await
+    async fn test_add_host() -> Result<(), Box<dyn std::error::Error>> {
+        do_add_host().await
     }
 
     async fn do_handle_request() -> Result<(), Box<dyn std::error::Error>> {
-        let config = VirtualHostConfig::builder()
+        let config = HostConfig::builder()
             .hostname("localhost")
-            .root_directory("src/tests")
+            .root_directory("src/tests".into())
             .build()
             .unwrap();
 
-        let mut virtual_host = VirtualHostImpl::new(config);
+        let mut host = HostImpl::new(config);
         let handler_path = HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_request| async move {
@@ -56,11 +59,10 @@ mod virtual_host_tests {
             }))
             .build()
             .unwrap();
-        virtual_host.add_path(handler_path);
+        host.add_path(handler_path);
 
         assert_eq!(
-            virtual_host
-                .config()
+            host.config()
                 .hostname(),
             "localhost"
         );
@@ -76,7 +78,7 @@ mod virtual_host_tests {
 
         let request = vetis::Request::from_parts(parts, body);
 
-        let response = virtual_host
+        let response = host
             .route(request)
             .await?;
 
@@ -96,7 +98,7 @@ mod virtual_host_tests {
         Ok(())
     }
 
-    #[compio::test]
+    #[apply(test!)]
     async fn test_handle_request() -> Result<(), Box<dyn std::error::Error>> {
         do_handle_request().await
     }

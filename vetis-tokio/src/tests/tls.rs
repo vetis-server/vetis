@@ -1,18 +1,18 @@
 use crate::{
+    host::{path::HandlerPath, HostImpl},
     tests::{CA_CERT, SERVER_CERT, SERVER_KEY},
     tls::TlsFactory,
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 use async_lock::RwLock;
 use std::sync::Arc;
 use vetis::{
     errors::VetisError,
+    host::{handler_fn, HostConfig},
     security::SecurityConfig,
-    virtual_host::{handler_fn, VirtualHostConfig},
-    VetisVirtualHosts,
+    VetisHosts,
 };
 
-fn create_test_virtual_hosts() -> VetisVirtualHosts<VirtualHostImpl> {
+fn create_test_hosts() -> VetisHosts<HostImpl> {
     let security_config = SecurityConfig::builder()
         .cert_from_bytes(SERVER_CERT.to_vec())
         .key_from_bytes(SERVER_KEY.to_vec())
@@ -20,21 +20,19 @@ fn create_test_virtual_hosts() -> VetisVirtualHosts<VirtualHostImpl> {
         .build()
         .expect("Failed to create security config");
 
-    let vhost_config = VirtualHostConfig::builder()
+    let host_config = HostConfig::builder()
         .hostname("localhost")
-        .port(8443)
-        .root_directory("src/tests")
         .security(security_config)
         .build()
-        .expect("Failed to create virtual host config");
+        .expect("Failed to create host config");
 
-    let mut virtual_host = VirtualHostImpl::new(vhost_config);
-    virtual_host.add_path(
+    let mut host = HostImpl::new(host_config);
+    host.add_path(
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_req| async move {
                 Ok::<_, VetisError>(
-                    crate::http::Response::builder()
+                    vetis::Response::builder()
                         .status(http::StatusCode::OK)
                         .text("Test response"),
                 )
@@ -44,26 +42,24 @@ fn create_test_virtual_hosts() -> VetisVirtualHosts<VirtualHostImpl> {
     );
 
     let mut hosts = std::collections::HashMap::new();
-    hosts.insert((Arc::from("localhost"), 8443u16), virtual_host);
+    hosts.insert(Arc::from("localhost"), host);
 
     Arc::new(RwLock::new(hosts))
 }
 
-fn create_test_virtual_hosts_no_security() -> VetisVirtualHosts<VirtualHostImpl> {
-    let vhost_config = VirtualHostConfig::builder()
+fn create_test_hosts_no_security() -> VetisHosts<HostImpl> {
+    let host_config = HostConfig::builder()
         .hostname("localhost")
-        .port(8443)
-        .root_directory("src/tests")
         .build()
-        .expect("Failed to create virtual host config");
+        .expect("Failed to create host config");
 
-    let mut virtual_host = VirtualHostImpl::new(vhost_config);
-    virtual_host.add_path(
+    let mut host = HostImpl::new(host_config);
+    host.add_path(
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_req| async move {
                 Ok::<_, VetisError>(
-                    crate::http::Response::builder()
+                    vetis::Response::builder()
                         .status(http::StatusCode::OK)
                         .text("Test response"),
                 )
@@ -73,33 +69,31 @@ fn create_test_virtual_hosts_no_security() -> VetisVirtualHosts<VirtualHostImpl>
     );
 
     let mut hosts = std::collections::HashMap::new();
-    hosts.insert((Arc::from("localhost"), 8443u16), virtual_host);
+    hosts.insert(Arc::from("localhost"), host);
 
     Arc::new(RwLock::new(hosts))
 }
 
-fn create_test_virtual_hosts_invalid_key() -> VetisVirtualHosts<VirtualHostImpl> {
+fn create_test_hosts_invalid_key() -> VetisHosts<HostImpl> {
     let security_config = SecurityConfig::builder()
         .cert_from_bytes(SERVER_CERT.to_vec())
         .key_from_bytes(vec![0x01, 0x02, 0x03]) // Invalid key
         .build()
         .expect("Failed to create security config");
 
-    let vhost_config = VirtualHostConfig::builder()
+    let host_config = HostConfig::builder()
         .hostname("localhost")
-        .port(8443)
-        .root_directory("src/tests")
         .security(security_config)
         .build()
-        .expect("Failed to create virtual host config");
+        .expect("Failed to create host config");
 
-    let mut virtual_host = VirtualHostImpl::new(vhost_config);
-    virtual_host.add_path(
+    let mut host = HostImpl::new(host_config);
+    host.add_path(
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_req| async move {
                 Ok::<_, VetisError>(
-                    crate::http::Response::builder()
+                    vetis::Response::builder()
                         .status(http::StatusCode::OK)
                         .text("Test response"),
                 )
@@ -109,16 +103,16 @@ fn create_test_virtual_hosts_invalid_key() -> VetisVirtualHosts<VirtualHostImpl>
     );
 
     let mut hosts = std::collections::HashMap::new();
-    hosts.insert((Arc::from("localhost"), 8443u16), virtual_host);
+    hosts.insert(Arc::from("localhost"), host);
 
     Arc::new(RwLock::new(hosts))
 }
 
 async fn do_create_tls_config_success() {
-    let virtual_hosts = create_test_virtual_hosts();
+    let hosts = create_test_hosts();
     let alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
 
-    let result = TlsFactory::create_tls_config(virtual_hosts, alpn_protocols).await;
+    let result = TlsFactory::create_tls_config(hosts, alpn_protocols).await;
 
     assert!(result.is_ok(), "TLS config creation should succeed");
     let tls_config = result.unwrap();
@@ -135,10 +129,10 @@ async fn test_create_tls_config_success() {
 }
 
 async fn do_create_tls_config_no_security() {
-    let virtual_hosts = create_test_virtual_hosts_no_security();
+    let hosts = create_test_hosts_no_security();
     let alpn_protocols = vec![b"http/1.1".to_vec()];
 
-    let result = TlsFactory::create_tls_config(virtual_hosts, alpn_protocols).await;
+    let result = TlsFactory::create_tls_config(hosts, alpn_protocols).await;
 
     assert!(result.is_ok(), "TLS config creation should succeed even without security");
     let tls_config = result.unwrap();
@@ -154,10 +148,10 @@ async fn test_create_tls_config_no_security() {
 }
 
 async fn do_create_tls_config_invalid_private_key() {
-    let virtual_hosts = create_test_virtual_hosts_invalid_key();
+    let hosts = create_test_hosts_invalid_key();
     let alpn_protocols = vec![b"http/1.1".to_vec()];
 
-    let result = TlsFactory::create_tls_config(virtual_hosts, alpn_protocols).await;
+    let result = TlsFactory::create_tls_config(hosts, alpn_protocols).await;
 
     assert!(result.is_err(), "TLS config creation should fail with invalid key");
     match result.unwrap_err() {
@@ -174,10 +168,10 @@ async fn test_create_tls_config_invalid_private_key() {
 }
 
 async fn do_create_tls_config_empty_alpn() {
-    let virtual_hosts = create_test_virtual_hosts();
+    let hosts = create_test_hosts();
     let alpn_protocols = vec![];
 
-    let result = TlsFactory::create_tls_config(virtual_hosts, alpn_protocols).await;
+    let result = TlsFactory::create_tls_config(hosts, alpn_protocols).await;
 
     assert!(result.is_ok(), "TLS config creation should succeed with empty ALPN");
     let tls_config = result.unwrap();
@@ -207,21 +201,19 @@ async fn do_create_tls_config_multiple_hosts() {
         .build()
         .expect("Failed to create security config");
 
-    let vhost_config1 = VirtualHostConfig::builder()
+    let host_config1 = HostConfig::builder()
         .hostname("localhost")
-        .port(8443)
-        .root_directory("src/tests")
         .security(security_config1)
         .build()
-        .expect("Failed to create virtual host config");
+        .expect("Failed to create host config");
 
-    let mut virtual_host1 = VirtualHostImpl::new(vhost_config1);
-    virtual_host1.add_path(
+    let mut host1 = HostImpl::new(host_config1);
+    host1.add_path(
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_req| async move {
                 Ok::<_, VetisError>(
-                    crate::http::Response::builder()
+                    vetis::Response::builder()
                         .status(http::StatusCode::OK)
                         .text("Test response"),
                 )
@@ -231,20 +223,18 @@ async fn do_create_tls_config_multiple_hosts() {
     );
 
     // Create second virtual host without security
-    let vhost_config2 = VirtualHostConfig::builder()
+    let host_config2 = HostConfig::builder()
         .hostname("test.com")
-        .port(8443)
-        .root_directory("src/tests")
         .build()
         .expect("Failed to create virtual host config");
 
-    let mut virtual_host2 = VirtualHostImpl::new(vhost_config2);
-    virtual_host2.add_path(
+    let mut host2 = HostImpl::new(host_config2);
+    host2.add_path(
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_req| async move {
                 Ok::<_, VetisError>(
-                    crate::http::Response::builder()
+                    vetis::Response::builder()
                         .status(http::StatusCode::OK)
                         .text("Test response"),
                 )
@@ -253,13 +243,13 @@ async fn do_create_tls_config_multiple_hosts() {
             .unwrap(),
     );
 
-    hosts.insert((Arc::from("localhost"), 8443), virtual_host1);
-    hosts.insert((Arc::from("test.com"), 8443), virtual_host2);
+    hosts.insert(Arc::from("localhost"), host1);
+    hosts.insert(Arc::from("test.com"), host2);
 
-    let virtual_hosts = Arc::new(RwLock::new(hosts));
+    let hosts = Arc::new(RwLock::new(hosts));
     let alpn_protocols = vec![b"h2".to_vec()];
 
-    let result = TlsFactory::create_tls_config(virtual_hosts, alpn_protocols).await;
+    let result = TlsFactory::create_tls_config(hosts, alpn_protocols).await;
 
     assert!(result.is_ok(), "TLS config creation should succeed with multiple hosts");
     let tls_config = result.unwrap();
@@ -272,10 +262,10 @@ async fn test_create_tls_config_multiple_hosts() {
 }
 
 async fn do_create_tls_config_with_ca_cert() {
-    let virtual_hosts = create_test_virtual_hosts();
+    let hosts = create_test_hosts();
     let alpn_protocols = vec![b"http/1.1".to_vec()];
 
-    let result = TlsFactory::create_tls_config(virtual_hosts, alpn_protocols).await;
+    let result = TlsFactory::create_tls_config(hosts, alpn_protocols).await;
 
     assert!(result.is_ok(), "TLS config creation should succeed with CA cert");
     let tls_config = result.unwrap();

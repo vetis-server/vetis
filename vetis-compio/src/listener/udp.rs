@@ -1,9 +1,8 @@
 use crate::{
-    http::static_response,
-    listener::{Listener, ListenerConfig, ListenerResult},
+    host::HostImpl,
+    listener::{supported_alpns, Listener, ListenerResult},
     tls::TlsFactory,
-    virtual_host::VirtualHostImpl,
-    VetisRwLock, VetisVirtualHosts,
+    VetisHosts, VetisRwLock,
 };
 use bytes::Bytes;
 use compio::runtime::JoinHandle;
@@ -11,31 +10,27 @@ use compio_quic::{
     crypto::rustls::QuicServerConfig, h3::server::RequestResolver, Endpoint, ServerConfig,
 };
 use futures_util::StreamExt;
+use http::{HeaderName, HeaderValue, StatusCode};
 use hyper_body_utils::HttpBody;
 use log::{debug, error, info};
 use send_wrapper::SendWrapper;
-use std::{
-    collections::HashMap,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
-    sync::Arc,
-};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 use vetis::{
     errors::{StartError, VetisError},
+    host::Host,
+    listener::ListenerConfig,
     request::Request,
-    virtual_host::VirtualHost,
-    VetisResult,
+    Response, VetisResult,
 };
 
 /// UDP listener
 pub struct UdpListener {
     config: ListenerConfig,
     task: Option<JoinHandle<()>>,
-    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+    hosts: VetisHosts<HostImpl>,
 }
 
-impl Listener for UdpListener {
-    type VirtualHost = VirtualHostImpl;
-
+impl UdpListener {
     /// Create a new listener
     ///
     /// # Arguments
@@ -45,17 +40,21 @@ impl Listener for UdpListener {
     /// # Returns
     ///
     /// * `Self` - A new `UdpListener` instance.
-    fn new(config: ListenerConfig) -> Self {
-        Self { config, task: None, virtual_hosts: Arc::new(VetisRwLock::new(HashMap::new())) }
+    pub fn new(config: ListenerConfig) -> Self {
+        Self { config, task: None, hosts: Arc::new(VetisRwLock::new(HashMap::new())) }
     }
+}
+
+impl Listener for UdpListener {
+    type Host = HostImpl;
 
     /// Allow set virtual hosts
     ///
     /// # Arguments
     ///
-    /// * `virtual_hosts` - A `VetisVirtualHosts` instance containing the virtual hosts.
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
-        self.virtual_hosts = virtual_hosts;
+    /// * `hosts` - A `VetisHosts` instance containing the virtual hosts.
+    fn set_hosts(&mut self, hosts: VetisHosts<HostImpl>) {
+        self.hosts = hosts;
     }
 
     /// Listen for incoming connections
@@ -65,30 +64,15 @@ impl Listener for UdpListener {
     /// * `ListenerResult<'_, ()>` - A `ListenerResult` instance containing the result of the listener.
     fn listen(&mut self) -> ListenerResult<'_, ()> {
         let future = async move {
-            let addr = if let Ok(ip) = self
-                .config
-                .interface()
-                .parse::<Ipv4Addr>()
-            {
-                SocketAddr::from((ip, self.config.port()))
-            } else {
-                let addr = self
+            let addr = SocketAddr::new(
+                *self
                     .config
-                    .interface()
-                    .parse::<Ipv6Addr>();
-                if let Ok(addr) = addr {
-                    SocketAddr::from((addr, self.config.port()))
-                } else {
-                    SocketAddr::from(([0, 0, 0, 0], self.config.port()))
-                }
-            };
+                    .interface(),
+                self.config.port(),
+            );
 
-            let tls_config = TlsFactory::create_tls_config(
-                self.virtual_hosts
-                    .clone(),
-                vec![b"h3".to_vec()],
-            )
-            .await?;
+            let tls_config =
+                TlsFactory::create_tls_config(self.hosts.clone(), supported_alpns()).await?;
 
             if let Some(tls_config) = tls_config {
                 let quic_config = QuicServerConfig::try_from(tls_config)
@@ -101,11 +85,7 @@ impl Listener for UdpListener {
                     .map_err(|e| VetisError::Bind(e.to_string()))?;
 
                 let server_task = self
-                    .handle_connections(
-                        endpoint,
-                        self.virtual_hosts
-                            .clone(),
-                    )
+                    .handle_connections(endpoint, self.hosts.clone())
                     .await?;
 
                 self.task = Some(server_task);
@@ -135,15 +115,14 @@ impl UdpListener {
     async fn handle_connections(
         &mut self,
         endpoint: Endpoint,
-        virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+        hosts: VetisHosts<HostImpl>,
     ) -> Result<JoinHandle<()>, VetisError> {
-        let port = self.config.port();
         let task = compio::runtime::spawn(async move {
             while let Some(new_conn) = endpoint
                 .wait_incoming()
                 .await
             {
-                let virtual_hosts = virtual_hosts.clone();
+                let hosts = hosts.clone();
                 let addr = new_conn.remote_address();
                 compio::runtime::spawn(async move {
                     match new_conn.await {
@@ -165,12 +144,8 @@ impl UdpListener {
                                     .await
                                 {
                                     Ok(Some(resolver)) => {
-                                        let result = handle_http_request(
-                                            port,
-                                            resolver,
-                                            virtual_hosts.clone(),
-                                            addr,
-                                        );
+                                        let result =
+                                            handle_http_request(resolver, hosts.clone(), addr);
 
                                         if let Err(err) = result {
                                             error!("Error handling HTTP request: {:?}", err);
@@ -200,12 +175,11 @@ impl UdpListener {
 }
 
 fn handle_http_request(
-    port: u16,
     resolver: RequestResolver<compio_quic::Connection, Bytes>,
-    virtual_hosts: VetisVirtualHosts<VirtualHostImpl>,
+    hosts: VetisHosts<HostImpl>,
     client_addr: SocketAddr,
 ) -> VetisResult<()> {
-    let virtual_hosts = virtual_hosts.clone();
+    let hosts = hosts.clone();
     compio::runtime::spawn(async move {
         let result = resolver
             .resolve_request()
@@ -222,56 +196,45 @@ fn handle_http_request(
                 .uri()
                 .authority();
 
-            let virtual_hosts = virtual_hosts.clone();
-            let response = if let Some(host) = host {
-                debug!("Serving request for host: {}", host);
-                let virtual_host = virtual_hosts
-                    .read()
-                    .await;
-
-                let virtual_host = virtual_host.get(&(host.host().into(), port));
-
-                let response = if let Some(virtual_host) = virtual_host {
+            let hosts = hosts.clone();
+            let response = if let Some(authority) = host {
+                debug!("Serving request for host: {}", authority.host());
+                let hosts = hosts.read().await;
+                let host = hosts.get(authority.host());
+                let response = if let Some(host) = host {
                     let (parts, body) = request.into_parts();
                     let request = Request::from_parts(parts, body);
 
-                    let vetis_response = virtual_host
+                    let vetis_response = host
                         .route(request)
                         .await;
 
                     let response = if let Err(err) = vetis_response {
                         error!("Error executing request: {:?}", err);
-                        static_response(
-                            http::StatusCode::INTERNAL_SERVER_ERROR,
-                            None,
-                            "Internal server error".to_string(),
-                        )
+                        Response::builder()
+                            .status(StatusCode::INTERNAL_SERVER_ERROR)
+                            .text("Internal server error")
+                            .into_inner()
                     } else {
                         let mut response = vetis_response
                             .unwrap()
                             .into_inner();
 
-                        let default_headers = virtual_host
+                        let default_headers = host
                             .config()
                             .default_headers();
 
                         if let Some(default_headers) = default_headers {
                             for (key, value) in default_headers {
-                                let header_name =
-                                    http::header::HeaderName::from_bytes(key.as_bytes());
-                                if header_name.is_err() {
+                                let Ok(header_name) = HeaderName::from_bytes(key.as_bytes()) else {
                                     error!("Invalid header name: {}", key);
                                     continue;
-                                }
-                                let header_name = header_name.unwrap();
+                                };
 
-                                let header_value =
-                                    http::header::HeaderValue::from_str(value.as_str());
-                                if header_value.is_err() {
+                                let Ok(header_value) = HeaderValue::from_str(value.as_str()) else {
                                     error!("Invalid header value: {}", value);
                                     continue;
-                                }
-                                let header_value = header_value.unwrap();
+                                };
 
                                 response
                                     .headers_mut()
@@ -287,35 +250,36 @@ fn handle_http_request(
 
                     Ok::<_, VetisError>(response)
                 } else {
-                    error!("Virtual host not found: {}", host);
-                    let response = static_response(
-                        http::StatusCode::NOT_FOUND,
-                        None,
-                        "Virtual host not found".to_string(),
-                    );
+                    error!("Host not found: {}", authority.host());
+                    let response = Response::builder()
+                        .status(StatusCode::BAD_GATEWAY)
+                        .text("Host not found")
+                        .into_inner();
                     Ok(response)
                 };
 
                 response
             } else {
                 error!("Host not found in request");
-                let response = static_response(
-                    http::StatusCode::BAD_REQUEST,
-                    None,
-                    "Host not found in request".to_string(),
-                );
+                let response = Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .text("Host not found")
+                    .into_inner();
                 Ok(response)
             };
 
             if let Ok(response) = response {
                 let (parts, mut body) = response.into_parts();
 
-                let mut resp = http::Response::builder()
+                let Ok(mut resp) = http::Response::builder()
                     .status(parts.status)
                     .version(parts.version)
                     .extension(parts.extensions)
                     .body(())
-                    .unwrap();
+                else {
+                    error!("Could not build response");
+                    return;
+                };
 
                 resp.headers_mut()
                     .extend(parts.headers);
@@ -335,16 +299,22 @@ fn handle_http_request(
                 while let Some(buf) = body.next().await {
                     if let Ok(buf) = buf {
                         if let Ok(bytes) = buf.into_data() {
-                            let _ = send_stream
+                            if let Err(e) = send_stream
                                 .send_data(bytes)
-                                .await;
+                                .await
+                            {
+                                error!("Error while send response: {}", e.to_string())
+                            }
                         }
                     }
                 }
 
-                let _ = send_stream
+                if let Err(e) = send_stream
                     .finish()
-                    .await;
+                    .await
+                {
+                    error!("Error while completing response: {}", e.to_string())
+                };
             } else {
                 error!("HttpServer - Error serving connection: {:?}", response.err());
             }

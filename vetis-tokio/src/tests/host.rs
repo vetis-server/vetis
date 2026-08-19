@@ -1,26 +1,23 @@
-use crate::{
-    http::Request,
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
-};
+use crate::host::{path::HandlerPath, HostImpl};
 use http::StatusCode;
 use http_body_util::BodyExt;
 use hyper_body_utils::HttpBody;
-use vetis::virtual_host::{handler_fn, VirtualHost, VirtualHostConfig};
+use vetis::host::{handler_fn, Host, HostConfig};
 
 #[tokio::test]
-async fn test_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
-    let config = VirtualHostConfig::builder()
+async fn test_add_host() -> Result<(), Box<dyn std::error::Error>> {
+    let config = HostConfig::builder()
         .hostname("localhost")
-        .root_directory("src/tests")
+        .root_directory("src/tests".into())
         .build()
         .unwrap();
 
-    let mut virtual_host = VirtualHostImpl::new(config);
-    virtual_host.add_path(
+    let mut host = HostImpl::new(config);
+    host.add_path(
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_request| async move {
-                Ok(crate::http::Response::builder()
+                Ok(vetis::Response::builder()
                     .status(StatusCode::OK)
                     .text("Hello, world!"))
             }))
@@ -29,8 +26,7 @@ async fn test_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     assert_eq!(
-        virtual_host
-            .config()
+        host.config()
             .hostname(),
         "localhost"
     );
@@ -40,18 +36,18 @@ async fn test_add_virtual_host() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn test_handle_request() -> Result<(), Box<dyn std::error::Error>> {
-    let config = VirtualHostConfig::builder()
+    let config = HostConfig::builder()
         .hostname("localhost")
-        .root_directory("src/tests")
+        .root_directory("src/tests".into())
         .build()
         .unwrap();
 
-    let mut virtual_host = VirtualHostImpl::new(config);
-    virtual_host.add_path(
+    let mut host = HostImpl::new(config);
+    host.add_path(
         HandlerPath::builder()
             .uri("/")
             .handler(handler_fn(|_request| async move {
-                Ok(crate::http::Response::builder()
+                Ok(vetis::Response::builder()
                     .status(StatusCode::OK)
                     .text("Hello, world!"))
             }))
@@ -60,8 +56,7 @@ async fn test_handle_request() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     assert_eq!(
-        virtual_host
-            .config()
+        host.config()
             .hostname(),
         "localhost"
     );
@@ -75,9 +70,9 @@ async fn test_handle_request() -> Result<(), Box<dyn std::error::Error>> {
 
     let (parts, body) = request.into_parts();
 
-    let request = Request::from_parts(parts, body);
+    let request = vetis::Request::from_parts(parts, body);
 
-    let response = virtual_host
+    let response = host
         .route(request)
         .await?;
 

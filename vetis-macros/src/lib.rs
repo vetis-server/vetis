@@ -4,7 +4,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TS2};
 use quote::quote;
-use syn::{parse_macro_input, LitInt, LitStr};
+use syn::parse_macro_input;
 
 use crate::parsers::{HttpArgs, SecurityArgs, StatusPagesArgs};
 
@@ -40,7 +40,7 @@ mod parsers;
 ///
 /// ```rust, ignore
 /// use http::Version;
-/// use vetis::{Response, virtual_host::handler_fn};
+/// use vetis::{Response, host::handler_fn};
 /// use vetis_macros::http;
 ///
 /// /// Main function to start the server
@@ -92,10 +92,10 @@ pub fn http(item: TokenStream) -> TokenStream {
         }
     };
 
-    let protocol_version = match args.protocol_version {
+    let protos = match args.protos {
         Some(e) => e,
         None => {
-            return syn::Error::new(Span::call_site(), "Missing required field: 'protocol_version'")
+            return syn::Error::new(Span::call_site(), "Missing required field: 'protos'")
                 .to_compile_error()
                 .into()
         }
@@ -103,9 +103,7 @@ pub fn http(item: TokenStream) -> TokenStream {
 
     let root_directory = match args.root_directory {
         Some(root_directory) => quote! { .root_directory(#root_directory) },
-        None => {
-            quote! { .root_directory(".") }
-        }
+        None => TS2::new(),
     };
 
     let security_config = match args.security {
@@ -116,24 +114,21 @@ pub fn http(item: TokenStream) -> TokenStream {
     let hostname = match args.hostname {
         Some(hostname) => quote! { #hostname },
         None => {
-            let default_hostname = LitStr::new("localhost", Span::call_site());
-            quote! { #default_hostname }
+            quote! { "localhost" }
         }
     };
 
     let interface = match args.interface {
         Some(interface) => quote! { #interface },
         None => {
-            let default_interface = LitStr::new("0.0.0.0", Span::call_site());
-            quote! { #default_interface }
+            quote! { std::net::Ipv4Addr::UNSPECIFIED.into() }
         }
     };
 
     let port = match args.port {
         Some(port) => quote! { #port },
         None => {
-            let default_port = LitInt::new("80", Span::call_site());
-            quote! { #default_port }
+            quote! { 80 }
         }
     };
 
@@ -143,17 +138,17 @@ pub fn http(item: TokenStream) -> TokenStream {
                 errors::VetisError,
                 listener::ListenerConfig,
                 server::ServerConfig,
-                virtual_host::{VirtualHost, VirtualHostConfig},
+                host::{Host, HostConfig},
             };
 
             use #from_crate::{
-                virtual_host::{path::HandlerPath, VirtualHostImpl},
+                host::{path::HandlerPath, HostImpl},
                 rt::Vetis,
             };
 
             let listener = ListenerConfig::builder()
                 .port(#port)
-                .protocol_version(#protocol_version)
+                .protos(#protos)
                 .interface(#interface)
                 .build()?;
 
@@ -161,26 +156,25 @@ pub fn http(item: TokenStream) -> TokenStream {
                 .add_listener(listener)
                 .build()?;
 
-            let mut virtual_host_config = VirtualHostConfig::builder()
+            let mut host_config = HostConfig::builder()
                 .hostname(#hostname)
                 #root_directory
-                .port(#port)
                 #security_config
                 .build()?;
 
-            let mut virtual_host = VirtualHostImpl::new(virtual_host_config);
+            let mut host = HostImpl::new(host_config);
 
             let root_path = HandlerPath::builder()
                 .uri("/")
                 .handler(Box::new(#handler))
                 .build()?;
 
-            virtual_host.add_path(root_path);
+            host.add_path(root_path);
 
             let mut vetis = Vetis::new(config);
 
             vetis
-                .add_virtual_host(virtual_host)
+                .add_host(host)
                 .await;
 
             Ok::<Vetis, VetisError>(vetis)

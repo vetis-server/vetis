@@ -3,47 +3,44 @@
 //! This module provides functionality for creating and managing virtual hosts,
 //! including path routing and request handling.
 use compio::{fs::File, io::AsyncReadExt};
-use futures_util::TryStreamExt;
 use http::StatusCode;
 use http_body_util::StreamBody;
-use hyper::body::Frame;
 use hyper_body_utils::HttpBody;
 use radix_trie::Trie;
 use send_wrapper::SendWrapper;
-use std::path::PathBuf;
 use std::{io::Cursor, sync::Arc};
 use vetis::VetisFutureResult;
 use vetis::{
-    errors::{FileError, VetisError, VirtualHostError},
-    virtual_host::{path::Path, VirtualHost, VirtualHostConfig},
+    errors::{FileError, HostError, VetisError},
+    host::{path::Path, Host, HostConfig},
     Request, Response,
 };
 
 pub mod path;
 
-/// Virtual host structure
-pub struct VirtualHostImpl {
-    /// Virtual host configuration
-    config: VirtualHostConfig,
+/// Host structure
+pub struct HostImpl {
+    /// Host configuration
+    config: HostConfig,
     /// Trie of paths
     paths: Trie<String, Arc<Box<dyn Path>>>,
 }
 
-impl VirtualHostImpl {
-    /// Create a new virtual host
+impl HostImpl {
+    /// Create a new host
     ///
     /// # Arguments
     ///
-    /// * `host_config` - A `VirtualHostConfig` instance containing the virtual host configuration.
+    /// * `host_config` - A `HostConfig` instance containing the host configuration.
     ///
     /// # Returns
     ///
-    /// * `Self` - A new `VirtualHost` instance.
-    pub fn new(host_config: VirtualHostConfig) -> Self {
+    /// * `Self` - A new `HostImpl` instance.
+    pub fn new(host_config: HostConfig) -> Self {
         Self { config: host_config, paths: Trie::new() }
     }
 
-    /// Add a path to the virtual host
+    /// Add a path to the host
     ///
     /// # Arguments
     ///
@@ -60,12 +57,12 @@ impl VirtualHostImpl {
     }
 }
 
-impl VirtualHost for VirtualHostImpl {
-    fn paths(&self) -> Trie<String, Arc<Box<dyn vetis::virtual_host::path::Path>>> {
+impl Host for HostImpl {
+    fn paths(&self) -> Trie<String, Arc<Box<dyn vetis::host::path::Path>>> {
         self.paths.clone()
     }
 
-    fn config(&self) -> &VirtualHostConfig {
+    fn config(&self) -> &HostConfig {
         &self.config
     }
 
@@ -74,7 +71,7 @@ impl VirtualHost for VirtualHostImpl {
             let status_code = match StatusCode::from_u16(status) {
                 Ok(code) => code,
                 Err(_) => {
-                    return Err(VetisError::VirtualHost(VirtualHostError::Interface(
+                    return Err(VetisError::Host(HostError::Interface(
                         "Invalid status code".to_string(),
                     )))
                 }
@@ -92,23 +89,23 @@ impl VirtualHost for VirtualHostImpl {
                 .config
                 .status_pages()
             {
-                let root_directory = PathBuf::from(
-                    self.config
-                        .root_directory(),
-                );
                 if let Some(page) = status_pages.get(&status) {
-                    let file = root_directory.join(page);
-                    if file.exists() {
-                        let result = File::open(file).await;
-                        if let Ok(data) = result {
-                            let content = Cursor::new(data)
-                                .read_only()
-                                .bytes()
-                                .map_ok(Frame::data);
-                            let body = StreamBody::new(SendWrapper::new(content));
-                            return Ok(Response::builder()
-                                .status(status_code)
-                                .body(HttpBody::from_stream(body)));
+                    if let Some(dir) = self
+                        .config
+                        .root_directory()
+                    {
+                        let file = dir.join(page);
+                        if dir.exists() {
+                            let result = File::open(file).await;
+                            if let Ok(data) = result {
+                                let content = Cursor::new(data)
+                                    .read_only()
+                                    .bytes();
+                                let body = StreamBody::new(SendWrapper::new(content));
+                                return Ok(Response::builder()
+                                    .status(status_code)
+                                    .body(HttpBody::from_compio_stream(body)));
+                            }
                         }
                     }
                 }
@@ -159,20 +156,26 @@ impl VirtualHost for VirtualHostImpl {
                 Ok(response) => Ok(response),
                 Err(error) => {
                     match error {
-                        VetisError::VirtualHost(VirtualHostError::File(FileError::NotFound)) => {
+                        VetisError::Host(HostError::File(FileError::NotFound)) => {
                             log::error!("Invalid path: {}", error);
                             return self
                                 .serve_status_page(http::StatusCode::NOT_FOUND.as_u16())
                                 .await;
                         }
-                        VetisError::VirtualHost(VirtualHostError::Proxy(ref error)) => {
-                            log::error!("Proxy error: {}", error);
+                        VetisError::Host(HostError::File(FileError::InvalidMetadata)) => {
+                            log::error!("Invalid file metadata: {}", error);
                             return self
-                                .serve_status_page(http::StatusCode::BAD_GATEWAY.as_u16())
+                                .serve_status_page(http::StatusCode::BAD_REQUEST.as_u16())
                                 .await;
                         }
-                        VetisError::VirtualHost(VirtualHostError::Auth(e)) => {
-                            log::error!("Auth error: {}", e);
+                        VetisError::Host(HostError::File(FileError::InvalidRange)) => {
+                            log::error!("Invalid file range: {}", error);
+                            return self
+                                .serve_status_page(http::StatusCode::RANGE_NOT_SATISFIABLE.as_u16())
+                                .await;
+                        }
+                        VetisError::Host(HostError::Interface(e)) => {
+                            log::error!("Interface error: {}", e);
                             return self
                                 .serve_status_page(http::StatusCode::UNAUTHORIZED.as_u16())
                                 .await;

@@ -1,10 +1,11 @@
 //! Path module for handling different types of paths in the server
 use std::sync::Arc;
 use vetis::{
-    errors::{HandlerError, VetisError, VirtualHostError},
-    virtual_host::path::Path,
-    HandlerFn, Request, Response, VetisFutureResult,
+    errors::{HandlerError, HostError, VetisError},
+    host::path::Path,
+    HandlerFn, Request, Response,
 };
+use vetis::{VetisFutureResult, VetisResult};
 
 /// Builder for handler path
 pub struct HandlerPathBuilder {
@@ -46,9 +47,9 @@ impl HandlerPathBuilder {
     /// # Returns
     ///
     /// * `Result<HostPath, VetisError>` - The handler path or error
-    pub fn build(self) -> Result<HandlerPath, VetisError> {
+    pub fn build(self) -> VetisResult<HandlerPath> {
         if self.uri.is_empty() {
-            return Err(VetisError::VirtualHost(VirtualHostError::Handler(HandlerError::Uri(
+            return Err(VetisError::Host(HostError::Handler(HandlerError::Uri(
                 "URI cannot be empty".to_string(),
             ))));
         }
@@ -56,9 +57,9 @@ impl HandlerPathBuilder {
         let handler = match self.handler {
             Some(handler) => handler,
             None => {
-                return Err(VetisError::VirtualHost(VirtualHostError::Handler(
-                    HandlerError::Handler("Handler must be set".to_string()),
-                )))
+                return Err(VetisError::Host(HostError::Handler(HandlerError::Handler(
+                    "Handler must be set".to_string(),
+                ))))
             }
         };
 

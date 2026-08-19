@@ -1,22 +1,19 @@
 use crate::{
+    host::{path::HandlerPath, HostImpl},
     rt::Vetis,
-    tests::default_protocol_version,
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 use http::StatusCode;
 use std::error::Error;
 use vetis::{
-    listener::ListenerConfig,
+    host::{handler_fn, HostConfig},
     server::ServerConfig,
-    virtual_host::{handler_fn, VirtualHostConfig},
     Response, VetisServer as _,
 };
 
-fn create_listener() -> ListenerConfig {
-    ListenerConfig::builder()
-        .port(8080)
-        .protocol_version(default_protocol_version())
-        .interface("0.0.0.0")
+fn create_host() -> HostConfig {
+    HostConfig::builder()
+        .hostname("localhost")
+        .root_directory("src/tests".into())
         .build()
         .unwrap()
 }
@@ -24,7 +21,7 @@ fn create_listener() -> ListenerConfig {
 #[test]
 fn test_vetis_new() {
     let config = ServerConfig::builder()
-        .add_listener(create_listener())
+        .add_host(create_host())
         .build()
         .unwrap();
     let server = Vetis::new(config);
@@ -32,7 +29,7 @@ fn test_vetis_new() {
     assert_eq!(
         server
             .config()
-            .listeners()
+            .hosts()
             .len(),
         1
     );
@@ -41,7 +38,7 @@ fn test_vetis_new() {
 #[test]
 fn test_vetis_config() {
     let config = ServerConfig::builder()
-        .add_listener(create_listener())
+        .add_host(create_host())
         .build()
         .unwrap();
 
@@ -50,34 +47,33 @@ fn test_vetis_config() {
     assert_eq!(
         server
             .config()
-            .listeners()
+            .hosts()
             .len(),
         1
     );
     assert_eq!(
         server
             .config()
-            .listeners()[0]
-            .port(),
-        8080
+            .hosts()[0]
+            .hostname(),
+        "localhost"
     );
 }
 
 #[tokio::test]
-async fn test_vetis_add_virtual_host() -> Result<(), Box<dyn Error>> {
+async fn test_vetis_add_host() -> Result<(), Box<dyn Error>> {
     let config = ServerConfig::builder()
-        .add_listener(create_listener())
+        .add_host(create_host())
         .build()
         .unwrap();
     let mut server = Vetis::new(config);
 
-    let vhost_config = VirtualHostConfig::builder()
+    let vhost_config = HostConfig::builder()
         .hostname("localhost")
-        .port(8080)
-        .root_directory("src/tests")
+        .root_directory("src/tests".into())
         .build()?;
 
-    let mut vhost = VirtualHostImpl::new(vhost_config);
+    let mut vhost = HostImpl::new(vhost_config);
 
     let handler_path = HandlerPath::builder()
         .uri("/")
@@ -91,12 +87,12 @@ async fn test_vetis_add_virtual_host() -> Result<(), Box<dyn Error>> {
     vhost.add_path(handler_path);
 
     server
-        .add_virtual_host(vhost)
+        .add_host(vhost)
         .await;
 
     assert_eq!(
         server
-            .virtual_hosts()
+            .hosts()
             .read()
             .await
             .len(),
@@ -107,9 +103,9 @@ async fn test_vetis_add_virtual_host() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-async fn test_vetis_start_no_virtual_hosts() -> Result<(), Box<dyn Error>> {
+async fn test_vetis_start_no_hosts() -> Result<(), Box<dyn Error>> {
     let config = ServerConfig::builder()
-        .add_listener(create_listener())
+        .add_host(create_host())
         .build()
         .unwrap();
     let mut server = Vetis::new(config);
@@ -124,7 +120,7 @@ async fn test_vetis_start_no_virtual_hosts() -> Result<(), Box<dyn Error>> {
 #[tokio::test]
 async fn test_vetis_stop_no_instance() -> Result<(), Box<dyn Error>> {
     let config = ServerConfig::builder()
-        .add_listener(create_listener())
+        .add_host(create_host())
         .build()
         .unwrap();
     let mut server = Vetis::new(config);
@@ -137,20 +133,19 @@ async fn test_vetis_stop_no_instance() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-async fn test_vetis_virtual_hosts() -> Result<(), Box<dyn Error>> {
+async fn test_vetis_hosts() -> Result<(), Box<dyn Error>> {
     let config = ServerConfig::builder()
-        .add_listener(create_listener())
+        .add_host(create_host())
         .build()
         .unwrap();
     let mut server = Vetis::new(config);
 
-    let vhost_config = VirtualHostConfig::builder()
+    let vhost_config = HostConfig::builder()
         .hostname("localhost")
-        .port(8080)
-        .root_directory("src/tests")
+        .root_directory("src/tests".into())
         .build()?;
 
-    let mut vhost = VirtualHostImpl::new(vhost_config);
+    let mut vhost = HostImpl::new(vhost_config);
 
     let handler_path = HandlerPath::builder()
         .uri("/")
@@ -164,34 +159,33 @@ async fn test_vetis_virtual_hosts() -> Result<(), Box<dyn Error>> {
     vhost.add_path(handler_path);
 
     server
-        .add_virtual_host(vhost)
+        .add_host(vhost)
         .await;
 
-    let virtual_hosts = server
-        .virtual_hosts()
+    let hosts = server
+        .hosts()
         .read()
         .await;
-    assert_eq!(virtual_hosts.len(), 1);
+    assert_eq!(hosts.len(), 1);
 
     Ok(())
 }
 
 #[tokio::test]
-async fn test_vetis_add_multiple_virtual_hosts() -> Result<(), Box<dyn Error>> {
+async fn test_vetis_add_multiple_hosts() -> Result<(), Box<dyn Error>> {
     let config = ServerConfig::builder()
-        .add_listener(create_listener())
+        .add_host(create_host())
         .build()
         .unwrap();
     let mut server = Vetis::new(config);
 
     for i in 0..3 {
-        let vhost_config = VirtualHostConfig::builder()
+        let vhost_config = HostConfig::builder()
             .hostname(&format!("host{}", i))
-            .port(8080 + i)
-            .root_directory("src/tests")
+            .root_directory("src/tests".into())
             .build()?;
 
-        let mut vhost = VirtualHostImpl::new(vhost_config);
+        let mut vhost = HostImpl::new(vhost_config);
 
         let handler_path = HandlerPath::builder()
             .uri("/")
@@ -205,13 +199,13 @@ async fn test_vetis_add_multiple_virtual_hosts() -> Result<(), Box<dyn Error>> {
         vhost.add_path(handler_path);
 
         server
-            .add_virtual_host(vhost)
+            .add_host(vhost)
             .await;
     }
 
     assert_eq!(
         server
-            .virtual_hosts()
+            .hosts()
             .read()
             .await
             .len(),

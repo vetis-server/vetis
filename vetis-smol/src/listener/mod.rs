@@ -2,7 +2,7 @@
 use crate::listener::tcp::TcpListener;
 #[cfg(feature = "http3")]
 use crate::listener::udp::UdpListener;
-use crate::{virtual_host::VirtualHostImpl, VetisVirtualHosts};
+use crate::{host::HostImpl, VetisHosts};
 use vetis::listener::{Listener, ListenerConfig, ListenerResult};
 
 #[cfg(any(feature = "http1", feature = "http2"))]
@@ -10,6 +10,17 @@ pub(crate) mod tcp;
 
 #[cfg(feature = "http3")]
 pub(crate) mod udp;
+
+pub(crate) fn supported_alpns() -> Vec<Vec<u8>> {
+    vec![
+        #[cfg(feature = "http3")]
+        b"h3".to_vec(),
+        #[cfg(feature = "http2")]
+        b"h2".to_vec(),
+        #[cfg(feature = "http1")]
+        b"http/1.1".to_vec(),
+    ]
+}
 
 /// Server listener
 pub enum ServerListener {
@@ -21,34 +32,33 @@ pub enum ServerListener {
     Udp(UdpListener),
 }
 
-impl Listener for ServerListener {
-    type VirtualHost = VirtualHostImpl;
-
-    fn new(config: ListenerConfig) -> Self
-    where
-        Self: Sized,
-    {
-        match config.protocol_version() {
-            #[cfg(feature = "http1")]
-            Version_HTTP_11 => ServerListener::Tcp(TcpListener::new(config)),
-            #[cfg(feature = "http2")]
-            Version_HTTP_2 => ServerListener::Tcp(TcpListener::new(config)),
-            #[cfg(feature = "http3")]
-            Version_HTTP_3 => ServerListener::Udp(UdpListener::new(config)),
-            _ => panic!("Unsupported protocol"),
-        }
+#[cfg(any(feature = "http1", feature = "http2"))]
+impl From<TcpListener> for ServerListener {
+    fn from(value: TcpListener) -> Self {
+        ServerListener::Tcp(value)
     }
+}
+
+#[cfg(feature = "http3")]
+impl From<UdpListener> for ServerListener {
+    fn from(value: UdpListener) -> Self {
+        ServerListener::Udp(value)
+    }
+}
+
+impl Listener for ServerListener {
+    type Host = HostImpl;
 
     /// Set the virtual hosts
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<VirtualHostImpl>) {
+    fn set_hosts(&mut self, hosts: VetisHosts<HostImpl>) {
         match self {
             #[cfg(any(feature = "http1", feature = "http2"))]
             ServerListener::Tcp(tcp_listener) => {
-                tcp_listener.set_virtual_hosts(virtual_hosts);
+                tcp_listener.set_hosts(hosts);
             }
             #[cfg(feature = "http3")]
             ServerListener::Udp(ref mut udp_listener) => {
-                udp_listener.set_virtual_hosts(virtual_hosts);
+                udp_listener.set_hosts(hosts);
             }
         }
     }

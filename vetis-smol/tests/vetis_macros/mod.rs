@@ -6,7 +6,7 @@ use deboa::{
 use deboa_smol::{cert::DeboaCertificate, Client};
 use macro_rules_attribute::apply;
 use smol_macros::test;
-use vetis::{virtual_host::handler_fn, Response, VetisServer as _};
+use vetis::{host::handler_fn, Response, VetisServer as _};
 use vetis_macros::{http, security};
 
 #[cfg(feature = "http1")]
@@ -18,7 +18,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
         from_crate => vetis_smol,
         port => 8888,
         handler => handler,
-        protocol_version => default_protocol_version()
+        protos => vec![default_protocol_version()],
     )
     .await?;
 
@@ -54,10 +54,10 @@ async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
         from_crate => vetis_smol,
         hostname => "localhost",
-        root_directory => "src",
-        protocol_version => default_protocol_version(),
+        root_directory => "src".into(),
+        protos => vec![default_protocol_version()],
         port => 60000,
-        interface => "0.0.0.0",
+        interface => "0.0.0.0".parse().unwrap(),
         handler => handler,
         security_config => security! {
             cert => "../certs/server.der",

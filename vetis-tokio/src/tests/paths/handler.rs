@@ -1,6 +1,6 @@
 use crate::{
+    host::{path::HandlerPath, HostImpl},
     tests::{default_protocol_version, CA_CERT, SERVER_CERT, SERVER_KEY},
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
 };
 use deboa::{
     cert::{CertificateExt, ContentEncoding},
@@ -10,10 +10,10 @@ use deboa_tokio::{cert::DeboaCertificate, Client};
 use http::StatusCode;
 use rand::random_range;
 use vetis::{
+    host::{handler_fn, HostConfig},
     listener::ListenerConfig,
     security::SecurityConfig,
     server::ServerConfig,
-    virtual_host::{handler_fn, VirtualHostConfig},
     VetisServer as _,
 };
 
@@ -22,12 +22,12 @@ async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
     let port = random_range(9000..=20000);
     let ipv4 = ListenerConfig::builder()
         .port(port)
-        .protocol_version(default_protocol_version())
-        .interface("0.0.0.0")
-        .build()?;
-
-    let config = ServerConfig::builder()
-        .add_listener(ipv4)
+        .protos(vec![default_protocol_version()])
+        .interface(
+            "0.0.0.0"
+                .parse()
+                .unwrap(),
+        )
         .build()?;
 
     let security_config = SecurityConfig::builder()
@@ -36,30 +36,34 @@ async fn test_handler() -> Result<(), Box<dyn std::error::Error>> {
         .key_from_bytes(SERVER_KEY.to_vec())
         .build()?;
 
-    let localhost_config = VirtualHostConfig::builder()
+    let host_config = HostConfig::builder()
         .hostname("localhost")
-        .root_directory("src/tests")
-        .port(port)
+        .root_directory("src/tests".into())
         .security(security_config)
         .build()?;
 
-    let mut localhost_virtual_host = VirtualHostImpl::new(localhost_config);
+    let mut server = crate::Vetis::new(
+        ServerConfig::builder()
+            .add_listener(ipv4)
+            .build()?,
+    );
 
     let root_path = HandlerPath::builder()
         .uri("/hello")
         .handler(handler_fn(|_request| async move {
-            let response = crate::http::Response::builder()
+            let response = vetis::Response::builder()
                 .status(StatusCode::OK)
                 .text("Hello from localhost");
             Ok(response)
         }))
         .build()?;
 
-    localhost_virtual_host.add_path(root_path);
+    let mut host = HostImpl::new(host_config);
 
-    let mut server = crate::Vetis::new(config);
+    host.add_path(root_path);
+
     server
-        .add_virtual_host(localhost_virtual_host)
+        .add_host(host)
         .await;
 
     server

@@ -9,6 +9,8 @@ pub mod auth;
 pub mod base;
 /// Error handling module
 pub mod errors;
+/// Virtual host configuration and management module
+pub mod host;
 /// Listener configuration and management module
 pub mod listener;
 /// HTTP request module
@@ -24,8 +26,6 @@ pub mod server;
 mod tests;
 /// Utility functions and helpers
 pub mod utils;
-/// Virtual host configuration and management module
-pub mod virtual_host;
 
 /// A type alias for Result returned by vetis functions
 ///
@@ -64,14 +64,14 @@ pub type VetisRwLock<T> = RwLock<T>;
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::virtual_host::VirtualHostConfig;
-/// use vetis::{VetisVirtualHosts, VetisRwLock};
+/// use vetis::host::HostConfig;
+/// use vetis::{VetisHosts, VetisRwLock};
 /// use std::{sync::Arc, collections::HashMap};
 ///
-/// let virtual_hosts: VetisVirtualHosts<VirtualHostConfig> =
+/// let hosts: VetisHosts<HostConfig> =
 ///     Arc::new(VetisRwLock::new(HashMap::new()));
 /// ```
-pub type VetisVirtualHosts<T> = Arc<VetisRwLock<HashMap<(Arc<str>, u16), T>>>;
+pub type VetisHosts<T> = Arc<VetisRwLock<HashMap<Arc<str>, T>>>;
 
 /// A pinned future that resolves to a result of type T or a VetisError
 ///
@@ -95,7 +95,7 @@ pub type VetisFutureResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> 
 ///
 /// This represents an async function that takes a `Request` and returns
 /// a `Response` or an error. Handlers are the core of request processing
-/// in VeTiS virtual hosts.
+/// in VeTiS hosts.
 ///
 /// # Examples
 ///

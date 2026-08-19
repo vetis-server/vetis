@@ -3,8 +3,8 @@
 #[cfg(all(any(feature = "http2", feature = "http3"), not(feature = "rust-tls")))]
 compile_error!("http2 and http3 requires rust-tls!");
 
-/// HTTP server module
-pub mod http;
+/// Host module
+pub mod host;
 /// Listener module
 pub mod listener;
 /// Runtime module
@@ -14,16 +14,16 @@ pub mod rt;
 mod tests;
 /// TLS module
 mod tls;
-/// Virtual host module
-pub mod virtual_host;
 
 pub use crate::rt::Vetis;
 pub use vetis::{
     base::VetisServer,
     errors,
+    host::{handler_fn, HostConfig},
     listener::ListenerConfig,
+    request::Request,
+    response::Response,
     security::SecurityConfig,
-    server::{Server, ServerConfig},
-    virtual_host::{handler_fn, VirtualHostConfig},
-    VetisRwLock, VetisVirtualHosts,
+    server::ServerConfig,
+    VetisHosts, VetisRwLock,
 };

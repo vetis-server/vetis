@@ -5,15 +5,15 @@ use crate::{
 };
 use radix_trie::Trie;
 use serde::Deserialize;
-use std::{collections::HashMap, future::Future, path::Path, sync::Arc};
+use std::{collections::HashMap, future::Future, path::PathBuf, sync::Arc};
 
-/// Path configuration for virtual hosts.
+/// Path configuration for hosts.
 pub mod path;
 
 /// Creates a handler function from a function.
 ///
 /// This utility function converts any compatible async function into a
-/// `HandlerFn` that can be used with virtual hosts.
+/// `HandlerFn` that can be used with hosts.
 ///
 /// # Arguments
 ///
@@ -23,10 +23,10 @@ pub mod path;
 ///
 /// ```rust,no_run
 /// use vetis::{
-///     virtual_host::{handler_fn, VirtualHostConfig},
+///     host::{handler_fn, HostConfig},
 /// };
 ///
-/// let config = VirtualHostConfig::builder()
+/// let config = HostConfig::builder()
 ///     .hostname("example.com")
 ///     .port(80)
 ///     .build()
@@ -42,7 +42,7 @@ where
     Box::new(move |req| Box::pin(f(req)))
 }
 
-/// Builder for creating `VirtualHostConfig` instances.
+/// Builder for creating `HostConfig` instances.
 ///
 /// Provides a fluent API for configuring virtual hosts,
 /// including hostname, port, and security settings.
@@ -52,7 +52,7 @@ where
 /// ```rust,no_run
 /// use vetis::{
 ///     security::SecurityConfig,
-///     virtual_host::VirtualHostConfig
+///     host::HostConfig
 /// };
 ///
 /// let security = SecurityConfig::builder()
@@ -61,17 +61,16 @@ where
 ///     .build()
 ///     .unwrap();
 ///
-/// let config = VirtualHostConfig::builder()
+/// let config = HostConfig::builder()
 ///     .hostname("example.com")
 ///     .port(443)
 ///     .security(security)
 ///     .build()
 ///     .unwrap();
 /// ```
-pub struct VirtualHostConfigBuilder {
+pub struct HostConfigBuilder {
     hostname: String,
-    port: u16,
-    root_directory: String,
+    root_directory: Option<PathBuf>,
     default_headers: Option<Vec<(String, String)>>,
     security: Option<SecurityConfig>,
     status_pages: Option<HashMap<u16, String>>,
@@ -79,7 +78,7 @@ pub struct VirtualHostConfigBuilder {
     paths: Option<Vec<Box<dyn path::PathConfig>>>,
 }
 
-impl VirtualHostConfigBuilder {
+impl HostConfigBuilder {
     /// Sets the hostname for the virtual host.
     ///
     /// This is used to match incoming requests to the correct virtual host.
@@ -87,34 +86,15 @@ impl VirtualHostConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
+    /// use vetis::host::HostConfig;
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .hostname("api.example.com")
     ///     .build()
     ///     .unwrap();
     /// ```
     pub fn hostname(mut self, hostname: &str) -> Self {
         self.hostname = hostname.to_string();
-        self
-    }
-
-    /// Sets the port for the virtual host.
-    ///
-    /// This should match one of the ports configured in the server listeners.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
-    ///
-    /// let config = VirtualHostConfig::builder()
-    ///     .port(8443)
-    ///     .build()
-    ///     .unwrap();
-    /// ```
-    pub fn port(mut self, port: u16) -> Self {
-        self.port = port;
         self
     }
 
@@ -125,15 +105,15 @@ impl VirtualHostConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
+    /// use vetis::host::HostConfig;
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .root_directory("/var/www")
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn root_directory(mut self, root_directory: &str) -> Self {
-        self.root_directory = root_directory.to_string();
+    pub fn root_directory(mut self, root_directory: PathBuf) -> Self {
+        self.root_directory = Some(root_directory);
         self
     }
 
@@ -144,9 +124,9 @@ impl VirtualHostConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
+    /// use vetis::host::HostConfig;
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .header("X-Custom", "value")
     ///     .build()
     ///     .unwrap();
@@ -173,7 +153,7 @@ impl VirtualHostConfigBuilder {
     /// ```rust,no_run
     /// use vetis::{
     ///     security::SecurityConfig,
-    ///     virtual_host::VirtualHostConfig,
+    ///     host::HostConfig,
     /// };
     ///
     /// let security = SecurityConfig::builder()
@@ -182,7 +162,7 @@ impl VirtualHostConfigBuilder {
     ///     .build()
     ///     .unwrap();
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .security(security)
     ///     .build()
     ///     .unwrap();
@@ -199,13 +179,13 @@ impl VirtualHostConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
+    /// use vetis::host::HostConfig;
     /// use std::collections::HashMap;
     ///
     /// let mut status_pages = HashMap::new();
     /// status_pages.insert(404, "404.html".to_string());
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .status_pages(status_pages)
     ///     .build()
     ///     .unwrap();
@@ -222,9 +202,9 @@ impl VirtualHostConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
+    /// use vetis::host::HostConfig;
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .enable_logging(true)
     ///     .build()
     ///     .unwrap();
@@ -234,7 +214,7 @@ impl VirtualHostConfigBuilder {
         self
     }
 
-    /// Creates the `VirtualHostConfig` with the configured settings.
+    /// Creates the `HostConfig` with the configured settings.
     ///
     /// # Errors
     ///
@@ -243,45 +223,34 @@ impl VirtualHostConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
+    /// use vetis::host::HostConfig;
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .hostname("example.com")
     ///     .port(443)
     ///     .header("X-Custom", "value")
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn build(self) -> VetisResult<VirtualHostConfig> {
+    pub fn build(self) -> VetisResult<HostConfig> {
         if self
             .hostname
             .is_empty()
         {
-            return Err(VetisError::Config(ConfigError::VirtualHost(
-                "Missing hostname".to_string(),
-            )));
+            return Err(VetisError::Config(ConfigError::Host("Missing hostname".to_string())));
         }
 
-        if self
-            .root_directory
-            .is_empty()
-        {
-            return Err(VetisError::Config(ConfigError::VirtualHost(
-                "Missing root directory".to_string(),
-            )));
-        } else {
-            let root_path = Path::new(&self.root_directory);
-            if !root_path.exists() {
-                return Err(VetisError::Config(ConfigError::VirtualHost(format!(
-                    "root_directory does not exist: {}",
-                    self.root_directory
+        if let Some(root_dir) = &self.root_directory {
+            if !root_dir.exists() {
+                return Err(VetisError::Config(ConfigError::Host(format!(
+                    "root_directory does not exist: {:?}",
+                    root_dir
                 ))));
             }
         }
 
-        Ok(VirtualHostConfig {
+        Ok(HostConfig {
             hostname: self.hostname,
-            port: self.port,
             root_directory: self.root_directory,
             default_headers: self.default_headers,
             security: self.security,
@@ -303,21 +272,20 @@ impl VirtualHostConfigBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::virtual_host::VirtualHostConfig;
+/// use vetis::host::HostConfig;
 ///
-/// let config = VirtualHostConfig::builder()
+/// let config = HostConfig::builder()
 ///     .hostname("api.example.com")
 ///     .port(443)
 ///     .build()
 ///     .unwrap();
 ///
-/// println!("Virtual host: {}:{}", config.hostname(), config.port());
+/// println!("Host: {}:{}", config.hostname(), config.port());
 /// ```
 #[derive(Deserialize)]
-pub struct VirtualHostConfig {
+pub struct HostConfig {
     hostname: String,
-    port: u16,
-    root_directory: String,
+    root_directory: Option<PathBuf>,
     default_headers: Option<Vec<(String, String)>>,
     #[serde(deserialize_with = "crate::security::deserialize_security_from_file")]
     security: Option<SecurityConfig>,
@@ -326,8 +294,8 @@ pub struct VirtualHostConfig {
     paths: Option<Vec<Box<dyn path::PathConfig>>>,
 }
 
-impl VirtualHostConfig {
-    /// Creates a new `VirtualHostConfigBuilder` with default settings.
+impl HostConfig {
+    /// Creates a new `HostConfigBuilder` with default settings.
     ///
     /// Default values:
     /// - hostname: empty string (must be set)
@@ -337,19 +305,18 @@ impl VirtualHostConfig {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::virtual_host::VirtualHostConfig;
+    /// use vetis::host::HostConfig;
     ///
-    /// let config = VirtualHostConfig::builder()
+    /// let config = HostConfig::builder()
     ///     .hostname("example.com")
     ///     .port(443)
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn builder() -> VirtualHostConfigBuilder {
-        VirtualHostConfigBuilder {
+    pub fn builder() -> HostConfigBuilder {
+        HostConfigBuilder {
             hostname: "localhost".to_string(),
-            port: 80,
-            root_directory: "/var/vetis/www".to_string(),
+            root_directory: None,
             default_headers: None,
             security: None,
             status_pages: None,
@@ -367,21 +334,12 @@ impl VirtualHostConfig {
         &self.hostname
     }
 
-    /// Returns the port.
-    ///
-    /// # Returns
-    ///
-    /// * `u16` - The port.
-    pub fn port(&self) -> u16 {
-        self.port
-    }
-
     /// Returns the root directory.
     ///
     /// # Returns
     ///
     /// * `&str` - The root directory.
-    pub fn root_directory(&self) -> &str {
+    pub fn root_directory(&self) -> &Option<PathBuf> {
         &self.root_directory
     }
 
@@ -431,8 +389,50 @@ impl VirtualHostConfig {
     }
 }
 
+impl Default for HostConfig {
+    fn default() -> Self {
+        HostConfig {
+            hostname: "localhost".to_string(),
+            root_directory: None,
+            default_headers: None,
+            security: None,
+            status_pages: None,
+            enable_logging: true,
+            paths: None,
+        }
+    }
+}
+
+impl From<&str> for HostConfig {
+    fn from(hostname: &str) -> Self {
+        HostConfig {
+            hostname: hostname.to_string(),
+            root_directory: None,
+            default_headers: None,
+            security: None,
+            status_pages: None,
+            enable_logging: true,
+            paths: None,
+        }
+    }
+}
+
+impl From<(&str, &str)> for HostConfig {
+    fn from((hostname, root_directory): (&str, &str)) -> Self {
+        HostConfig {
+            hostname: hostname.to_string(),
+            root_directory: Some(root_directory.into()),
+            default_headers: None,
+            security: None,
+            status_pages: None,
+            enable_logging: true,
+            paths: None,
+        }
+    }
+}
+
 /// Virtual host trait
-pub trait VirtualHost {
+pub trait Host {
     /// Returns the paths trie
     ///
     /// # Returns
@@ -444,8 +444,8 @@ pub trait VirtualHost {
     ///
     /// # Returns
     ///
-    /// * `&VirtualHostConfig` - A reference to the virtual host configuration.
-    fn config(&self) -> &VirtualHostConfig;
+    /// * `&HostConfig` - A reference to the virtual host configuration.
+    fn config(&self) -> &HostConfig;
 
     /// Returns virtual host hostname
     ///
@@ -455,26 +455,6 @@ pub trait VirtualHost {
     fn hostname(&self) -> &str {
         self.config()
             .hostname()
-    }
-
-    /// Returns virtual host port number
-    ///
-    /// # Returns
-    ///
-    /// * `u16` - The virtual host port number.
-    fn port(&self) -> u16 {
-        self.config().port()
-    }
-
-    /// Returns virtual host security configuration
-    ///
-    /// # Returns
-    ///
-    /// * `bool` - Whether the virtual host is secure or not.
-    fn is_secure(&self) -> bool {
-        self.config()
-            .security()
-            .is_some()
     }
 
     /// Serve a status page
