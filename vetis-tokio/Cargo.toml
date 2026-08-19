@@ -1,6 +1,6 @@
 [package]
 name = "vetis-tokio"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -73,7 +73,7 @@ h3-quinn = { workspace = true, optional = true }
 http = { workspace = true }
 http-body-util = { workspace = true }
 hyper = { workspace = true, optional = true, default-features = false }
-hyper-body-utils = { workspace = true, default-features = false }
+hyper-body-utils = { workspace = true, optional = true, default-features = false }
 hyper-util = { workspace = true, features = [
   "tokio",
 ], default-features = false }
@@ -104,7 +104,7 @@ vetis = { workspace = true, default-features = false }
 
 [dev-dependencies]
 deboa = { workspace = true }
-deboa-tokio = { version = "0.1.0", default-features = false, features = [
+deboa-tokio = { version = "0.1.2", default-features = false, features = [
   "http1",
   "http2",
   #"http3",

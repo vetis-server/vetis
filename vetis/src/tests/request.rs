@@ -134,10 +134,3 @@ fn test_request_into_parts() {
         )
     );
 }
-
-#[test]
-#[should_panic(expected = "No request")]
-fn test_request_panic_on_no_inner() {
-    let request = Request { inner: None };
-    request.method();
-}

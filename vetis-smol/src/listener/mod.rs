@@ -3,7 +3,7 @@ use crate::listener::tcp::TcpListener;
 #[cfg(feature = "http3")]
 use crate::listener::udp::UdpListener;
 use crate::{host::HostImpl, VetisHosts};
-use vetis::listener::{Listener, ListenerConfig, ListenerResult};
+use vetis::listener::{Listener, ListenerResult};
 
 #[cfg(any(feature = "http1", feature = "http2"))]
 pub(crate) mod tcp;

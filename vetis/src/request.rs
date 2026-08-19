@@ -25,7 +25,7 @@ use hyper_body_utils::HttpBody;
 /// }
 /// ```
 pub struct Request {
-    pub(crate) inner: Option<http::Request<HttpBody>>,
+    pub(crate) inner: http::Request<HttpBody>,
 }
 
 impl Request {
@@ -33,15 +33,12 @@ impl Request {
     ///
     /// This is used internally by the server to wrap incoming HTTP requests.
     pub fn from_parts(parts: http::request::Parts, body: HttpBody) -> Self {
-        Self { inner: Some(http::Request::from_parts(parts, body)) }
+        Self { inner: http::Request::from_parts(parts, body) }
     }
 
     /// Returns the request URI.
     pub fn uri(&self) -> &http::Uri {
-        match &self.inner {
-            Some(req) => req.uri(),
-            None => panic!("No request"),
-        }
+        self.inner.uri()
     }
 
     /// Returns the request headers.
@@ -59,10 +56,7 @@ impl Request {
     /// }
     /// ```
     pub fn headers(&self) -> &http::HeaderMap {
-        match &self.inner {
-            Some(req) => req.headers(),
-            None => panic!("No request"),
-        }
+        self.inner.headers()
     }
 
     /// Returns the request headers (mutable).
@@ -79,10 +73,8 @@ impl Request {
     /// }
     /// ```
     pub fn headers_mut(&mut self) -> &mut http::HeaderMap {
-        match &mut self.inner {
-            Some(req) => req.headers_mut(),
-            None => panic!("No request"),
-        }
+        self.inner
+            .headers_mut()
     }
 
     /// Returns the HTTP method.
@@ -103,10 +95,7 @@ impl Request {
     /// }
     /// ```
     pub fn method(&self) -> &http::Method {
-        match &self.inner {
-            Some(req) => req.method(),
-            None => panic!("No request"),
-        }
+        self.inner.method()
     }
 
     /// Returns the HTTP version.
@@ -127,22 +116,14 @@ impl Request {
     /// }
     /// ```
     pub fn version(&self) -> http::Version {
-        match &self.inner {
-            Some(req) => req.version(),
-            None => panic!("No request"),
-        }
+        self.inner.version()
     }
 
     /// Convert the request into parts.
     pub fn into_parts(self) -> (http::request::Parts, HttpBody) {
-        match self.inner {
-            Some(req) => {
-                let (parts, body) = req.into_parts();
-                (parts, body)
-            }
-            None => {
-                panic!("No request");
-            }
-        }
+        let (parts, body) = self
+            .inner
+            .into_parts();
+        (parts, body)
     }
 }

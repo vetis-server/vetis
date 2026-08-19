@@ -1,6 +1,6 @@
 [package]
 name = "vetis-compio"
-version = "0.1.0"
+version = "0.1.1"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
@@ -70,7 +70,7 @@ futures-util = { workspace = true }
 http = { workspace = true }
 http-body-util = { workspace = true }
 hyper = { workspace = true, optional = true }
-hyper-body-utils = { workspace = true }
+hyper-body-utils = { workspace = true, default-features = false, optional = true }
 hyper-util = { workspace = true, optional = true }
 log = { workspace = true }
 radix_trie = { workspace = true }
