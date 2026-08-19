@@ -16,7 +16,7 @@ vetis-smol  = { version = "0.1.0" }
 
 ```rust, ignore
 use http::Version;
-use vetis::{virtual_host::handler_fn, Response};
+use vetis::{host::handler_fn, Response};
 use vetis_macros::http;
 
 #[tokio::main]
@@ -26,10 +26,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
         from_crate => vetis_tokio,
         hostname => "localhost",
-        root_directory => "src",
-        protocol_version => Version::HTTP_11,
+        protos => vec![Version::HTTP_11],
         port => 8080,
-        interface => "0.0.0.0",
+        interface => "0.0.0.0".parse().unwrap(),
         handler => handler
     )
     .await?;

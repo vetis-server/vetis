@@ -25,11 +25,11 @@ use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
     server::{ServerConfig},
-    virtual_host::{handler_fn, VirtualHostConfig},
+    host::{handler_fn, HostConfig},
     VetisServer as _
 };
 use vetis_compio::{
-    virtual_host::{path::HandlerPath, VirtualHostImpl},
+    host::{path::HandlerPath, HostImpl},
     Vetis,
 };
 
@@ -57,14 +57,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .key_from_bytes(SERVER_KEY.to_vec())
         .build()?;
 
-    let localhost_config = VirtualHostConfig::builder()
+    let localhost_config = HostConfig::builder()
         .hostname("localhost")
         .port(8443)
         .security(security_config)
         .root_directory("/home/rogerio/Downloads")
         .build()?;
 
-    let mut localhost_virtual_host = VirtualHostImpl::new(localhost_config);
+    let mut localhost_host = HostImpl::new(localhost_config);
 
     let root_path = HandlerPath::builder()
         .uri("/hello")
@@ -76,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_virtual_host.add_path(root_path);
+    localhost_host.add_path(root_path);
 
     let health_path = HandlerPath::builder()
         .uri("/health")
@@ -88,11 +88,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_virtual_host.add_path(health_path);
+    localhost_host.add_path(health_path);
 
     let mut server = Vetis::new(config);
     server
-        .add_virtual_host(localhost_virtual_host)
+        .add_host(localhost_host)
         .await;
 
     server.run().await?;
