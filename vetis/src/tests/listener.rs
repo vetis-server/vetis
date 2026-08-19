@@ -194,3 +194,22 @@ fn test_listener_config_min_port() {
 
     assert_eq!(config.port(), 1);
 }
+
+#[test]
+fn test_port_into_listener() {
+    let config: ListenerConfig = 80.into();
+    assert_eq!(config.port(), 80)
+}
+
+#[test]
+fn test_version_into_listener() {
+    let config: ListenerConfig = Version::HTTP_11.into();
+    assert_eq!(config.protos()[0], Version::HTTP_11);
+}
+
+#[test]
+fn test_port_version_into_listener() {
+    let config: ListenerConfig = (80, Version::HTTP_11).into();
+    assert_eq!(config.port(), 80);
+    assert_eq!(config.protos()[0], Version::HTTP_11);
+}

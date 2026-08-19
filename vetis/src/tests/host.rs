@@ -411,3 +411,16 @@ fn test_host_config_builder_chain() {
         .is_some());
     assert!(!config.enable_logging());
 }
+
+#[test]
+fn test_hostname_into_hostconfig() {
+    let config: HostConfig = "example.com".into();
+    assert_eq!(config.hostname(), "example.com")
+}
+
+#[test]
+fn test_hostname_rootdir_into_hostconfig() {
+    let config: HostConfig = ("example.com", "/var/vetis").into();
+    assert_eq!(config.hostname(), "example.com");
+    assert_eq!(config.root_directory(), &Some("/var/vetis".into()))
+}
