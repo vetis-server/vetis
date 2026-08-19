@@ -119,8 +119,8 @@ impl Request {
     ///
     /// async fn handler(request: Request) -> VetisResult<Response> {
     ///     match request.version() {
-    ///         &http::Version::HTTP_11 => { /* handle HTTP/1.1 */ }
-    ///         &http::Version::HTTP_2 => { /* handle HTTP/2 */ }
+    ///         http::Version::HTTP_11 => { /* handle HTTP/1.1 */ }
+    ///         http::Version::HTTP_2 => { /* handle HTTP/2 */ }
     ///         _ => { /* handle other versions */ }
     ///     }
     ///     Ok(Response::builder().status(StatusCode::OK).text("Hello"))

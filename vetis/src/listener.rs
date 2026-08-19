@@ -78,6 +78,7 @@ impl ListenerConfigBuilder {
     /// # Examples
     ///
     /// ```rust,no_run
+    /// use std::net::Ipv4Addr;
     /// use vetis::listener::ListenerConfig;
     ///
     /// let config = ListenerConfig::builder()
@@ -126,11 +127,12 @@ impl ListenerConfigBuilder {
 ///
 /// ```rust,no_run
 /// use http::Version;
+/// use std::net::Ipv4Addr;
 /// use vetis::{listener::ListenerConfig};
 ///
 /// let config = ListenerConfig::builder()
 ///     .port(8443)
-///     .protocol_version(Version::HTTP_11)
+///     .protos(vec![Version::HTTP_11])
 ///     .interface(Ipv4Addr::UNSPECIFIED.into()) // or (0, 0, 0, 0).into()
 ///     .build()
 ///     .unwrap();
