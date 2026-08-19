@@ -1,23 +1,27 @@
 use crate::tests::default_protocol_version;
 use std::error::Error;
+use std::net::{IpAddr, Ipv4Addr};
 use vetis::errors::{ConfigError, VetisError};
 use vetis::{
-    listener::ListenerConfig, security::SecurityConfig, server::ServerConfig,
-    virtual_host::VirtualHostConfig,
+    host::HostConfig, listener::ListenerConfig, security::SecurityConfig, server::ServerConfig,
 };
 
 #[test]
 fn test_listener_config() -> Result<(), Box<dyn Error>> {
-    let protocol = default_protocol_version();
+    let protos = vec![default_protocol_version()];
 
     let listener_config = ListenerConfig::builder()
         .port(8080)
-        .protocol_version(protocol.clone())
-        .interface("127.0.0.1")
+        .protos(protos.clone())
+        .interface(
+            "127.0.0.1"
+                .parse()
+                .unwrap(),
+        )
         .build()?;
     assert_eq!(listener_config.port(), 8080);
-    assert_eq!(listener_config.protocol_version(), &protocol);
-    assert_eq!(listener_config.interface(), "127.0.0.1");
+    assert_eq!(listener_config.protos(), &protos);
+    assert_eq!(listener_config.interface(), &IpAddr::V4(Ipv4Addr::LOCALHOST));
 
     Ok(())
 }
@@ -25,15 +29,16 @@ fn test_listener_config() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_server_config() -> Result<(), Box<dyn Error>> {
     let server_config = ServerConfig::builder()
-        .add_listener(
-            ListenerConfig::builder()
-                .port(8080)
+        .add_host(
+            HostConfig::builder()
+                .hostname("localhost")
+                .root_directory("src/tests".into())
                 .build()?,
         )
         .build()?;
     assert_eq!(
         server_config
-            .listeners()
+            .hosts()
             .len(),
         1
     );
@@ -58,24 +63,22 @@ fn test_security_config() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_virtual_host_config() -> Result<(), Box<dyn std::error::Error>> {
-    let virtual_host_config = VirtualHostConfig::builder()
+fn test_host_config() -> Result<(), Box<dyn std::error::Error>> {
+    let host_config = HostConfig::builder()
         .hostname("localhost")
-        .port(8080)
-        .root_directory("src/tests")
+        .root_directory("src/tests".into())
         .build()?;
-    assert_eq!(virtual_host_config.hostname(), "localhost");
-    assert_eq!(virtual_host_config.port(), 8080);
+    assert_eq!(host_config.hostname(), "localhost");
 
     Ok(())
 }
 
 #[test]
-fn test_default_virtual_host_config() -> Result<(), Box<dyn std::error::Error>> {
-    let virtual_host_config = VirtualHostConfig::builder().build();
+fn test_default_host_config() -> Result<(), Box<dyn std::error::Error>> {
+    let host_config = HostConfig::builder().build();
     assert_eq!(
-        virtual_host_config.err(),
-        Some(VetisError::Config(ConfigError::VirtualHost(
+        host_config.err(),
+        Some(VetisError::Config(ConfigError::Host(
             "root_directory does not exist: /var/vetis/www".to_string()
         )))
     );
@@ -83,15 +86,15 @@ fn test_default_virtual_host_config() -> Result<(), Box<dyn std::error::Error>> 
 }
 
 #[test]
-fn test_invalid_virtual_host_config() -> Result<(), Box<dyn std::error::Error>> {
-    let virtual_host_config = VirtualHostConfig::builder()
+fn test_invalid_host_config() -> Result<(), Box<dyn std::error::Error>> {
+    let host_config = HostConfig::builder()
         .hostname("")
-        .root_directory("src/tests")
+        .root_directory("src/tests".into())
         .build();
 
     assert_eq!(
-        virtual_host_config.err(),
-        Some(VetisError::Config(ConfigError::VirtualHost("Missing hostname".to_string())))
+        host_config.err(),
+        Some(VetisError::Config(ConfigError::Host("Missing hostname".to_string())))
     );
     Ok(())
 }

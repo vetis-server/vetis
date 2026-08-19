@@ -29,17 +29,28 @@ rust-tls = ["futures-rustls", "rustls", "rustls-provider"]
 rustls-provider = ["__rustls_awc_lc_rs"]
 __rustls_awc_lc_rs = ["futures-rustls/aws-lc-rs", "quinn/rustls-aws-lc-rs"]
 __rustls_ring = ["futures-rustls/ring", "quinn/rustls-ring"]
-__rustls_rustcrypto = ["dep:rustls-rustcrypto"]
 
-http1 = ["hyper/http1", "hyper/server", "hyper-util/server", "hyper-util/http1"]
-http2 = ["hyper/http2", "hyper/server", "hyper-util/server", "hyper-util/http2"]
+http1 = [
+  "hyper/http1",
+  "hyper/server",
+  "hyper-util/server",
+  "hyper-body-utils/generic",
+  "hyper-util/http1",
+]
+http2 = [
+  "hyper/http2",
+  "hyper/server",
+  "hyper-util/server",
+  "hyper-body-utils/generic",
+  "hyper-util/http2",
+]
 http3 = [
   "dep:h3",
   "dep:h3-quinn",
   "hyper/server",
   "hyper-util/server",
-  "hyper-body-utils/http3",
   "hyper-body-utils/generic",
+  "hyper-body-utils/generic-h3",
   "quinn/runtime-smol",
 ]
 
@@ -47,7 +58,7 @@ http3 = [
 async-lock = "3.4.1"
 async-net = "2.0.0"
 async-signal = { version = "0.2.12", default-features = false }
-base64 = { version = "0.22.1", optional = true, default-features = false }
+base64 = { version = "0.23.1", optional = true, default-features = false }
 blocking = { version = "1.6.2", optional = true, default-features = false }
 bytes = { version = "1.11.1", default-features = false }
 clap = { version = "4.5.61", features = [
@@ -64,12 +75,11 @@ h3-quinn = { version = "0.0.10", optional = true, default-features = false }
 http = "1.4.2"
 http-body-util = { version = "0.1.3" }
 hyper = { version = "1.10.1", optional = true, default-features = false }
-hyper-body-utils = { workspace = true, default-features = false  }
+hyper-body-utils = { workspace = true, optional = true, default-features = false }
 hyper-util = { version = "0.1.20", optional = true, default-features = false }
 log = "0.4.32"
 macro_rules_attribute = { version = "0.2.2", default-features = false }
 mimalloc = "0.1.52"
-moka = { version = "0.12.14", optional = true, default-features = false }
 peekable = { version = "0.6.1", features = [
   "future",
 ], default-features = false }
@@ -78,7 +88,6 @@ radix_trie = { version = "0.3.0", default-features = false }
 rand = { version = "0.10.1", default-features = false }
 regex = { version = "1.12.4", optional = true, default-features = false }
 rustls = { version = "0.23.40", optional = true, default-features = false }
-rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
 serde = { version = "1.0.226", features = ["derive"] }
 serde_yaml_ng = "0.10.0"
 signal-hook = { version = "0.4.3", default-features = false }
@@ -87,7 +96,7 @@ smol-hyper = { version = "0.1.1", default-features = false }
 smol-macros = { version = "0.1.1", default-features = false }
 socket2 = "0.6.4"
 thiserror = "2.0.17"
-time = { version = "0.3.41", features = ["formatting"] }
+time = { version = "0.3.55", features = ["formatting"] }
 typetag = "0.2.22"
 url = "2.5.7"
 vetis = { workspace = true, default-features = false }

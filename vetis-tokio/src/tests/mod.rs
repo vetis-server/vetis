@@ -2,15 +2,14 @@
 use ::http::Version;
 
 mod config;
-mod http;
 mod lib;
 mod paths;
 
 #[cfg(target_os = "linux")]
 mod server;
 
+mod host;
 mod tls;
-mod virtual_host;
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../../../certs/ca.der");
 

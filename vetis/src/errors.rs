@@ -47,8 +47,8 @@ pub enum VetisError {
     Listener(#[from] ListenerError),
 
     /// Virtual host related errors
-    #[error("Virtual host error: {0}")]
-    VirtualHost(#[from] VirtualHostError),
+    #[error("Host error: {0}")]
+    Host(#[from] HostError),
 }
 
 /// Configuration-related errors.
@@ -68,7 +68,7 @@ pub enum ConfigError {
     Listener(String),
     /// Invalid virtual host configuration
     #[error("Invalid virtual host config: {0}")]
-    VirtualHost(String),
+    Host(String),
     /// Invalid path configuration
     #[error("Invalid path config: {0}")]
     Path(String),
@@ -103,15 +103,15 @@ pub enum StartError {
     AlreadyRunning,
 }
 
-/// Virtual host related errors.
+/// Host related errors.'
 ///
 /// These errors occur when working with virtual hosts,
 /// such as missing handlers or configuration issues.
 #[derive(Debug, Clone, Error, PartialEq)]
-pub enum VirtualHostError {
+pub enum HostError {
     /// No virtual hosts have been added to the server
-    #[error("No virtual hosts")]
-    NoVirtualHosts,
+    #[error("No hosts")]
+    NoHosts,
 
     /// Handler errors
     #[error("Handler error: {0}")]

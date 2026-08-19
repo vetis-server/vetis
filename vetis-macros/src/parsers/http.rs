@@ -4,7 +4,7 @@ use syn::{
 };
 
 pub(crate) struct HttpArgs {
-    pub(crate) protocol_version: Option<Expr>,
+    pub(crate) protos: Option<Expr>,
     pub(crate) handler: Option<Expr>,
     pub(crate) from_crate: Option<Ident>,
     pub(crate) hostname: Option<Expr>,
@@ -16,7 +16,7 @@ pub(crate) struct HttpArgs {
 
 impl Parse for HttpArgs {
     fn parse(input: ParseStream) -> Result<Self> {
-        let mut protocol_version = None;
+        let mut protos = None;
         let mut handler = None;
         let mut from_crate = None;
         let mut hostname = None;
@@ -33,12 +33,12 @@ impl Parse for HttpArgs {
                 .to_string()
                 .as_str()
             {
-                "protocol_version" => {
-                    if protocol_version.is_some() {
-                        return Err(input.error("Duplicate 'protocol_version' key"));
+                "protos" => {
+                    if protos.is_some() {
+                        return Err(input.error("Duplicate 'protos' key"));
                     }
                     let expr: Expr = input.parse()?;
-                    protocol_version = Some(expr);
+                    protos = Some(expr);
                 }
                 "handler" => {
                     if handler.is_some() {
@@ -98,7 +98,7 @@ impl Parse for HttpArgs {
         }
 
         Ok(HttpArgs {
-            protocol_version,
+            protos,
             handler,
             from_crate,
             hostname,

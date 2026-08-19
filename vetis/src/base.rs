@@ -1,19 +1,19 @@
-use crate::{server::ServerConfig, VetisResult, VetisVirtualHosts};
+use crate::{server::ServerConfig, VetisHosts, VetisResult};
 use std::future::Future;
 
 /// Base trait for Vetis server
 pub trait VetisServer {
-    /// Virtual host type
-    type VirtualHost;
-    /// Virtual host configuration type
-    type VirtualHostConfig;
-    /// Add a virtual host to the server
-    fn add_virtual_host(&mut self, virtual_host: Self::VirtualHost) -> impl Future<Output = ()>;
-    /// Remove a virtual host from the server
-    fn remove_virtual_host(&mut self, hostname: &str, port: u16) -> impl Future<Output = ()>;
-    /// Get the virtual hosts
-    fn virtual_hosts(&self) -> &VetisVirtualHosts<Self::VirtualHost>;
-    /// Get the server configuration
+    /// Host type
+    type Host;
+    /// Host configuration type
+    type HostConfig;
+    /// Add a host to the server
+    fn add_host(&mut self, host: Self::Host) -> impl Future<Output = ()>;
+    /// Remove a host from the server
+    fn remove_host(&mut self, hostname: &str) -> impl Future<Output = ()>;
+    /// Get hosts
+    fn hosts(&self) -> &VetisHosts<Self::Host>;
+    /// Get server configuration
     fn config(&self) -> &ServerConfig;
     /// Run the server
     fn run(&mut self) -> impl Future<Output = VetisResult<()>>;
@@ -25,6 +25,6 @@ pub trait VetisServer {
     fn reload(
         &mut self,
         new_config: ServerConfig,
-        new_virtual_hosts: Vec<Self::VirtualHostConfig>,
+        new_hosts: Vec<Self::HostConfig>,
     ) -> impl Future<Output = VetisResult<()>>;
 }

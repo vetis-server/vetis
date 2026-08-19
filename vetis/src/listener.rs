@@ -1,26 +1,25 @@
 use crate::{
     errors::{ConfigError, VetisError},
-    VetisResult, VetisVirtualHosts,
+    VetisHosts, VetisResult,
 };
 use http::Version;
 use serde::Deserialize;
-use std::{future::Future, pin::Pin};
+use std::{
+    future::Future,
+    net::{IpAddr, Ipv4Addr},
+    pin::Pin,
+};
 
 /// A pinned future that resolves to a result of type T or a VetisError
 pub type ListenerResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> + Send + 'a>>;
 
 /// A trait for defining server listeners that can handle HTTP requests
 pub trait Listener {
-    /// The type of virtual host that this listener can handle
-    type VirtualHost;
+    /// The type of host that this listener can handle
+    type Host;
 
-    /// Creates a new listener with the given configuration
-    fn new(config: ListenerConfig) -> Self
-    where
-        Self: Sized;
-
-    /// Sets the virtual hosts for this listener
-    fn set_virtual_hosts(&mut self, virtual_hosts: VetisVirtualHosts<Self::VirtualHost>);
+    /// Sets the hosts for this listener
+    fn set_hosts(&mut self, hosts: VetisHosts<Self::Host>);
 
     /// Starts the listener and begins accepting connections
     fn listen(&mut self) -> ListenerResult<'_, ()>;
@@ -41,15 +40,15 @@ pub trait Listener {
 ///
 /// let config = ListenerConfig::builder()
 ///     .port(8080)
-///     .protocol_version(Version::HTTP_11)
-///     .interface("127.0.0.1")
+///     .protos(vec![Version::HTTP_11])
+///     .interface("127.0.0.1".parse().unwrap())
 ///     .build();
 /// ```
 #[derive(Clone)]
 pub struct ListenerConfigBuilder {
     port: u16,
-    protocol_version: Version,
-    interface: String,
+    protos: Vec<Version>,
+    interface: IpAddr,
 }
 
 impl ListenerConfigBuilder {
@@ -82,11 +81,11 @@ impl ListenerConfigBuilder {
     /// use vetis::listener::ListenerConfig;
     ///
     /// let config = ListenerConfig::builder()
-    ///     .interface("127.0.0.1")
+    ///     .interface(Ipv4Addr::LOCALHOST.into())
     ///     .build();
     /// ```
-    pub fn interface(mut self, interface: &str) -> Self {
-        self.interface = interface.to_string();
+    pub fn interface(mut self, interface: IpAddr) -> Self {
+        self.interface = interface;
         self
     }
 
@@ -100,11 +99,11 @@ impl ListenerConfigBuilder {
     ///
     /// #[cfg(feature = "http1")]
     /// let config = ListenerConfig::builder()
-    ///     .protocol_version(Version::HTTP_11)
+    ///     .protos(Version::HTTP_11)
     ///     .build();
     /// ```
-    pub fn protocol_version(mut self, protocol_version: Version) -> Self {
-        self.protocol_version = protocol_version;
+    pub fn protos(mut self, protos: Vec<Version>) -> Self {
+        self.protos = protos;
         self
     }
 
@@ -114,20 +113,7 @@ impl ListenerConfigBuilder {
             return Err(VetisError::Config(ConfigError::Listener("Port cannot be 0".to_string())));
         }
 
-        if self
-            .interface
-            .is_empty()
-        {
-            return Err(VetisError::Config(ConfigError::Listener(
-                "Interface cannot be empty".to_string(),
-            )));
-        }
-
-        Ok(ListenerConfig {
-            port: self.port,
-            protocol_version: self.protocol_version,
-            interface: self.interface,
-        })
+        Ok(ListenerConfig { port: self.port, protos: self.protos, interface: self.interface })
     }
 }
 
@@ -145,7 +131,7 @@ impl ListenerConfigBuilder {
 /// let config = ListenerConfig::builder()
 ///     .port(8443)
 ///     .protocol_version(Version::HTTP_11)
-///     .interface("0.0.0.0")
+///     .interface(Ipv4Addr::UNSPECIFIED.into()) // or (0, 0, 0, 0).into()
 ///     .build()
 ///     .unwrap();
 ///
@@ -154,9 +140,37 @@ impl ListenerConfigBuilder {
 #[derive(Clone, Deserialize, PartialEq)]
 pub struct ListenerConfig {
     port: u16,
-    #[serde(with = "http_serde::version")]
-    protocol_version: Version,
-    interface: String,
+    #[serde(with = "http_serde_ext::version::vec")]
+    protos: Vec<Version>,
+    interface: IpAddr,
+}
+
+impl Default for ListenerConfig {
+    fn default() -> Self {
+        ListenerConfig {
+            port: 80,
+            protos: vec![Version::HTTP_11],
+            interface: Ipv4Addr::UNSPECIFIED.into(),
+        }
+    }
+}
+
+impl From<u16> for ListenerConfig {
+    fn from(port: u16) -> Self {
+        ListenerConfig { port, ..Default::default() }
+    }
+}
+
+impl From<Version> for ListenerConfig {
+    fn from(protos: Version) -> Self {
+        ListenerConfig { protos: vec![protos], ..Default::default() }
+    }
+}
+
+impl From<(u16, Version)> for ListenerConfig {
+    fn from((port, protos): (u16, Version)) -> Self {
+        ListenerConfig { port, protos: vec![protos], ..Default::default() }
+    }
 }
 
 impl ListenerConfig {
@@ -179,8 +193,8 @@ impl ListenerConfig {
     pub fn builder() -> ListenerConfigBuilder {
         ListenerConfigBuilder {
             port: 80,
-            protocol_version: Version::HTTP_11,
-            interface: "0.0.0.0".into(),
+            protos: vec![Version::HTTP_11],
+            interface: Ipv4Addr::UNSPECIFIED.into(),
         }
     }
 
@@ -190,12 +204,12 @@ impl ListenerConfig {
     }
 
     /// Returns the HTTP protocol.
-    pub fn protocol_version(&self) -> &Version {
-        &self.protocol_version
+    pub fn protos(&self) -> &Vec<Version> {
+        &self.protos
     }
 
     /// Returns the network interface.
-    pub fn interface(&self) -> &str {
+    pub fn interface(&self) -> &IpAddr {
         &self.interface
     }
 }

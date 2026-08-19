@@ -7,8 +7,8 @@ use serde::Deserialize;
 #[cfg(target_env = "musl")]
 static GLOBAL: MiMalloc = MiMalloc;
 use std::{error::Error, fs::read_to_string, path::Path};
-use vetis::{server::ServerConfig, virtual_host::VirtualHostConfig, VetisServer as _};
-use vetis_tokio::{virtual_host::VirtualHostImpl, Vetis};
+use vetis::{host::HostConfig, server::ServerConfig, VetisServer as _};
+use vetis_tokio::{host::HostImpl, Vetis};
 
 #[derive(Deserialize)]
 pub struct VetisServerConfig {
@@ -16,7 +16,7 @@ pub struct VetisServerConfig {
     worker_threads: usize,
     max_blocking_threads: usize,
     server: ServerConfig,
-    virtual_hosts: Vec<VirtualHostConfig>,
+    hosts: Vec<HostConfig>,
 }
 
 #[derive(Parser)]
@@ -43,15 +43,15 @@ struct Args {
 
 async fn run(
     server_config: ServerConfig,
-    virtual_hosts_config: Vec<VirtualHostConfig>,
+    hosts_config: Vec<HostConfig>,
 ) -> Result<(), Box<dyn Error>> {
     let mut server = Vetis::new(server_config);
 
-    for virtual_host in virtual_hosts_config {
-        let virtual_host = VirtualHostImpl::new(virtual_host);
+    for host in hosts_config {
+        let host = HostImpl::new(host);
 
         server
-            .add_virtual_host(virtual_host)
+            .add_host(host)
             .await;
     }
 
@@ -74,6 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         env_logger::Env::default().filter_or("RUST_LOG", config.log_level),
                     )
                     .format_module_path(false)
+                    .target(env_logger::Target::Stdout)
                     .init();
 
                     let rt = tokio::runtime::Builder::new_multi_thread()
@@ -81,7 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .worker_threads(config.worker_threads)
                         .max_blocking_threads(config.max_blocking_threads)
                         .build()?;
-                    rt.block_on(async { run(config.server, config.virtual_hosts).await })?;
+                    rt.block_on(async { run(config.server, config.hosts).await })?;
                 } else {
                     eprintln!(
                         "Failed to start server: {}",

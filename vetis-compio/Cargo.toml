@@ -13,7 +13,12 @@ publish = true
 rust-version.workspace = true
 
 [features]
-default = ["http2", "rust-tls"]
+default = [
+  "http1",
+  "http2",
+  #"http3",
+  "rust-tls",
+]
 
 rust-tls = ["compio-tls/rustls", "rustls-provider"]
 
@@ -21,22 +26,37 @@ rustls-provider = ["__rustls_awc_lc_rs"]
 __rustls_awc_lc_rs = ["rustls/aws-lc-rs"]
 __rustls_ring = ["rustls/ring"]
 
-http1 = ["hyper/http1", "hyper/server", "hyper-util/server", "hyper-util/http1"]
-http2 = ["hyper/http2", "hyper/server", "hyper-util/server", "hyper-util/http2"]
+http1 = [
+  "hyper/http1",
+  "hyper/server",
+  "hyper-util/server",
+  "hyper-util/http1",
+  "hyper-body-utils/compio",
+]
+http2 = [
+  "hyper/http2",
+  "hyper/server",
+  "hyper-util/server",
+  "hyper-util/http2",
+  "hyper-body-utils/compio",
+]
 http3 = [
   "compio-quic/h3",
   "compio-quic/ring",
   "hyper/server",
   "hyper-util/server",
-  "hyper-body-utils/http3",
   "hyper-body-utils/compio",
+  "hyper-body-utils/compio-h3",
 ]
 
 [dependencies]
 async-lock = "3.4.1"
 bytes = "1.12.1"
-clap = { version = "4.5.61", default-features = false, features = ["std", "derive"] }
-compio-quic = { version = "0.8.0", default-features = false, optional = true }
+clap = { version = "4.5.61", default-features = false, features = [
+  "std",
+  "derive",
+] }
+compio-quic = { version = "0.8.2", default-features = false, optional = true }
 compio-tls = { version = "0.10.0", default-features = false, optional = true }
 cyper-core = "0.9.0"
 env_logger = "0.11.11"
@@ -55,13 +75,13 @@ serde = "1.0.228"
 serde_yaml_ng = "0.10.0"
 socket2 = "0.6.4"
 thiserror = "2.0.17"
-time = { version = "0.3.41", features = ["formatting"] }
+time = { version = "0.3.55", features = ["formatting"] }
 typetag = "0.2.22"
 url = "2.5.7"
 vetis = { workspace = true, default-features = false }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-compio = { version = "0.19.1", features = [
+compio = { version = "0.19.2", features = [
   "fs",
   "io",
   "net",
@@ -69,11 +89,11 @@ compio = { version = "0.19.1", features = [
   "io-uring",
   "runtime",
   "signal",
-  "tls"
+  "tls",
 ], default-features = false }
 
 [target.'cfg(all(unix, not(target_os = "linux")))'.dependencies]
-compio = { version = "0.19.1", features = [
+compio = { version = "0.19.2", features = [
   "fs",
   "io",
   "net",
@@ -81,7 +101,7 @@ compio = { version = "0.19.1", features = [
   "polling",
   "runtime",
   "signal",
-  "tls"
+  "tls",
 ], default-features = false }
 
 [dev-dependencies]
@@ -90,6 +110,6 @@ deboa-compio = { version = "0.1.1", features = [
   "http2",
   "rust-tls",
   "default-rustls-provider",
-  "default-rustls-verifier"
+  "default-rustls-verifier",
 ], default-features = false }
 vetis-macros = { workspace = true }

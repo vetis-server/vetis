@@ -4,7 +4,8 @@ use deboa::{
     request::get,
 };
 use deboa_tokio::{cert::DeboaCertificate, Client};
-use vetis::{virtual_host::handler_fn, Response, VetisServer as _};
+use std::net::Ipv4Addr;
+use vetis::{host::handler_fn, Response, VetisServer as _};
 use vetis_macros::{http, security};
 
 #[cfg(feature = "http1")]
@@ -13,7 +14,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
         from_crate => vetis_tokio,
         port => 60002,
-        protocol_version => default_protocol_version(),
+        protos => vec![default_protocol_version()],
         handler => handler_fn(
             |_req| async move { Ok(Response::builder().text("Hello, World!")) }
         )
@@ -24,9 +25,7 @@ async fn test_http_localhost() -> Result<(), Box<dyn std::error::Error>> {
         .start()
         .await?;
 
-    let client = Client::builder()
-        .version(default_protocol_version())
-        .build();
+    let client = Client::builder().build();
 
     let response = get("http://localhost:60002")?
         .send_with(&client)
@@ -54,10 +53,10 @@ async fn test_https() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = http!(
         from_crate => vetis_tokio,
         hostname => "localhost",
-        root_directory => "src",
-        protocol_version => default_protocol_version(),
+        root_directory => "src".into(),
+        protos => vec![default_protocol_version()],
         port => 60001,
-        interface => "0.0.0.0",
+        interface => Ipv4Addr::UNSPECIFIED.into(),
         handler => handler,
         security_config => security! {
             cert => "../certs/server.der",
