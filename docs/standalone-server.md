@@ -28,7 +28,7 @@ server:
       ssl: false
       protocol: "Http1"
 
-virtual_hosts:
+hosts:
   - hostname: "localhost"
     port: 8080
     root_directory: "/home/rogerio/Documentos/Temp/vetis"

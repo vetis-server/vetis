@@ -48,7 +48,7 @@ server:
 Defines virtual host configurations for handling different domains or paths.
 
 ```yaml
-virtual_hosts:
+hosts:
   - hostname: "localhost"
     port: 8080
     root_directory: "/home/rogerio/Documentos/Temp/vetis"
@@ -136,7 +136,7 @@ server:
       port: 3000
       protocol: "Http1"
 
-virtual_hosts:
+hosts:
   - hostname: "localhost"
     port: 3000
     root_directory: "./public"
@@ -158,7 +158,7 @@ server:
       port: 443
       protocol: "Http2"
 
-virtual_hosts:
+hosts:
   - hostname: "example.com"
     port: 443
     root_directory: "/var/www/example.com"
@@ -202,7 +202,7 @@ virtual_hosts:
 Enable logging to troubleshoot routing and file serving issues:
 
 ```yaml
-virtual_hosts:
+hosts:
   - hostname: "localhost"
     port: 8080
     root_directory: "./public"
