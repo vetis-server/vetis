@@ -95,6 +95,13 @@ impl ServerConfigBuilder {
             return Err(ConfigError::Server("No listeners configured".to_string()));
         }
 
+        if self
+            .hosts
+            .is_empty()
+        {
+            return Err(ConfigError::Server("No host configured".to_string()));
+        }
+
         let requires_tls = self
             .listeners
             .iter()
