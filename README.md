@@ -31,11 +31,6 @@ Add VeTiS to your `Cargo.toml`:
 vetis = { version = "0.1.0" }
 ```
 
-## Runtimes
-
-- [tokio](https://github.com/tokio-rs/tokio)
-- [smol](https://github.com/smol-rs/smol)
-
 ## Crate features
 
 - http1 (default)
@@ -197,6 +192,14 @@ Reverse proxy support for VeTiS.
 ### [vetis-static](https://github.com/ararog/vetis/tree/main/vetis-static)
 
 Static files support for VeTiS.
+
+### [vetis-compio](https://github.com/ararog/vetis/tree/main/vetis-compio)
+
+Compio runtime for VeTiS.
+
+### [vetis-glommio](https://github.com/ararog/vetis/tree/main/vetis-glommio)
+
+Glommio runtime for VeTiS.
 
 ### [vetis-smol](https://github.com/ararog/vetis/tree/main/vetis-smol)
 
