@@ -1,0 +1,125 @@
+title: "Vetis Server Configuration"
+type: "object"
+required:
+  - server
+properties:
+  log_level:
+    type: "string"
+  worker_threads:
+    type: "integer"
+  max_blocking_threads:
+    type: "integer"
+  server:
+    type: "object"
+    required:
+      - listeners
+      - hosts
+    properties:
+      listeners:
+        type: "array"
+        items:
+          type: "object"
+          required:
+            - port
+          properties:
+            interface:
+              type: "string"
+              description: "The network interface to use, if not specified, that will default to 0.0.0.0 on ipv4"
+            port:
+              type: "integer"
+              description: "The port number to bound this listener to, default is 80"
+            protocol:
+              type: "string"
+        uniqueItems: true
+      hosts:
+        type: "array"
+        items:
+          type: "object"
+          required:
+            - hostname
+            - bind_addresses
+            - paths
+          properties:
+            hostname:
+              type: "string"
+              description: "Hostname for this host entry. default is localhost"
+            root_directory:
+              type: "string"
+              description: "Host root directory, not required."
+            default_headers:
+              type: "array"
+              items:
+                 type: object
+                 propertyNames:
+                   type: "integer"
+                 additionalProperties:
+                   type: "string"
+            security:
+              type: "object"
+              properties:
+                ca_cert_from_file:
+                  type: "string"
+                  description: "Optional CA certificate to use."
+                cert_from_file:
+                  type: "string"
+                key_from_file:
+                  type: "string"
+            enable_logging:
+              type: "boolean"
+            enable_hsts:
+              type: "boolean"
+            error_pages:
+              type: "object"
+              propertyNames:
+                type: "integer"
+              additionalProperties:
+                type: "string"
+            bind_addresses:
+              type: "array"
+              description: "Bind this host to the listeners listening on these interfaces and ports."
+              items:
+                type: "object"
+                required:
+                  - interface
+                  - port
+                properties:
+                  interface:
+                    type: "string"
+                    description: "The network interface to use, if not specified, that will default to 0.0.0.0 on ipv4"
+                  port:
+                    type: "integer"
+                    description: "The port number to bound this listener to, default is 80"
+            paths:
+              type: "array"
+              items:
+                anyOf:
+                  # add refs here to static, proxy and etc
+                  type: "object"
+                  $ref: "#/$defs/static_path"
+        uniqueItems: true
+
+$defs:
+  static_path:
+    type: "object"
+    properties:
+      uri:
+        type: "string"
+      directory:
+        type: "string"
+      extensions:
+        type: "string"
+      cache:
+        type: "object"
+        properties:
+          max_file_size:
+            type: "integer"
+          ttl:
+            type: "string"
+          tti:
+            type: "string"
+          capacity:
+            type: "integer"
+      index_files:
+        type: "array"
+        items:
+          type: "string"

@@ -29,6 +29,11 @@ pub struct Request {
 }
 
 impl Request {
+    /// Create a `Request` out of http::Request
+    pub fn new(inner: http::Request<HttpBody>) -> Self {
+        Self { inner }
+    }
+
     /// Creates a `Request` from an HTTP/1 or HTTP/2 request.
     ///
     /// This is used internally by the server to wrap incoming HTTP requests.

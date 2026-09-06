@@ -132,17 +132,25 @@ pub fn http(item: TokenStream) -> TokenStream {
         }
     };
 
+    let allow_unsafe_conn = match args.allow_unsafe_conn {
+        Some(allow_unsafe) => quote! { #allow_unsafe },
+        None => {
+            quote! { false }
+        }
+    };
+
     let expanded = quote! {
         async move {
             use vetis::{
                 errors::VetisError,
                 listener::ListenerConfig,
                 server::ServerConfig,
-                host::{Host, HostConfig},
+                host::{Host as _, HostConfig},
             };
 
             use #from_crate::{
-                host::{path::HandlerPath, HostImpl},
+                host::{path::HandlerPath, Host},
+                listener::build_listeners,
                 rt::Vetis,
             };
 
@@ -150,19 +158,19 @@ pub fn http(item: TokenStream) -> TokenStream {
                 .port(#port)
                 .protos(#protos)
                 .interface(#interface)
-                .build()?;
-
-            let config = ServerConfig::builder()
-                .add_listener(listener)
+                .allow_unsafe_connections(#allow_unsafe_conn)
                 .build()?;
 
             let mut host_config = HostConfig::builder()
                 .hostname(#hostname)
                 #root_directory
                 #security_config
+                .bind_addresses(vec![
+                    (#interface, #port)
+                ])
                 .build()?;
 
-            let mut host = HostImpl::new(host_config);
+            let mut host = Host::new(host_config);
 
             let root_path = HandlerPath::builder()
                 .uri("/")
@@ -171,11 +179,10 @@ pub fn http(item: TokenStream) -> TokenStream {
 
             host.add_path(root_path);
 
-            let mut vetis = Vetis::new(config);
-
-            vetis
-                .add_host(host)
-                .await;
+            let vetis = Vetis::builder()
+                .add_listeners(build_listeners(listener))?
+                .add_host(host)?
+                .build();
 
             Ok::<Vetis, VetisError>(vetis)
         }

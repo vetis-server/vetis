@@ -27,9 +27,7 @@ use hyper_body_utils::HttpBody;
 ///     .text(r#"{"status": "success"}"#);
 /// ```
 pub struct ResponseBuilder {
-    status: StatusCode,
-    version: http::Version,
-    headers: Option<HeaderMap>,
+    inner: http::Response<HttpBody>,
 }
 
 impl ResponseBuilder {
@@ -46,7 +44,9 @@ impl ResponseBuilder {
     ///     .text("Not found");
     /// ```
     pub fn status(mut self, status: http::StatusCode) -> Self {
-        self.status = status;
+        *self
+            .inner
+            .status_mut() = status;
         self
     }
 
@@ -65,7 +65,9 @@ impl ResponseBuilder {
     ///     .text("Response");
     /// ```
     pub fn version(mut self, version: http::Version) -> Self {
-        self.version = version;
+        *self
+            .inner
+            .version_mut() = version;
         self
     }
 
@@ -84,15 +86,8 @@ impl ResponseBuilder {
     where
         K: http::header::IntoHeaderName,
     {
-        if self
-            .headers
-            .is_none()
-        {
-            self.headers = Some(HeaderMap::new());
-        }
-        self.headers
-            .as_mut()
-            .unwrap()
+        self.inner
+            .headers_mut()
             .append(key, value);
         self
     }
@@ -114,7 +109,9 @@ impl ResponseBuilder {
     ///     .text("Plain text");
     /// ```
     pub fn headers(mut self, headers: HeaderMap) -> Self {
-        self.headers = Some(headers);
+        *self
+            .inner
+            .headers_mut() = headers;
         self
     }
 
@@ -127,9 +124,12 @@ impl ResponseBuilder {
     ///
     /// let response = Response::builder()
     ///     .empty();
-    /// ```    
-    pub fn empty(self) -> Response {
-        self.body(HttpBody::empty())
+    /// ```
+    pub fn empty(mut self) -> Response {
+        *self
+            .inner
+            .body_mut() = HttpBody::empty();
+        self.build()
     }
 
     /// Sets the body from a text string and creates the final `Response`.
@@ -145,9 +145,12 @@ impl ResponseBuilder {
     ///
     /// let response = Response::builder()
     ///     .text("Hello, World!");
-    /// ```    
-    pub fn text(self, text: &str) -> Response {
-        self.body(HttpBody::from_text(text))
+    /// ```
+    pub fn text(mut self, text: &str) -> Response {
+        *self
+            .inner
+            .body_mut() = HttpBody::from_text(text);
+        self.build()
     }
 
     /// Sets the body with bytes and creates the final `Response`.
@@ -164,8 +167,11 @@ impl ResponseBuilder {
     /// let response = Response::builder()
     ///     .bytes(b"Hello, World!");
     /// ```
-    pub fn bytes(self, bytes: &[u8]) -> Response {
-        self.body(HttpBody::from_bytes(bytes))
+    pub fn bytes(mut self, bytes: &[u8]) -> Response {
+        *self
+            .inner
+            .body_mut() = HttpBody::from_bytes(bytes);
+        self.build()
     }
 
     /// Sets the body and creates the final `Response`.
@@ -182,19 +188,17 @@ impl ResponseBuilder {
     /// let response = Response::builder()
     ///     .bytes(b"Hello, World!");
     /// ```
-    pub fn body(self, body: HttpBody) -> Response {
-        let response = http::Response::new(body);
+    pub fn body(mut self, body: HttpBody) -> Response {
+        *self
+            .inner
+            .body_mut() = body;
+        self.build()
+    }
 
-        let (mut parts, body) = response.into_parts();
-        parts.status = self.status;
-        parts.version = self.version;
-        if let Some(headers) = self.headers {
-            parts.headers = headers;
-        }
-
-        let response = http::Response::from_parts(parts, body);
-
-        Response { inner: response }
+    #[inline]
+    /// Build a new `Response`
+    fn build(self) -> Response {
+        Response { inner: self.inner }
     }
 }
 
@@ -240,11 +244,7 @@ impl Response {
     /// let response = builder.text("Hello");
     /// ```
     pub fn builder() -> ResponseBuilder {
-        ResponseBuilder {
-            status: http::StatusCode::OK,
-            version: http::Version::HTTP_11,
-            headers: None,
-        }
+        ResponseBuilder { inner: http::Response::new(HttpBody::empty()) }
     }
 
     /// Converts the response into the underlying `http::Response`.
@@ -263,5 +263,13 @@ impl Response {
     /// ```
     pub fn into_inner(self) -> http::Response<HttpBody> {
         self.inner
+    }
+}
+
+impl From<StatusCode> for Response {
+    fn from(value: StatusCode) -> Self {
+        Response::builder()
+            .status(value)
+            .empty()
     }
 }

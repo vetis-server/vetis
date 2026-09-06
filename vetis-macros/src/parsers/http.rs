@@ -12,6 +12,7 @@ pub(crate) struct HttpArgs {
     pub(crate) port: Option<Expr>,
     pub(crate) interface: Option<Expr>,
     pub(crate) security: Option<Expr>,
+    pub(crate) allow_unsafe_conn: Option<Expr>,
 }
 
 impl Parse for HttpArgs {
@@ -24,6 +25,7 @@ impl Parse for HttpArgs {
         let mut port = None;
         let mut interface = None;
         let mut security = None;
+        let mut allow_unsafe_conn = None;
 
         while !input.is_empty() {
             let key: Ident = input.parse()?;
@@ -89,6 +91,13 @@ impl Parse for HttpArgs {
                     let expr: Expr = input.parse()?;
                     security = Some(expr);
                 }
+                "allow_unsafe_conn" => {
+                    if allow_unsafe_conn.is_some() {
+                        return Err(input.error("Duplicate 'allow_unsafe_conn' key"));
+                    }
+                    let expr: Expr = input.parse()?;
+                    allow_unsafe_conn = Some(expr);
+                }
                 _ => return Err(input.error(format!("Unknown key: {}", key))),
             }
 
@@ -106,6 +115,7 @@ impl Parse for HttpArgs {
             port,
             interface,
             security,
+            allow_unsafe_conn,
         })
     }
 }

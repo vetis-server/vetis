@@ -1,5 +1,7 @@
 use crate::Response;
+use caramelo::{expect, matchers::eq, pat};
 use http::StatusCode;
+use hyper::body::Body;
 use hyper_body_utils::HttpBody;
 
 #[test]
@@ -260,4 +262,21 @@ fn test_response_multiple_status_codes() {
         let inner = response.into_inner();
         assert_eq!(inner.status(), status);
     }
+}
+
+#[test]
+fn test_status_into_response() {
+    let response: Response = StatusCode::OK.into();
+    expect(
+        response
+            .inner
+            .status(),
+    )
+    .to_be(eq(StatusCode::OK));
+    expect(
+        response
+            .inner
+            .into_body(),
+    )
+    .to_have(pat!(HttpBody::Standard(value) if value.is_end_stream()));
 }

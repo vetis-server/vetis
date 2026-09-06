@@ -320,9 +320,7 @@ pub struct SecurityConfigFromFile {
     client_auth: Option<bool>,
 }
 
-pub(crate) fn deserialize_security_from_file<'de, D>(
-    deserializer: D,
-) -> Result<Option<SecurityConfig>, D::Error>
+pub(crate) fn config_from_file<'de, D>(deserializer: D) -> Result<Option<SecurityConfig>, D::Error>
 where
     D: Deserializer<'de>,
 {

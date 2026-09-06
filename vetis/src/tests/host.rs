@@ -1,10 +1,15 @@
 use crate::{
     errors::{ConfigError, VetisError},
-    host::HostConfig,
+    host::{AltService, HostConfig},
     listener::{self, ListenerConfig},
     security::SecurityConfig,
 };
-use std::{collections::HashMap, error::Error, fs};
+use caramelo::{
+    expect,
+    matchers::{eq, truthy},
+};
+use http::{uri::Authority, Version};
+use std::{collections::HashMap, error::Error, fs, net::Ipv4Addr, time::Duration};
 
 #[test]
 fn test_host_config_build_success() {
@@ -347,7 +352,7 @@ fn test_host_config_paths_getter_none() {
 
     assert!(config
         .paths()
-        .is_none());
+        .is_empty());
 }
 
 #[test]
@@ -401,7 +406,7 @@ fn test_host_config_builder_chain() {
         .build()
         .unwrap();
 
-    assert_eq!(config.hostname(), "example.com");
+    expect(config.hostname()).to_be(eq("example.com"));
     assert_eq!(config.root_directory(), &Some(root_dir));
     assert!(config
         .default_headers()
@@ -423,4 +428,48 @@ fn test_hostname_rootdir_into_hostconfig() {
     let config: HostConfig = ("example.com", "/var/vetis").into();
     assert_eq!(config.hostname(), "example.com");
     assert_eq!(config.root_directory(), &Some("/var/vetis".into()))
+}
+
+#[test]
+fn test_host_config_enable_flags() {
+    let config = HostConfig::builder()
+        .enable_hsts(true)
+        .enable_logging(true)
+        .build()
+        .unwrap();
+
+    expect(config.enable_hsts()).to_be(truthy());
+    expect(config.enable_logging()).to_be(truthy());
+}
+
+#[test]
+fn test_bind_addresses() {
+    let config = HostConfig::builder()
+        .bind_addresses(vec![(Ipv4Addr::UNSPECIFIED.into(), 80)])
+        .build()
+        .unwrap();
+    expect(config.bind_addresses()).to_be(eq(config.bind_addresses()));
+}
+
+#[test]
+fn test_alt_service_builder() {
+    let versions = vec![Version::HTTP_11, Version::HTTP_2, Version::HTTP_3];
+    for version in versions {
+        let alt_service = AltService::builder()
+            .protocol(version)
+            .autority(Authority::from_static("example.com"))
+            .ma(Duration::from_mins(7200))
+            .port(443)
+            .persist(true)
+            .build();
+        let content: String = alt_service.into();
+        let alpn = match version {
+            Version::HTTP_11 => "http/1.1",
+            Version::HTTP_2 => "h2",
+            Version::HTTP_3 => "h3",
+            _ => "",
+        };
+        expect(format!("{}", content))
+            .to_be(eq(format!("{alpn}=example.com:443,ma=432000,persist=1")));
+    }
 }

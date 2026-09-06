@@ -36,7 +36,7 @@ use vetis::{
 };
 use vetis_macros::status_pages;
 use vetis_tokio::{
-    host::{path::HandlerPath, HostImpl},
+    host::{path::HandlerPath, Host},
     Vetis,
 };
 

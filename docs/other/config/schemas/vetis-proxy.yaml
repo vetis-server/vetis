@@ -1,0 +1,8 @@
+$defs:
+  proxy_path:
+    type: "object"
+    properties:
+      uri:
+        type: "string"
+      target:
+        type: "string"

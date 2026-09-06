@@ -1,6 +1,6 @@
 use crate::{
     errors::{ConfigError, VetisError},
-    VetisHosts, VetisResult,
+    VetisResult,
 };
 use http::Version;
 use serde::Deserialize;
@@ -8,6 +8,7 @@ use std::{
     future::Future,
     net::{IpAddr, Ipv4Addr},
     pin::Pin,
+    sync::Arc,
 };
 
 /// A pinned future that resolves to a result of type T or a VetisError
@@ -16,10 +17,19 @@ pub type ListenerResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> + S
 /// A trait for defining server listeners that can handle HTTP requests
 pub trait Listener {
     /// The type of host that this listener can handle
-    type Host;
+    type RuntimeHost;
 
-    /// Sets the hosts for this listener
-    fn set_hosts(&mut self, hosts: VetisHosts<Self::Host>);
+    /// Add a host to this listener
+    fn add_host(&mut self, host: Arc<Self::RuntimeHost>) -> VetisResult<()>;
+
+    /// Remove a host from this listener
+    fn remove_host(&mut self, hostname: &str) -> VetisResult<()>;
+
+    /// Returns the number of hosts
+    fn total_hosts(&self) -> usize;
+
+    /// Returns listener config
+    fn config(&self) -> &ListenerConfig;
 
     /// Starts the listener and begins accepting connections
     fn listen(&mut self) -> ListenerResult<'_, ()>;
@@ -44,11 +54,11 @@ pub trait Listener {
 ///     .interface("127.0.0.1".parse().unwrap())
 ///     .build();
 /// ```
-#[derive(Clone)]
 pub struct ListenerConfigBuilder {
     port: u16,
     protos: Vec<Version>,
     interface: IpAddr,
+    allow_unsafe_conn: bool,
 }
 
 impl ListenerConfigBuilder {
@@ -108,13 +118,42 @@ impl ListenerConfigBuilder {
         self
     }
 
+    /// Sets the HTTP to allow unsafe connections for this listener.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use http::Version;
+    /// use vetis::{listener::ListenerConfig};
+    ///
+    /// #[cfg(feature = "http1")]
+    /// let config = ListenerConfig::builder()
+    ///     .allow_unsafe_connections(true)
+    ///     .build();
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// Enable unsafe connections should be only enabled for testing purposes.
+    /// Please be cautious when using this setting.
+    ///
+    pub fn allow_unsafe_connections(mut self, allow_unsafe_conn: bool) -> Self {
+        self.allow_unsafe_conn = allow_unsafe_conn;
+        self
+    }
+
     /// Creates the `ListenerConfig` with the configured settings.
     pub fn build(self) -> VetisResult<ListenerConfig> {
         if self.port == 0 {
             return Err(VetisError::Config(ConfigError::Listener("Port cannot be 0".to_string())));
         }
 
-        Ok(ListenerConfig { port: self.port, protos: self.protos, interface: self.interface })
+        Ok(ListenerConfig {
+            port: self.port,
+            protos: self.protos,
+            interface: self.interface,
+            allow_unsafe_conn: self.allow_unsafe_conn,
+        })
     }
 }
 
@@ -139,12 +178,13 @@ impl ListenerConfigBuilder {
 ///
 /// println!("Listening on port {}", config.port());
 /// ```
-#[derive(Clone, Deserialize, PartialEq)]
+#[derive(Deserialize, Clone)]
 pub struct ListenerConfig {
     port: u16,
     #[serde(with = "http_serde_ext::version::vec")]
     protos: Vec<Version>,
     interface: IpAddr,
+    allow_unsafe_conn: bool,
 }
 
 impl Default for ListenerConfig {
@@ -153,6 +193,7 @@ impl Default for ListenerConfig {
             port: 80,
             protos: vec![Version::HTTP_11],
             interface: Ipv4Addr::UNSPECIFIED.into(),
+            allow_unsafe_conn: false,
         }
     }
 }
@@ -197,6 +238,7 @@ impl ListenerConfig {
             port: 80,
             protos: vec![Version::HTTP_11],
             interface: Ipv4Addr::UNSPECIFIED.into(),
+            allow_unsafe_conn: false,
         }
     }
 
@@ -213,5 +255,10 @@ impl ListenerConfig {
     /// Returns the network interface.
     pub fn interface(&self) -> &IpAddr {
         &self.interface
+    }
+
+    /// Returns the network interface.
+    pub fn allow_unsafe_connections(&self) -> bool {
+        self.allow_unsafe_conn
     }
 }

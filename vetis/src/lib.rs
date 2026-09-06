@@ -1,7 +1,11 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
-use async_lock::RwLock;
+use genswap::GenSwap;
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+
+pub use base::VetisServer;
+pub use request::Request;
+pub use response::Response;
 
 /// Basic authentication module
 pub mod auth;
@@ -43,20 +47,6 @@ pub mod utils;
 /// ```
 pub type VetisResult<T> = Result<T, crate::errors::VetisError>;
 
-/// A type alias for a read-write lock wrapping a value
-///
-/// This is used for thread-safe shared mutable state.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::{VetisRwLock, VetisResult};
-/// use async_lock::RwLock;
-///
-/// let value: VetisRwLock<i32> = RwLock::new(42);
-/// ```
-pub type VetisRwLock<T> = RwLock<T>;
-
 /// A type alias for a vector of virtual hosts
 ///
 /// This is used to store virtual hosts in a map with hostname and port as the key.
@@ -65,13 +55,13 @@ pub type VetisRwLock<T> = RwLock<T>;
 ///
 /// ```rust,no_run
 /// use vetis::host::HostConfig;
-/// use vetis::{VetisHosts, VetisRwLock};
+/// use vetis::{VetisHosts};
 /// use std::{sync::Arc, collections::HashMap};
 ///
 /// let hosts: VetisHosts<HostConfig> =
 ///     Arc::new(VetisRwLock::new(HashMap::new()));
 /// ```
-pub type VetisHosts<T> = Arc<VetisRwLock<HashMap<Arc<str>, T>>>;
+pub type VetisHosts<T> = Arc<GenSwap<HashMap<String, Arc<T>>>>;
 
 /// A pinned future that resolves to a result of type T or a VetisError
 ///
@@ -113,7 +103,3 @@ pub type VetisFutureResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> 
 /// });
 /// ```
 pub type HandlerFn = Box<dyn Fn(Request) -> VetisFutureResult<'static, Response> + Send + Sync>;
-
-pub use base::VetisServer;
-pub use request::Request;
-pub use response::Response;

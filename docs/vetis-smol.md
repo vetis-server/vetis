@@ -30,7 +30,7 @@ use vetis::{
     VetisServer as _
 };
 use vetis_smol::{
-    host::{path::HandlerPath, HostImpl},
+    host::{path::HandlerPath, Host},
     Vetis,
 };
 
@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .root_directory("/home/rogerio/Downloads")
         .build()?;
 
-    let mut localhost_host = HostImpl::new(localhost_config);
+    let mut localhost_host = Host::new(localhost_config);
 
     let root_path = HandlerPath::builder()
         .uri("/hello")

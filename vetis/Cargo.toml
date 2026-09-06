@@ -1,6 +1,6 @@
 [package]
 name = "vetis"
-version = "0.1.6"
+version = "0.1.7-beta.1"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -25,9 +25,11 @@ eula = false
 default = []
 
 [dependencies]
+arc-swap = "1.9.2"
 async-lock = { workspace = true }
 bytes =  { workspace = true }
 futures-util = { workspace = true }
+genswap = "0.1.0"
 http =  { workspace = true }
 http-body-util =  { workspace = true }
 http-serde-ext = "1.0.2"
@@ -43,3 +45,6 @@ thiserror = { workspace = true }
 time = { workspace = true, features = ["formatting"] }
 typetag = { workspace = true }
 url = { workspace = true }
+
+[dev-dependencies]
+caramelo = "0.1.4"

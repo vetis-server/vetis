@@ -1,5 +1,6 @@
 use crate::Request;
-use http::Method;
+use caramelo::{expect, matchers::eq};
+use http::{Method, Version};
 use hyper_body_utils::HttpBody;
 
 fn create_test_request(method: Method, uri: &str) -> Request {
@@ -133,4 +134,16 @@ fn test_request_into_parts() {
                 .unwrap()
         )
     );
+}
+
+#[test]
+fn test_request_version() {
+    let http_request = http::Request::builder()
+        .method(Method::GET)
+        .version(Version::HTTP_11)
+        .body(HttpBody::empty())
+        .unwrap();
+
+    let http_request = Request::new(http_request);
+    expect(http_request.version()).to_be(eq(Version::HTTP_11));
 }

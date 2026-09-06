@@ -1,0 +1,25 @@
+$defs:
+  static_path:
+    type: "object"
+    properties:
+      uri:
+        type: "string"
+      directory:
+        type: "string"
+      extensions:
+        type: "string"
+      cache:
+        type: "object"
+        properties:
+          max_file_size:
+            type: "integer"
+          ttl:
+            type: "string"
+          tti:
+            type: "string"
+          capacity:
+            type: "integer"
+      index_files:
+        type: "array"
+        items:
+          type: "string"

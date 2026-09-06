@@ -1,11 +1,15 @@
 use crate::{
     errors::{ConfigError, VetisError},
+    host::path::PathConfig,
     security::SecurityConfig,
     HandlerFn, Request, Response, VetisFutureResult, VetisResult,
 };
+use http::{uri::Authority, Version};
 use radix_trie::Trie;
 use serde::Deserialize;
-use std::{collections::HashMap, future::Future, path::PathBuf, sync::Arc};
+use std::{
+    collections::HashMap, future::Future, net::IpAddr, path::PathBuf, sync::Arc, time::Duration,
+};
 
 /// Path configuration for hosts.
 pub mod path;
@@ -41,6 +45,101 @@ where
     Box::new(move |req| Box::pin(f(req)))
 }
 
+/// AltService builder type
+pub struct AltServiceBuilder {
+    authority: Option<Authority>,
+    protocol: Version,
+    port: u16,
+    ma: Duration,
+    persist: bool,
+}
+
+impl AltServiceBuilder {
+    /// Set authority for this alt svc
+    pub fn autority(mut self, authority: Authority) -> Self {
+        self.authority = Some(authority);
+        self
+    }
+
+    /// Set protocol for alt svc
+    pub fn protocol(mut self, protocol: Version) -> Self {
+        self.protocol = protocol;
+        self
+    }
+
+    /// Set port for this alt svc
+    pub fn port(mut self, port: u16) -> Self {
+        self.port = port;
+        self
+    }
+
+    /// Set ma for this alt svc
+    pub fn ma(mut self, max_age: Duration) -> Self {
+        self.ma = max_age;
+        self
+    }
+
+    /// Allow persist for this alt svc
+    pub fn persist(mut self, persist: bool) -> Self {
+        self.persist = persist;
+        self
+    }
+
+    /// Set authority for this alt svc
+    pub fn build(self) -> AltService {
+        AltService {
+            authority: self.authority,
+            protocol: self.protocol,
+            port: self.port,
+            ma: self.ma,
+            persist: self.persist,
+        }
+    }
+}
+
+/// A helper type to define alt service values
+pub struct AltService {
+    authority: Option<Authority>,
+    protocol: Version,
+    port: u16,
+    ma: Duration,
+    persist: bool,
+}
+
+impl AltService {
+    /// Create a new AltService builder
+    pub fn builder() -> AltServiceBuilder {
+        AltServiceBuilder {
+            authority: None,
+            protocol: Version::HTTP_2,
+            port: 443,
+            ma: Duration::from_hours(24),
+            persist: false,
+        }
+    }
+}
+
+impl From<AltService> for String {
+    fn from(value: AltService) -> String {
+        let authority = value
+            .authority
+            .map_or("".into(), |authority| authority.to_string());
+        let protocol = match value.protocol {
+            Version::HTTP_11 => "http/1.1",
+            Version::HTTP_2 => "h2",
+            Version::HTTP_3 => "h3",
+            _ => "http/1.1",
+        };
+
+        format!(
+            "{protocol}={authority}:{},ma={},persist={}",
+            value.port,
+            value.ma.as_secs(),
+            if value.persist { 1 } else { 0 }
+        )
+    }
+}
+
 /// Builder for creating `HostConfig` instances.
 ///
 /// Provides a fluent API for configuring virtual hosts,
@@ -74,7 +173,8 @@ pub struct HostConfigBuilder {
     status_pages: Option<HashMap<u16, String>>,
     enable_logging: bool,
     enable_hsts: bool,
-    paths: Option<Vec<Box<dyn path::PathConfig>>>,
+    bind_addresses: Vec<(IpAddr, u16)>,
+    paths: Vec<Box<dyn path::PathConfig>>,
 }
 
 impl HostConfigBuilder {
@@ -171,7 +271,7 @@ impl HostConfigBuilder {
         self
     }
 
-    /// Sets the status pages for the virtual host.
+    /// Sets the status pages for this host.
     ///
     /// These status pages will be used to serve custom error pages.
     ///
@@ -194,9 +294,9 @@ impl HostConfigBuilder {
         self
     }
 
-    /// Enables or disables logging for this virtual host.
+    /// Enables or disables logging for this host.
     ///
-    /// When enabled, all requests to this virtual host will be logged.
+    /// When enabled, all requests to this host will be logged.
     ///
     /// # Examples
     ///
@@ -210,6 +310,61 @@ impl HostConfigBuilder {
     /// ```
     pub fn enable_logging(mut self, logging: bool) -> Self {
         self.enable_logging = logging;
+        self
+    }
+
+    /// Enables or disables HSTS for this host.
+    ///
+    /// When enabled, responses will contain a header to enforce use of HTTPS.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use vetis::host::HostConfig;
+    ///
+    /// let config = HostConfig::builder()
+    ///     .enable_hsts(true)
+    ///     .build()
+    ///     .unwrap();
+    /// ```
+    pub fn enable_hsts(mut self, enable_hsts: bool) -> Self {
+        self.enable_hsts = enable_hsts;
+        self
+    }
+
+    /// Add all addresses to bind this host to one or more listeners
+    ///
+    /// # Examples
+    ///
+    /// ```rust,norun
+    ///
+    /// ```
+    pub fn bind_addresses(mut self, addresses: Vec<(IpAddr, u16)>) -> Self {
+        self.bind_addresses = addresses;
+        self
+    }
+
+    /// Adds a path configuration to the server.
+    ///
+    /// Multiple paths can be added to serve different content.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use vetis::{host::HostConfig, server::ServerConfig};
+    ///
+    /// let path_config = PathConfig::default();
+    /// let config = ServerConfig::builder()
+    ///     .add_path(path_config)
+    ///     .build()
+    ///     .unwrap();
+    /// ```
+    pub fn add_path<P>(mut self, path: P) -> Self
+    where
+        P: PathConfig + 'static,
+    {
+        self.paths
+            .push(Box::new(path));
         self
     }
 
@@ -256,6 +411,7 @@ impl HostConfigBuilder {
             enable_logging: self.enable_logging,
             enable_hsts: self.enable_hsts,
             paths: self.paths,
+            bind_addresses: self.bind_addresses,
         })
     }
 }
@@ -285,12 +441,13 @@ pub struct HostConfig {
     hostname: String,
     root_directory: Option<PathBuf>,
     default_headers: Option<Vec<(String, String)>>,
-    #[serde(deserialize_with = "crate::security::deserialize_security_from_file")]
+    #[serde(deserialize_with = "crate::security::config_from_file")]
     security: Option<SecurityConfig>,
     status_pages: Option<HashMap<u16, String>>,
     enable_logging: bool,
     enable_hsts: bool,
-    paths: Option<Vec<Box<dyn path::PathConfig>>>,
+    paths: Vec<Box<dyn path::PathConfig>>,
+    bind_addresses: Vec<(IpAddr, u16)>,
 }
 
 impl HostConfig {
@@ -320,7 +477,8 @@ impl HostConfig {
             status_pages: None,
             enable_logging: true,
             enable_hsts: false,
-            paths: None,
+            paths: Vec::new(),
+            bind_addresses: Vec::new(),
         }
     }
 
@@ -378,21 +536,30 @@ impl HostConfig {
         self.enable_logging
     }
 
-    /// Returns the hsts setting.
+    /// Returns hsts setting.
     ///
     /// # Returns
     ///
-    /// * `bool` - The hsts setting.
+    /// * `bool` - if true, will add HSTS headers to response.
     pub fn enable_hsts(&self) -> bool {
         self.enable_hsts
     }
 
-    /// Returns the paths.
+    /// Return bind addresses.
     ///
     /// # Returns
     ///
-    /// * `&Option<Vec<Box<dyn Path>>>` - The static paths.
-    pub fn paths(&self) -> &Option<Vec<Box<dyn path::PathConfig>>> {
+    /// * `&Vec<(IpAddr, u16)>` - The static paths.
+    pub fn bind_addresses(&self) -> &Vec<(IpAddr, u16)> {
+        &self.bind_addresses
+    }
+
+    /// Return paths.
+    ///
+    /// # Returns
+    ///
+    /// * `&Vec<Box<dyn Path>>` - The static paths.
+    pub fn paths(&self) -> &Vec<Box<dyn path::PathConfig>> {
         &self.paths
     }
 }
@@ -407,7 +574,8 @@ impl Default for HostConfig {
             status_pages: None,
             enable_logging: true,
             enable_hsts: false,
-            paths: None,
+            paths: Vec::new(),
+            bind_addresses: Vec::new(),
         }
     }
 }
@@ -428,7 +596,7 @@ impl From<(&str, &str)> for HostConfig {
     }
 }
 
-/// Virtual host trait
+/// Host trait
 pub trait Host {
     /// Returns the paths trie
     ///
@@ -437,18 +605,25 @@ pub trait Host {
     /// * `Trie<String, Box<dyn path::Path>>` - The paths trie.
     fn paths(&self) -> Trie<String, Arc<Box<dyn path::Path>>>;
 
-    /// Returns virtual host configuration
+    /// Returns host configuration
     ///
     /// # Returns
     ///
-    /// * `&HostConfig` - A reference to the virtual host configuration.
+    /// * `&HostConfig` - A reference to the host configuration.
     fn config(&self) -> &HostConfig;
 
-    /// Returns virtual host hostname
+    /// Returns mutable host configuration
     ///
     /// # Returns
     ///
-    /// * `&str` - A reference to the virtual host hostname.
+    /// * `&mut HostConfig` - A reference to the mutable host configuration.
+    fn config_mut(&mut self) -> &mut HostConfig;
+
+    /// Returns host name
+    ///
+    /// # Returns
+    ///
+    /// * `&str` - A reference to the host hostname.
     fn hostname(&self) -> &str {
         self.config()
             .hostname()
