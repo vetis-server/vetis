@@ -2592,6 +2592,8 @@ dependencies = [
 [[package]]
 name = "vetis-tokio"
 version = "0.1.2-beta.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f8568d33ea2efe0c9bf758be2223df3923dbc5cb46793f8371abee991627cb4"
 dependencies = [
  "base64",
  "bytes",
