@@ -48,3 +48,4 @@ url = { workspace = true }
 
 [dev-dependencies]
 caramelo = "0.1.4"
+tempfile = "3.27.0"

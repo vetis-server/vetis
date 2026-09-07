@@ -1,8 +1,9 @@
 use crate::{
     errors::{ConfigError, VetisError},
     security::SecurityConfig,
+    tests::TestResult,
 };
-use std::fs;
+use std::io::Write;
 
 #[test]
 fn test_security_config_build_success() {
@@ -239,16 +240,15 @@ fn test_security_config_clone() {
 }
 
 #[test]
-fn test_security_config_cert_from_file_with_temp_file() {
-    let temp_dir = std::env::temp_dir();
-    let cert_path = temp_dir.join("test_cert.der");
+fn test_security_config_cert_from_file_with_temp_file() -> TestResult<()> {
+    let mut cert_path = tempfile::NamedTempFile::new()?;
     let cert_data = vec![1, 2, 3, 4, 5];
-
-    fs::write(&cert_path, &cert_data).unwrap();
+    cert_path.write(&cert_data)?;
 
     let config = SecurityConfig::builder()
         .cert_from_file(
             cert_path
+                .path()
                 .to_str()
                 .unwrap(),
         )
@@ -258,21 +258,22 @@ fn test_security_config_cert_from_file_with_temp_file() {
 
     assert_eq!(config.cert(), &cert_data);
 
-    fs::remove_file(&cert_path).unwrap();
+    cert_path.close()?;
+
+    Ok(())
 }
 
 #[test]
-fn test_security_config_key_from_file_with_temp_file() {
-    let temp_dir = std::env::temp_dir();
-    let key_path = temp_dir.join("test_key.der");
+fn test_security_config_key_from_file_with_temp_file() -> TestResult<()> {
+    let mut key_path = tempfile::NamedTempFile::new()?;
     let key_data = vec![10, 20, 30, 40, 50];
-
-    fs::write(&key_path, &key_data).unwrap();
+    key_path.write(&key_data)?;
 
     let config = SecurityConfig::builder()
         .cert_from_bytes(vec![1, 2, 3])
         .key_from_file(
             key_path
+                .path()
                 .to_str()
                 .unwrap(),
         )
@@ -280,23 +281,24 @@ fn test_security_config_key_from_file_with_temp_file() {
         .unwrap();
 
     assert_eq!(config.key(), &key_data);
-
-    fs::remove_file(&key_path).unwrap();
+    key_path.close()?;
+    Ok(())
 }
 
 #[test]
-fn test_security_config_ca_cert_from_file_with_temp_file() {
-    let temp_dir = std::env::temp_dir();
-    let ca_cert_path = temp_dir.join("test_ca.der");
+fn test_security_config_ca_cert_from_file_with_temp_file() -> TestResult<()> {
+    let mut ca_cert_path = tempfile::NamedTempFile::new()?;
     let ca_cert_data = vec![100, 200, 255];
-
-    fs::write(&ca_cert_path, &ca_cert_data).unwrap();
+    ca_cert_path
+        .write(&ca_cert_data)
+        .unwrap();
 
     let config = SecurityConfig::builder()
         .cert_from_bytes(vec![1, 2, 3])
         .key_from_bytes(vec![4, 5, 6])
         .ca_cert_from_file(
             ca_cert_path
+                .path()
                 .to_str()
                 .unwrap(),
         )
@@ -304,30 +306,35 @@ fn test_security_config_ca_cert_from_file_with_temp_file() {
         .unwrap();
 
     assert_eq!(config.ca_cert(), &Some(ca_cert_data));
-
-    fs::remove_file(&ca_cert_path).unwrap();
+    ca_cert_path.close()?;
+    Ok(())
 }
 
 #[test]
-fn test_security_config_build_from_temp_files() {
-    let temp_dir = std::env::temp_dir();
-    let cert_path = temp_dir.join("test_cert.der");
-    let key_path = temp_dir.join("test_key.der");
+fn test_security_config_build_from_temp_files() -> TestResult<()> {
+    let mut cert_path = tempfile::NamedTempFile::new()?;
+    let mut key_path = tempfile::NamedTempFile::new()?;
 
     let cert_data = vec![1, 2, 3];
     let key_data = vec![4, 5, 6];
 
-    fs::write(&cert_path, &cert_data).unwrap();
-    fs::write(&key_path, &key_data).unwrap();
+    cert_path
+        .write(&cert_data)
+        .unwrap();
+    key_path
+        .write(&key_data)
+        .unwrap();
 
     let config = SecurityConfig::builder()
         .cert_from_file(
             cert_path
+                .path()
                 .to_str()
                 .unwrap(),
         )
         .key_from_file(
             key_path
+                .path()
                 .to_str()
                 .unwrap(),
         )
@@ -337,8 +344,10 @@ fn test_security_config_build_from_temp_files() {
     assert_eq!(config.cert(), &cert_data);
     assert_eq!(config.key(), &key_data);
 
-    fs::remove_file(&cert_path).unwrap();
-    fs::remove_file(&key_path).unwrap();
+    cert_path.close()?;
+    key_path.close()?;
+
+    Ok(())
 }
 
 #[test]
