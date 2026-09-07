@@ -25,4 +25,5 @@ vetis = { workspace = true, default-features = false }
 caramelo = "0.1.4"
 http = "1"
 tokio = { version = "1.53.1", features = ["macros"] }
+trybuild = "1.0.111"
 vetis-tokio = "0.1.2-beta.1"
