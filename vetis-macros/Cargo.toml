@@ -16,14 +16,14 @@ rust-version.workspace = true
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1.0.106"
-quote = "1.0.45"
-syn = "3.0.3"
+proc-macro2 = "1.0.107"
+quote = "1.0.47"
+syn = "3.0.5"
 vetis = { workspace = true, default-features = false }
 
 [dev-dependencies]
 caramelo = "0.1.4"
 http = "1"
 tokio = { version = "1.53.1", features = ["macros"] }
-trybuild = "1.0.111"
+trybuild = "1.0.120"
 vetis-tokio = "0.1.2-beta.1"

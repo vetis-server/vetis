@@ -1,4 +1,5 @@
 #[test]
+#[cfg(not(tarpaulin))]
 fn ui() {
     let t = trybuild::TestCases::new();
     t.pass("tests/ui/security-config-pass-1.rs");
