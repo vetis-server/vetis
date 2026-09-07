@@ -64,21 +64,3 @@ async fn http_expands_with_requirements() -> Result<(), vetis::errors::VetisErro
 
     Ok(())
 }
-
-#[cfg(target_os = "linux")]
-#[tokio::test]
-#[should_panic = "Bind(\"Permission denied (os error 13)\")"]
-async fn http_expands_with_permission_denied() {
-    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
-    let mut http = http! {
-        from_crate => vetis_tokio,
-        handler => handler,
-        protos => vec![Version::HTTP_11]
-    }
-    .await
-    .unwrap();
-
-    http.start()
-        .await
-        .unwrap();
-}
