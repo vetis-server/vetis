@@ -52,7 +52,7 @@ mod parsers;
 ///         from_crate => vetis_tokio,
 ///         hostname => "localhost",
 ///         root_directory => "src",
-///         protos => Version::Http1,
+///         protos => vec![Version::Http1],
 ///         port => 8080,
 ///         interface => "0.0.0.0",
 ///         handler => handler

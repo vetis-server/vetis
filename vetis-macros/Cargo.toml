@@ -20,3 +20,9 @@ proc-macro2 = "1.0.106"
 quote = "1.0.45"
 syn = "3.0.3"
 vetis = { workspace = true, default-features = false }
+
+[dev-dependencies]
+caramelo = "0.1.4"
+http = "1"
+tokio = { version = "1.53.1", features = ["macros"] }
+vetis-tokio = "0.1.2-beta.1"

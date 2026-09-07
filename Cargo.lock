@@ -2597,10 +2597,14 @@ dependencies = [
 name = "vetis-macros"
 version = "0.1.3-beta.1"
 dependencies = [
+ "caramelo",
+ "http",
  "proc-macro2",
  "quote",
  "syn 3.0.3",
+ "tokio",
  "vetis 0.1.7-beta.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "vetis-tokio",
 ]
 
 [[package]]
