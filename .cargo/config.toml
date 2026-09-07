@@ -12,6 +12,3 @@ rustflags = ["-C", "target-cpu=x86-64-v2"]
 
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-cpu=generic"]
-
-[env]
-CARGO_WORKSPACE_DIR = { value = "", relative = true }
