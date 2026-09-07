@@ -13,7 +13,7 @@ jobs:
       options: --security-opt seccomp=unconfined
     services:
       redis:
-        image: redis:5.0.14
+        image: redis:8.10.1
         ports:
           - 6379:6379
         options: --entrypoint redis-server
