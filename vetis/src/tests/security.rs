@@ -1,3 +1,5 @@
+use caramelo::{expect, matchers::eq};
+
 use crate::{
     errors::{ConfigError, VetisError},
     security::SecurityConfig,
@@ -380,4 +382,11 @@ fn test_security_config_ca_cert_from_file_nonexistent() {
         .unwrap();
 
     assert_eq!(config.ca_cert(), &None);
+}
+
+#[test]
+fn test_security_from_pair() {
+    let config: SecurityConfig =
+        (vec![1u8, 2u8, 4u8], vec![4u8, 5u8, 6u8], Some(vec![7u8, 8u8, 9u8])).into();
+    expect(config.cert()).to_be(eq(&vec![1u8, 2u8, 4u8]));
 }
