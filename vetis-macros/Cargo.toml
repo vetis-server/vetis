@@ -1,6 +1,6 @@
 [package]
 name = "vetis-macros"
-version = "0.1.3-beta.2"
+version = "0.1.3-beta.3"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -26,4 +26,4 @@ caramelo = "0.1.4"
 http = "1"
 tokio = { version = "1.53.1", features = ["macros"] }
 trybuild = "1.0.120"
-vetis-tokio = "0.1.2-beta.2"
+vetis-tokio = "0.1.2-beta.3"
