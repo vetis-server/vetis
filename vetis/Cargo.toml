@@ -1,6 +1,6 @@
 [package]
 name = "vetis"
-version = "0.1.7-beta.1"
+version = "0.1.7-beta.2"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -25,17 +25,15 @@ eula = false
 default = []
 
 [dependencies]
-arc-swap = "1.9.2"
-async-lock = { workspace = true }
 bytes =  { workspace = true }
 futures-util = { workspace = true }
-genswap = "0.1.0"
 http =  { workspace = true }
 http-body-util =  { workspace = true }
 http-serde-ext = "1.0.2"
 hyper = { workspace = true, default-features = false, features = ["server"] }
 hyper-body-utils = { workspace = true, default-features = false }
 log = { workspace = true }
+papaya = "0.2.5"
 radix_trie = { workspace = true }
 rand = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

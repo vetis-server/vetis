@@ -325,10 +325,8 @@ pub mod http {
                 };
 
                 debug!("Serving request for host: {}", hostname);
-                let mut cache = hosts.reader();
-                let host = cache
-                    .get()
-                    .get(&hostname);
+                let hosts = hosts.pin_owned();
+                let host = hosts.get(&hostname);
 
                 if let Some(host) = host {
                     // TODO: Save client_addr in request, grab url from request for logging

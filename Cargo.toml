@@ -5,7 +5,7 @@ resolver = "3"
 members = [
   "vetis",
   "vetis-macros",
-  "examples/simple"
+  #"examples/simple"
 ]
 
 [workspace.package]
@@ -17,7 +17,6 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.75.0"
 
 [workspace.dependencies]
-async-lock = "3.4.1"
 bytes = "1.12.1"
 futures-util = { version = "0.3.32" }
 http = "1.4.2"
@@ -35,7 +34,7 @@ time = { version = "0.3.55", features = ["formatting"] }
 typetag = "0.2.22"
 url = "2.5.7"
 #vetis = { path = "vetis" }
-vetis = { version = "0.1.7-beta.1" }
+vetis = { version = "0.1.7-beta.2" }
 vetis-macros = { path = "vetis-macros" }
 
 [profile.release]

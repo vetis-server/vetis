@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
-use genswap::GenSwap;
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+use papaya::HashMap;
+use std::{future::Future, pin::Pin, sync::Arc};
 
 pub use base::VetisServer;
 pub use request::Request;
@@ -61,7 +61,7 @@ pub type VetisResult<T> = Result<T, crate::errors::VetisError>;
 /// let hosts: VetisHosts<HostConfig> =
 ///     Arc::new(VetisRwLock::new(HashMap::new()));
 /// ```
-pub type VetisHosts<T> = Arc<GenSwap<HashMap<String, Arc<T>>>>;
+pub type VetisHosts<T> = Arc<HashMap<String, Arc<T>>>;
 
 /// A pinned future that resolves to a result of type T or a VetisError
 ///
