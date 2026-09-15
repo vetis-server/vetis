@@ -1,7 +1,4 @@
-use crate::{
-    errors::{ConfigError, VetisError},
-    VetisResult,
-};
+use crate::{Alpn, VetisResult};
 use http::Version;
 use serde::Deserialize;
 use std::{
@@ -28,14 +25,17 @@ pub trait Listener {
     /// Returns the number of hosts
     fn total_hosts(&self) -> usize;
 
+    /// Ask OS to reserve a free port
+    fn reserve_port(&mut self) -> impl Future<Output = VetisResult<()>>;
+
     /// Returns listener config
     fn config(&self) -> &ListenerConfig;
 
     /// Starts the listener and begins accepting connections
-    fn listen(&mut self) -> ListenerResult<'_, ()>;
+    fn listen(&mut self) -> impl Future<Output = VetisResult<()>>;
 
     /// Stops the listener and closes all connections
-    fn stop(&mut self) -> ListenerResult<'_, ()>;
+    fn stop(&mut self) -> impl Future<Output = VetisResult<()>>;
 }
 
 /// Builder for creating `ListenerConfig` instances.
@@ -58,6 +58,7 @@ pub struct ListenerConfigBuilder {
     port: u16,
     protos: Vec<Version>,
     interface: IpAddr,
+    alpn_protos: Vec<Alpn>,
     allow_unsafe_conn: bool,
 }
 
@@ -118,6 +119,23 @@ impl ListenerConfigBuilder {
         self
     }
 
+    /// Sets the HTTP protocol for this listener.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use vetis::{Alpn, {listener::ListenerConfig}};
+    ///
+    /// #[cfg(feature = "http1")]
+    /// let config = ListenerConfig::builder()
+    ///     .alpn_protos(vec![Alpn::Http11])
+    ///     .build();
+    /// ```
+    pub fn alpn_protos(mut self, alpn: Vec<Alpn>) -> Self {
+        self.alpn_protos = alpn;
+        self
+    }
+
     /// Sets the HTTP to allow unsafe connections for this listener.
     ///
     /// # Examples
@@ -144,14 +162,33 @@ impl ListenerConfigBuilder {
 
     /// Creates the `ListenerConfig` with the configured settings.
     pub fn build(self) -> VetisResult<ListenerConfig> {
-        if self.port == 0 {
-            return Err(VetisError::Config(ConfigError::Listener("Port cannot be 0".to_string())));
+        let mut alpn_protos = self.alpn_protos;
+
+        if self
+            .protos
+            .contains(&Version::HTTP_2)
+            && !alpn_protos.contains(&Alpn::H2)
+        {
+            alpn_protos.push(Alpn::H2);
+        }
+
+        if self
+            .protos
+            .contains(&Version::HTTP_3)
+            && !alpn_protos.contains(&Alpn::H3)
+        {
+            alpn_protos.push(Alpn::H3);
+        }
+
+        if self.allow_unsafe_conn && !alpn_protos.contains(&Alpn::H2c) {
+            alpn_protos.push(Alpn::H2c);
         }
 
         Ok(ListenerConfig {
             port: self.port,
             protos: self.protos,
             interface: self.interface,
+            alpn_protos: alpn_protos,
             allow_unsafe_conn: self.allow_unsafe_conn,
         })
     }
@@ -184,6 +221,7 @@ pub struct ListenerConfig {
     #[serde(with = "http_serde_ext::version::vec")]
     protos: Vec<Version>,
     interface: IpAddr,
+    alpn_protos: Vec<Alpn>,
     allow_unsafe_conn: bool,
 }
 
@@ -193,6 +231,7 @@ impl Default for ListenerConfig {
             port: 80,
             protos: vec![Version::HTTP_11],
             interface: Ipv4Addr::UNSPECIFIED.into(),
+            alpn_protos: vec![Alpn::Http11],
             allow_unsafe_conn: false,
         }
     }
@@ -238,26 +277,37 @@ impl ListenerConfig {
             port: 80,
             protos: vec![Version::HTTP_11],
             interface: Ipv4Addr::UNSPECIFIED.into(),
+            alpn_protos: vec![Alpn::Http11],
             allow_unsafe_conn: false,
         }
     }
 
-    /// Returns the port number.
+    /// Returns mutable port number.
+    pub fn reassign_port(&mut self, port: u16) {
+        self.port = port;
+    }
+
+    /// Returns port number.
     pub fn port(&self) -> u16 {
         self.port
     }
 
-    /// Returns the HTTP protocol.
+    /// Returns HTTP protocol.
     pub fn protos(&self) -> &Vec<Version> {
         &self.protos
     }
 
-    /// Returns the network interface.
+    /// Returns network interface.
     pub fn interface(&self) -> &IpAddr {
         &self.interface
     }
 
-    /// Returns the network interface.
+    /// Returns HTTP protocol.
+    pub fn alpn_protos(&self) -> &Vec<Alpn> {
+        &self.alpn_protos
+    }
+
+    /// Returns boolean indicating if it is allowed unsafe connections.
     pub fn allow_unsafe_connections(&self) -> bool {
         self.allow_unsafe_conn
     }

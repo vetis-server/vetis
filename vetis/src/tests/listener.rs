@@ -70,15 +70,6 @@ fn test_listener_config_builder_chain() {
 }
 
 #[test]
-fn test_listener_config_builder_port_zero_error() {
-    let result = ListenerConfig::builder()
-        .port(0)
-        .build();
-
-    assert!(result.is_err());
-}
-
-#[test]
 fn test_listener_config_port_getter() {
     let config = ListenerConfig::builder()
         .port(9090)

@@ -34,6 +34,10 @@ pub enum VetisError {
     #[error("Handler error: {0}")]
     Handler(String),
 
+    /// Request handler errors
+    #[error("Worker error: {0}")]
+    Worker(String),
+
     /// TLS/SSL related errors
     #[error("Tls error: {0}")]
     Tls(String),
@@ -83,6 +87,9 @@ pub enum ConfigError {
 /// such as missing listeners or configuration issues.
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum ListenerError {
+    /// Bind
+    #[error("Cannot bind listener: {0}")]
+    Bind(String),
     /// No listeners configured
     #[error("No listeners configured")]
     NoListeners,

@@ -327,7 +327,6 @@ pub mod http {
                 debug!("Serving request for host: {}", hostname);
                 let hosts = hosts.pin_owned();
                 let host = hosts.get(&hostname);
-
                 if let Some(host) = host {
                     // TODO: Save client_addr in request, grab url from request for logging
                     let (parts, body) = req.into_parts();

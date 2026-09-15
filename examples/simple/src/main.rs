@@ -4,7 +4,7 @@ use vetis::{
     host::{handler_fn, HostConfig},
     listener::ListenerConfig,
     security::SecurityConfig,
-    VetisServer as _,
+    Alpn, VetisServer as _,
 };
 use vetis_macros::status_pages;
 use vetis_tokio::{
@@ -23,7 +23,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let https = ListenerConfig::builder()
         .port(8443)
-        .protos(vec![Version::HTTP_11, Version::HTTP_3])
+        .protos(vec![Version::HTTP_11, Version::HTTP_2, Version::HTTP_3])
+        .alpn_protos(vec![Alpn::Http11, Alpn::H2, Alpn::H2c, Alpn::H3])
         .interface(
             "0.0.0.0"
                 .parse()

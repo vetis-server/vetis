@@ -33,10 +33,11 @@ tokio = { version = "1.53.1", features = [
 ], default-features = false }
 vetis = { workspace = true }
 # vetis-tokio = { path = "../../../vetis-tokio", features = [
+#   "http2",
 #   "http3",
 #   "rust-tls"
 # ], default-features = false }
-vetis-tokio = { version = "0.1.2-beta.2", features = [
+vetis-tokio = { version = "0.1.2-beta.4", features = [
   "http3",
   "rust-tls"
 ], default-features = false }

@@ -5,7 +5,7 @@ resolver = "3"
 members = [
   "vetis",
   "vetis-macros",
-  #"examples/simple"
+  "examples/simple"
 ]
 
 [workspace.package]
@@ -34,7 +34,7 @@ time = { version = "0.3.55", features = ["formatting"] }
 typetag = "0.2.22"
 url = "2.5.7"
 #vetis = { path = "vetis" }
-vetis = { version = "0.1.7-beta.2" }
+vetis = { version = "0.1.7-beta.3" }
 vetis-macros = { path = "vetis-macros" }
 
 [profile.release]
