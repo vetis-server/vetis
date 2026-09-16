@@ -1,18 +1,19 @@
 ---
 layout: default
-title: Vetis Smol - Smol Runtime Support
-nav_order: 4
+title: Vetis Glommio - Glommio Runtime Support
+nav_order: 5
 ---
 
-## Vetis Smol
+## Vetis Glommio
 
-Smol runtime support for Vetis HTTP server.
+Glommio runtime support for Vetis HTTP server.
 
 ## Installation
 
 ```toml
+[dependencies]
 vetis = { version = "0.1.4-beta.23" }
-vetis-smol = { version = "0.1.0-beta.12", features = ["http2", "rust-tls"] }
+vetis-glommio = { version = "0.1.1-beta.7", features = ["http2", "rust-tls"] }
 ```
 
 ## Usage
@@ -20,8 +21,6 @@ vetis-smol = { version = "0.1.0-beta.12", features = ["http2", "rust-tls"] }
 ```rust
 use http::Version;
 use hyper::StatusCode;
-use macro_rules_attribute::apply;
-use smol_macros::main;
 use vetis::{
     listener::ListenerConfig,
     security::SecurityConfig,
@@ -29,7 +28,7 @@ use vetis::{
     host::{handler_fn, HostConfig},
     VetisServer as _
 };
-use vetis_smol::{
+use vetis_glommio::{
     host::{path::HandlerPath, Host},
     listener::build_listeners,
     rt::Vetis,
@@ -39,14 +38,14 @@ pub(crate) const CA_CERT: &[u8] = include_bytes!("../../certs/ca.der");
 pub(crate) const SERVER_CERT: &[u8] = include_bytes!("../../certs/server.der");
 pub(crate) const SERVER_KEY: &[u8] = include_bytes!("../../certs/server.key.der");
 
-#[apply(main!)]
+#[compio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 
     let https = ListenerConfig::builder()
         .port(8443)
-        .protocol_version(Version::HTTP_2)
-        .interface("0.0.0.0".parse().unwrap())
+        .protocol_version(Version::HTTP_11)
+        .interface("0.0.0.0")
         .build()?;
 
     let security_config = SecurityConfig::builder()
@@ -57,6 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let localhost_config = HostConfig::builder()
         .hostname("localhost")
+        .port(8443)
         .security(security_config)
         .root_directory("/home/rogerio/Downloads".into())
         .bind_addresses(vec![(
@@ -110,4 +110,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## API Reference
 
-For detailed API documentation, see the [docs.rs page](https://docs.rs/vetis-smol).
+For detailed API documentation, see the [docs.rs page](https://docs.rs/vetis-glommio).

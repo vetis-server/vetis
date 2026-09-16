@@ -30,7 +30,8 @@ use vetis::{
 };
 use vetis_compio::{
     host::{path::HandlerPath, Host},
-    Vetis,
+    listener::build_listeners,
+    rt::Vetis,
 };
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../../certs/ca.der");
@@ -47,10 +48,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .interface("0.0.0.0")
         .build()?;
 
-    let config = ServerConfig::builder()
-        .add_listener(https)
-        .build()?;
-
     let security_config = SecurityConfig::builder()
         .ca_cert_from_bytes(CA_CERT.to_vec())
         .cert_from_bytes(SERVER_CERT.to_vec())
@@ -61,7 +58,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .hostname("localhost")
         .port(8443)
         .security(security_config)
-        .root_directory("/home/rogerio/Downloads")
+        .root_directory("/home/rogerio/Downloads".into())
+        .bind_addresses(vec![(
+            "0.0.0.0"
+                .parse()
+                .unwrap(),
+            8443,
+        )])
         .build()?;
 
     let mut localhost_host = Host::new(localhost_config);
@@ -90,10 +93,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     localhost_host.add_path(health_path);
 
-    let mut server = Vetis::new(config);
-    server
-        .add_host(localhost_host)
-        .await;
+    let mut server = Vetis::builder()
+        .add_listeners(build_listeners(https))?
+        .add_host(localhost_host)?
+        .build();
 
     server.run().await?;
 

@@ -17,7 +17,7 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 ## Why VeTiS?
 
 - **Minimalist Design**: Focus on what matters - serving HTTP requests efficiently
-- **Flexible Runtime**: Choose between Tokio or Smol async runtimes
+- **Flexible Runtime**: Choose between Tokio, Compio, Glommio or Smol async runtimes
 - **Protocol Support**: Full HTTP/1, HTTP/2, and HTTP/3 implementation
 - **Secure by Default**: Built-in TLS support with modern cryptography
 - **Zero-Cost Abstractions**: Leverage Rust's performance without overhead
