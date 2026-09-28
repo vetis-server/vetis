@@ -26,5 +26,5 @@ caramelo = "0.1.4"
 http = "1"
 tokio = { version = "1.53.1", features = ["macros"] }
 trybuild = "1.0.121"
-vetis-tokio = { path = "../../vetis-tokio" }
-#vetis-tokio = "0.1.2-beta.4"
+#vetis-tokio = { path = "../../vetis-tokio" }
+vetis-tokio = "0.1.2-beta.5"
