@@ -21,7 +21,6 @@ eula = false
 [dependencies]
 bytes = "1.12.1"
 clap = { version = "4.6.7", features = ["derive"] }
-env_logger = "0.11.11"
 http = "1.5.0"
 http-body-util = "0.1.5"
 hyper = "1.11.1"
@@ -29,15 +28,16 @@ tokio = { version = "1.53.1", features = [
   "macros",
   "rt-multi-thread",
 ], default-features = false }
+tracing-subscriber = "0.3.23"
 vetis = { workspace = true }
-# vetis-tokio = { path = "../../../vetis-tokio", features = [
-#   "http2",
-#   "http3",
-#   "rust-tls"
-# ], default-features = false }
-vetis-tokio = { version = "0.1.2-beta.4", features = [
+vetis-tokio = { path = "../../../vetis-tokio", features = [
   "http2",
   "http3",
   "rust-tls"
 ], default-features = false }
+# vetis-tokio = { version = "0.1.2-beta.4", features = [
+#   "http2",
+#   "http3",
+#   "rust-tls"
+# ], default-features = false }
 vetis-macros = { workspace = true }

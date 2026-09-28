@@ -225,10 +225,12 @@ fn test_response_headers_replace() {
         .text("test");
 
     let inner = response.into_inner();
-    assert!(inner
-        .headers()
-        .get("x-old")
-        .is_none());
+    assert!(
+        inner
+            .headers()
+            .get("x-old")
+            .is_none()
+    );
     assert_eq!(
         inner
             .headers()

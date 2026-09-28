@@ -1,10 +1,9 @@
 use crate::{
-    errors::{ConfigError, VetisError},
     VetisResult,
+    errors::{ConfigError, VetisError},
 };
-use log::error;
-use serde::{Deserialize, Deserializer};
-use std::fs;
+use serde::Deserialize;
+use std::{error::Error, fmt::Display, path::PathBuf, str::FromStr, sync::Arc};
 
 /// Builder for creating `SecurityConfig` instances.
 ///
@@ -14,24 +13,25 @@ use std::fs;
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::security::SecurityConfig;
+/// use vetis::security::TlsConfig;
 ///
-/// let security = SecurityConfig::builder()
-///     .cert_from_bytes(include_bytes!("../../certs/server.der").to_vec())
-///     .key_from_bytes(include_bytes!("../../certs/server.key.der").to_vec())
-///     .ca_cert_from_bytes(include_bytes!("../../certs/ca.der").to_vec())
+/// let security = TlsConfig::builder()
+///     .cert_file("../../certs/server.der")
+///     .key_file("../../certs/server.key.der")
+///     .ca_file("../../certs/ca.der")
 ///     .client_auth(true)
 ///     .build();
 /// ```
 #[derive(Clone)]
-pub struct SecurityConfigBuilder {
-    cert: Vec<u8>,
-    key: Vec<u8>,
-    ca_cert: Option<Vec<u8>>,
+pub struct TlsConfigBuilder {
+    cert_file: Option<PathBuf>,
+    key_file: Option<PathBuf>,
+    ca_file: Option<PathBuf>,
     client_auth: bool,
+    supported_alpns: Arc<[Alpn]>,
 }
 
-impl SecurityConfigBuilder {
+impl TlsConfigBuilder {
     /// Sets the server certificate from bytes.
     ///
     /// The certificate should be in DER format.
@@ -42,40 +42,11 @@ impl SecurityConfigBuilder {
     /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .cert_from_bytes(include_bytes!("../../certs/server.der").to_vec())
+    ///     .cert_file("../../certs/server.der")
     ///     .build();
     /// ```
-    pub fn cert_from_bytes(mut self, cert: Vec<u8>) -> Self {
-        self.cert = cert;
-        self
-    }
-
-    /// Sets the server certificate from a file.
-    ///
-    /// Reads the certificate file in DER format.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the file cannot be read.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::security::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .cert_from_file("/path/to/server.der")
-    ///     .build();
-    /// ```
-    pub fn cert_from_file(mut self, path: &str) -> Self {
-        let cert = fs::read(path);
-        match cert {
-            Ok(cert) => self.cert = cert,
-            Err(e) => {
-                error!("Failed to read certificate file: {}", e);
-                eprintln!("Failed to read certificate file: {}", e);
-            }
-        }
+    pub fn cert_file(mut self, cert: impl Into<PathBuf>) -> Self {
+        self.cert_file = Some(cert.into());
         self
     }
 
@@ -89,43 +60,15 @@ impl SecurityConfigBuilder {
     /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .key_from_bytes(include_bytes!("../../certs/server.key.der").to_vec())
+    ///     .key_file("../../certs/server.key.der")
     ///     .build();
     /// ```
-    pub fn key_from_bytes(mut self, key: Vec<u8>) -> Self {
-        self.key = key;
+    pub fn key_file(mut self, key: impl Into<PathBuf>) -> Self {
+        self.key_file = Some(key.into());
         self
     }
 
-    /// Sets the private key from a file.
-    ///
-    /// Reads the key file in DER format.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the file cannot be read.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::security::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .key_from_file("/path/to/server.key.der")
-    ///     .build();
-    /// ```
-    pub fn key_from_file(mut self, path: &str) -> Self {
-        let key = fs::read(path);
-        match key {
-            Ok(key) => self.key = key,
-            Err(e) => {
-                error!("Failed to read key file: {}", e);
-            }
-        }
-        self
-    }
-
-    /// Sets the CA certificate from bytes.
+    /// Sets the CA certificate file path.
     ///
     /// The CA certificate is used for client authentication and should be in DER format.
     ///
@@ -135,39 +78,11 @@ impl SecurityConfigBuilder {
     /// use vetis::security::SecurityConfig;
     ///
     /// let security = SecurityConfig::builder()
-    ///     .ca_cert_from_bytes(include_bytes!("../../certs/ca.der").to_vec())
+    ///     .ca_file("../../certs/ca.der")
     ///     .build();
     /// ```
-    pub fn ca_cert_from_bytes(mut self, ca_cert: Vec<u8>) -> Self {
-        self.ca_cert = Some(ca_cert);
-        self
-    }
-
-    /// Sets the CA certificate from a file.
-    ///
-    /// Reads the CA certificate file in DER format.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the file cannot be read.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::security::SecurityConfig;
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .ca_cert_from_file("/path/to/ca.der")
-    ///     .build();
-    /// ```
-    pub fn ca_cert_from_file(mut self, path: &str) -> Self {
-        let ca_cert = fs::read(path);
-        match ca_cert {
-            Ok(ca_cert) => self.ca_cert = Some(ca_cert),
-            Err(e) => {
-                error!("Failed to read CA certificate file: {}", e);
-            }
-        }
+    pub fn ca_file(mut self, file: impl Into<PathBuf>) -> Self {
+        self.ca_file = Some(file.into());
         self
     }
 
@@ -189,32 +104,64 @@ impl SecurityConfigBuilder {
         self
     }
 
-    /// Creates the `SecurityConfig` with the configured settings.
+    /// Sets the supported alpn extesions.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use vetis::{Alpn, {listener::ListenerConfig}};
+    ///
+    /// #[cfg(feature = "http1")]
+    /// let config = ListenerConfig::builder()
+    ///     .alpn_protos(vec![Alpn::Http11])
+    ///     .build();
+    /// ```
+    pub fn supported_alpns(mut self, alpn: &[Alpn]) -> Self {
+        self.supported_alpns = alpn.into();
+        self
+    }
+
+    /// Creates the `TlsConfig` with the configured settings.
     ///
     /// # Returns
     ///
-    /// * `Result<SecurityConfig, VetisError>` - The `SecurityConfig` with the configured settings.
-    pub fn build(self) -> VetisResult<SecurityConfig> {
-        if self.cert.is_empty() {
-            return Err(VetisError::Config(ConfigError::Security(
-                "Missing certificate".to_string(),
+    /// * `Result<TlsConfig, VetisError>` - The `TlsConfig` with the configured settings.
+    pub fn build(self) -> VetisResult<TlsConfig> {
+        let Some(cert_file) = self.cert_file else {
+            return Err(VetisError::Config(ConfigError::Tls(
+                "Missing certificate file".to_string(),
+            )));
+        };
+
+        if !cert_file.exists() {
+            return Err(VetisError::Config(ConfigError::Tls(
+                "Certificate file does not exist".to_string(),
             )));
         }
 
-        if self.key.is_empty() {
-            return Err(VetisError::Config(ConfigError::Security("Missing key".to_string())));
+        let Some(key_file) = self.key_file else {
+            return Err(VetisError::Config(ConfigError::Tls(
+                "Missing certificate key file".to_string(),
+            )));
+        };
+
+        if !key_file.exists() {
+            return Err(VetisError::Config(ConfigError::Tls(
+                "Certificate file does not exist".to_string(),
+            )));
         }
 
-        Ok(SecurityConfig {
-            cert: self.cert,
-            key: self.key,
-            ca_cert: self.ca_cert,
+        Ok(TlsConfig {
+            cert_file,
+            key_file,
+            ca_file: self.ca_file,
             client_auth: self.client_auth,
+            supported_alpns: self.supported_alpns,
         })
     }
 }
 
-/// Security configuration for TLS/SSL.
+/// Configuration for TLS/SSL.
 ///
 /// Contains the certificates and keys needed to establish secure HTTPS connections.
 /// This configuration is used by virtual hosts to enable TLS.
@@ -222,32 +169,42 @@ impl SecurityConfigBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use vetis::security::SecurityConfig;
+/// use vetis::security::TlsConfig;
 ///
-/// let security = SecurityConfig::builder()
-///     .cert_from_bytes(include_bytes!("../../certs/server.der").to_vec())
-///     .key_from_bytes(include_bytes!("../../certs/server.key.der").to_vec())
+/// let security = TlsConfig::builder()
+///     .cert_file("../../certs/server.der")
+///     .key_file("../../certs/server.key.der")
 ///     .build()
 ///     .unwrap();
 ///
 /// println!("Certificate length: {} bytes", security.cert().len());
 /// ```
 #[derive(Clone, Deserialize, PartialEq, Debug)]
-pub struct SecurityConfig {
-    cert: Vec<u8>,
-    key: Vec<u8>,
-    ca_cert: Option<Vec<u8>>,
+pub struct TlsConfig {
+    cert_file: PathBuf,
+    key_file: PathBuf,
+    #[serde(default)]
+    ca_file: Option<PathBuf>,
+    #[serde(default)]
     client_auth: bool,
+    #[serde(default)]
+    supported_alpns: Arc<[Alpn]>,
 }
 
-impl From<(Vec<u8>, Vec<u8>, Option<Vec<u8>>)> for SecurityConfig {
-    fn from((cert, key, ca_cert): (Vec<u8>, Vec<u8>, Option<Vec<u8>>)) -> Self {
-        SecurityConfig { cert, key, ca_cert, client_auth: false }
+impl From<(PathBuf, PathBuf, PathBuf)> for TlsConfig {
+    fn from((cert_file, key_file, ca_cert_file): (PathBuf, PathBuf, PathBuf)) -> Self {
+        TlsConfig {
+            cert_file,
+            key_file,
+            ca_file: Some(ca_cert_file),
+            client_auth: false,
+            supported_alpns: [].into(),
+        }
     }
 }
 
-impl SecurityConfig {
-    /// Creates a new `SecurityConfigBuilder` with default settings.
+impl TlsConfig {
+    /// Creates a new `TlsConfigBuilder` with default settings.
     ///
     /// Default values:
     /// - cert: empty (must be set)
@@ -258,47 +215,48 @@ impl SecurityConfig {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use vetis::security::SecurityConfig;
+    /// use vetis::security::TlsConfig;
     ///
-    /// let security = SecurityConfig::builder()
+    /// let security = TlsConfig::builder()
     ///     .cert_from_bytes(vec![])
     ///     .key_from_bytes(vec![])
     ///     .build();
     /// ```
-    pub fn builder() -> SecurityConfigBuilder {
-        SecurityConfigBuilder {
-            cert: Vec::new(),
-            key: Vec::new(),
-            ca_cert: None,
+    pub fn builder() -> TlsConfigBuilder {
+        TlsConfigBuilder {
+            ca_file: None,
+            key_file: None,
+            cert_file: None,
             client_auth: false,
+            supported_alpns: [].into(),
         }
     }
 
-    /// Returns the server certificate bytes.
+    /// Returns the CA certificate file path if present.
     ///
     /// # Returns
     ///
-    /// * `&Vec<u8>` - The server certificate bytes.
-    pub fn cert(&self) -> &Vec<u8> {
-        &self.cert
+    /// * `&Option<Vec<u8>>` - The CA certificate file path if present.
+    pub fn cert_file(&self) -> &PathBuf {
+        &self.cert_file
     }
 
-    /// Returns the private key bytes.
+    /// Returns the certificate key file if present.
     ///
     /// # Returns
     ///
-    /// * `&Vec<u8>` - The private key bytes.
-    pub fn key(&self) -> &Vec<u8> {
-        &self.key
+    /// * `&Option<Vec<u8>>` - The certificate key file if present.
+    pub fn key_file(&self) -> &PathBuf {
+        &self.key_file
     }
 
-    /// Returns the CA certificate bytes if present.
+    /// Returns the CA certificate file if present.
     ///
     /// # Returns
     ///
     /// * `&Option<Vec<u8>>` - The CA certificate bytes if present.
-    pub fn ca_cert(&self) -> &Option<Vec<u8>> {
-        &self.ca_cert
+    pub fn ca_file(&self) -> &Option<PathBuf> {
+        &self.ca_file
     }
 
     /// Returns whether client authentication is enabled.
@@ -309,38 +267,178 @@ impl SecurityConfig {
     pub fn client_auth(&self) -> bool {
         self.client_auth
     }
+
+    /// Returns supported alpn extensions.
+    pub fn supported_alpns(&self) -> &Arc<[Alpn]> {
+        &self.supported_alpns
+    }
 }
 
-/// Security configuration loaded from files.
-#[derive(Clone, Deserialize)]
-pub struct SecurityConfigFromFile {
-    cert_from_file: String,
-    key_from_file: String,
-    ca_cert_from_file: Option<String>,
-    client_auth: Option<bool>,
+/// Security type holding sensitive data
+pub struct Tls {
+    cert: Vec<u8>,
+    key: Vec<u8>,
+    ca: Option<Vec<u8>>,
+    client_auth: bool,
+    supported_alpns: Vec<Alpn>,
 }
 
-pub(crate) fn config_from_file<'de, D>(deserializer: D) -> Result<Option<SecurityConfig>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let security =
-        SecurityConfigFromFile::deserialize(deserializer).map_err(serde::de::Error::custom)?;
-
-    let mut builder = SecurityConfig::builder()
-        .cert_from_file(&security.cert_from_file)
-        .key_from_file(&security.key_from_file);
-
-    if let Some(ca_cert_from_file) = security.ca_cert_from_file {
-        builder = builder.ca_cert_from_file(&ca_cert_from_file);
+impl Tls {
+    /// Create security type from a cert
+    pub fn from_cert_and_key(cert: &[u8], key: &[u8]) -> Self {
+        Self {
+            cert: cert.into(),
+            key: key.into(),
+            ca: None,
+            client_auth: false,
+            supported_alpns: Vec::new(),
+        }
     }
 
-    if let Some(client_auth) = security.client_auth {
-        builder = builder.client_auth(client_auth);
+    /// Certificate authority in bytes
+    pub fn with_ca(mut self, ca: &[u8]) -> Self {
+        self.ca = Some(ca.into());
+        self
     }
 
-    builder
-        .build()
-        .map_err(serde::de::Error::custom)
-        .map(Some)
+    /// Allow inidicate if client auth will be useds
+    pub fn with_client_auth(mut self, client_auth: bool) -> Self {
+        self.client_auth = client_auth;
+        self
+    }
+
+    /// Returns certificate bytes
+    pub fn cert(&self) -> &[u8] {
+        &self.cert
+    }
+
+    /// Returns certificate key bytes
+    pub fn key(&self) -> &[u8] {
+        &self.key
+    }
+
+    /// Returns ca bytes
+    pub fn ca(&self) -> &Option<Vec<u8>> {
+        &self.ca
+    }
+
+    /// Returns true if client_auth is enabled, false otherwise
+    pub fn client_auth(&self) -> bool {
+        self.client_auth
+    }
+
+    /// Returns a list of supported alpns
+    pub fn supported_alpns(&self) -> &Vec<Alpn> {
+        &self.supported_alpns
+    }
+}
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+/// Enum for ALPN
+pub enum Alpn {
+    /// HTTP/1.1
+    Http11,
+    /// H2
+    H2,
+    /// H2C
+    H2c,
+    /// H3
+    H3,
+    /// DOT
+    Dot,
+    /// DOC
+    Doh,
+    /// DOQ
+    Doq,
+    /// ACME-TLS/1
+    AcmeTls1,
+}
+
+impl From<&str> for Alpn {
+    fn from(value: &str) -> Self {
+        let value = value.to_lowercase();
+        match value.as_str() {
+            "http/1.1" => Alpn::Http11,
+            "h2" => Alpn::H2,
+            "h2c" => Alpn::H2c,
+            "h3" => Alpn::H3,
+            "dot" => Alpn::Dot,
+            "doh" => Alpn::Doh,
+            "doq" => Alpn::Doq,
+            "acme-tls/1" => Alpn::AcmeTls1,
+            &_ => panic!("Not a valid ALPN protocol"),
+        }
+    }
+}
+
+impl From<Vec<u8>> for Alpn {
+    fn from(value: Vec<u8>) -> Self {
+        match value.as_slice() {
+            b"http/1.1" => Alpn::Http11,
+            b"h2" => Alpn::H2,
+            b"h2c" => Alpn::H2c,
+            b"h3" => Alpn::H3,
+            b"dot" => Alpn::Dot,
+            b"doh" => Alpn::Doh,
+            b"doq" => Alpn::Doq,
+            b"acme-tls/1" => Alpn::AcmeTls1,
+            &_ => panic!("Not a valid ALPN protocol"),
+        }
+    }
+}
+
+impl From<&Alpn> for Vec<u8> {
+    fn from(value: &Alpn) -> Self {
+        match value {
+            Alpn::Http11 => b"http/1.1".into(),
+            Alpn::H2 => b"h2".into(),
+            Alpn::H2c => b"h2c".into(),
+            Alpn::H3 => b"h3".into(),
+            Alpn::Dot => b"dot".into(),
+            Alpn::Doh => b"doh".into(),
+            Alpn::Doq => b"doq".into(),
+            Alpn::AcmeTls1 => b"acme-tls/1".into(),
+        }
+    }
+}
+
+impl FromStr for Alpn {
+    type Err = InvalidAlpnError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "http/1.1" | "HTTP/1.1" => Ok(Alpn::Http11),
+            "h2" | "H2" => Ok(Alpn::H2),
+            "h2c" | "H2C" => Ok(Alpn::H2c),
+            "h3" | "H3" => Ok(Alpn::H3),
+            "dot" | "DOT" => Ok(Alpn::Dot),
+            "doh" | "DOH" => Ok(Alpn::Doh),
+            "doq" | "DOQ" => Ok(Alpn::Doq),
+            "acml-tls-1" | "ACME-TLS-1" => Ok(Alpn::AcmeTls1),
+            &_ => Err(InvalidAlpnError(s.into())),
+        }
+    }
+}
+
+/// InvalidAlpnError type is a custom error for invalid alpn code
+#[derive(Debug)]
+pub struct InvalidAlpnError(String);
+
+impl Display for InvalidAlpnError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid alpn: {}", self.0)
+    }
+}
+
+impl Error for InvalidAlpnError {
+    fn cause(&self) -> Option<&dyn Error> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "Invalid Alpn Error"
+    }
+
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
 }

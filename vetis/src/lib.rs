@@ -1,12 +1,13 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
-use papaya::HashMap;
-use serde::Deserialize;
-use std::{future::Future, pin::Pin, sync::Arc};
-
+use crate::log::LogMessage;
 pub use base::VetisServer;
+use crossfire::{MAsyncTx, Rx, mpsc};
+use papaya::HashMap;
+use patricia_tree::StringPatriciaMap;
 pub use request::Request;
 pub use response::Response;
+use std::{future::Future, pin::Pin, sync::Arc};
 
 /// Basic authentication module
 pub mod auth;
@@ -18,6 +19,8 @@ pub mod errors;
 pub mod host;
 /// Listener configuration and management module
 pub mod listener;
+/// Log module
+pub mod log;
 /// HTTP request module
 pub mod request;
 /// HTTP response module
@@ -26,11 +29,29 @@ pub mod response;
 pub mod security;
 /// Server module
 pub mod server;
+
 /// Internal tests module
 #[cfg(test)]
 mod tests;
+
 /// Utility functions and helpers
 pub mod utils;
+
+/// A type alias for path router
+///
+/// This is used to standardize reference to path router accross library.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use vetis::{VetisRouter, errors::VetisError};
+///
+/// fn process_data() -> VetisResult<i32> {
+///     // Some operation that might fail
+///     Ok(42)
+/// }
+/// ```
+pub type VetisPathRouter<T> = StringPatriciaMap<Arc<T>>;
 
 /// A type alias for Result returned by vetis functions
 ///
@@ -47,6 +68,22 @@ pub mod utils;
 /// }
 /// ```
 pub type VetisResult<T> = Result<T, crate::errors::VetisError>;
+
+/// A type alias for Result returned by vetis functions
+///
+/// This is used to standardize error handling across the library.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use vetis::{VetisTestResult, Box<dyn Error>};
+///
+/// fn process_data() -> VetisTestResult<i32> {
+///     // Some operation that might fail
+///     Ok(42)
+/// }
+/// ```
+pub type VetisTestResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 /// A type alias for a vector of virtual hosts
 ///
@@ -82,94 +119,8 @@ pub type VetisHosts<T> = Arc<HashMap<String, Arc<T>>>;
 /// ```
 pub type VetisFutureResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> + Send + 'a>>;
 
-/// Type alias for boxed handler closures.
-///
-/// This represents an async function that takes a `Request` and returns
-/// a `Response` or an error. Handlers are the core of request processing
-/// in VeTiS hosts.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::HandlerFn;
-/// use vetis::{Request, Response, errors::VetisError};
-///
-/// let handler: HandlerFn = Box::new(|request: Request| {
-///     Box::pin(async move {
-///         // Process request...
-///         Ok(Response::builder()
-///             .status(http::StatusCode::OK)
-///             .text("OK"))
-///     })
-/// });
-/// ```
-pub type HandlerFn = Box<dyn Fn(Request) -> VetisFutureResult<'static, Response> + Send + Sync>;
+/// Type of LogMessage sender halve of channel
+pub type LogSender = MAsyncTx<mpsc::Array<LogMessage>>;
 
-#[derive(Deserialize, Clone, PartialEq)]
-/// Enum for ALPN
-pub enum Alpn {
-    /// HTTP/1.1
-    Http11,
-    /// H2
-    H2,
-    /// H2C
-    H2c,
-    /// H3
-    H3,
-    /// DOT
-    Dot,
-    /// DOC
-    Doh,
-    /// DOQ
-    Doq,
-    /// ACME-TLS/1
-    AcmeTls1,
-}
-
-impl From<&str> for Alpn {
-    fn from(value: &str) -> Self {
-        let value = value.to_lowercase();
-        match value.as_str() {
-            "http/1.1" => Alpn::Http11,
-            "h2" => Alpn::H2,
-            "h2c" => Alpn::H2c,
-            "h3" => Alpn::H3,
-            "dot" => Alpn::Dot,
-            "doh" => Alpn::Doh,
-            "doq" => Alpn::Doq,
-            "acme-tls/1" => Alpn::AcmeTls1,
-            &_ => panic!("Not a valid ALPN protocol"),
-        }
-    }
-}
-
-impl From<Vec<u8>> for Alpn {
-    fn from(value: Vec<u8>) -> Self {
-        match value.as_slice() {
-            b"http/1.1" => Alpn::Http11,
-            b"h2" => Alpn::H2,
-            b"h2c" => Alpn::H2c,
-            b"h3" => Alpn::H3,
-            b"dot" => Alpn::Dot,
-            b"doh" => Alpn::Doh,
-            b"doq" => Alpn::Doq,
-            b"acme-tls/1" => Alpn::AcmeTls1,
-            &_ => panic!("Not a valid ALPN protocol"),
-        }
-    }
-}
-
-impl From<&Alpn> for Vec<u8> {
-    fn from(value: &Alpn) -> Self {
-        match value {
-            Alpn::Http11 => b"http/1.1".into(),
-            Alpn::H2 => b"h2".into(),
-            Alpn::H2c => b"h2c".into(),
-            Alpn::H3 => b"h3".into(),
-            Alpn::Dot => b"dot".into(),
-            Alpn::Doh => b"doh".into(),
-            Alpn::Doq => b"doq".into(),
-            Alpn::AcmeTls1 => b"acme-tls/1".into(),
-        }
-    }
-}
+/// Type of LogMessage receiver halve of channel
+pub type LogReceiver = Rx<mpsc::Array<LogMessage>>;

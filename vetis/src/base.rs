@@ -1,4 +1,4 @@
-use crate::{server::ServerConfig, VetisResult};
+use crate::{VetisResult, server::ServerConfig};
 use std::future::Future;
 
 /// Base trait for Vetis server
@@ -9,8 +9,6 @@ pub trait VetisServer {
     type RuntimeHost;
     /// Get server configuration
     fn config(&self) -> &ServerConfig;
-    /// Get mutable server configuration
-    fn config_mut(&mut self) -> &mut ServerConfig;
     /// Run the server
     fn run(&mut self) -> impl Future<Output = VetisResult<()>>;
     /// Start the server

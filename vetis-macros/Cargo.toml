@@ -19,12 +19,12 @@ proc-macro = true
 proc-macro2 = "1.0.107"
 quote = "1.0.47"
 syn = "3.0.5"
-vetis = { workspace = true, default-features = false }
+vetis = { workspace = true }
 
 [dev-dependencies]
 caramelo = "0.1.4"
 http = "1"
 tokio = { version = "1.53.1", features = ["macros"] }
 trybuild = "1.0.121"
-#vetis-tokio = { path = "../../vetis-tokio" }
-vetis-tokio = "0.1.2-beta.4"
+vetis-tokio = { path = "../../vetis-tokio" }
+#vetis-tokio = "0.1.2-beta.4"

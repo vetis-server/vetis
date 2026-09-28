@@ -1,15 +1,16 @@
 use crate::{
+    VetisTestResult,
     errors::{ConfigError, VetisError},
     host::{AltService, HostConfig},
     listener::{self, ListenerConfig},
-    security::SecurityConfig,
+    security::TlsConfig,
 };
 use caramelo::{
     expect,
     matchers::{eq, truthy},
 };
-use http::{uri::Authority, Version};
-use std::{collections::HashMap, error::Error, fs, net::Ipv4Addr, time::Duration};
+use http::{Version, uri::Authority};
+use std::{collections::HashMap, fs, net::Ipv4Addr, time::Duration};
 
 #[test]
 fn test_host_config_build_success() {
@@ -25,13 +26,16 @@ fn test_host_config_build_success() {
 
     assert_eq!(config.hostname(), "example.com");
     assert_eq!(config.root_directory(), &Some(root_dir.clone()));
-    assert!(config
-        .default_headers()
-        .is_none());
-    assert!(config
-        .status_pages()
-        .is_none());
-    assert!(config.enable_logging());
+    assert!(
+        config
+            .default_headers()
+            .is_none()
+    );
+    assert!(
+        config
+            .status_pages()
+            .is_none()
+    );
 
     fs::remove_dir_all(&root_dir).unwrap();
 }
@@ -60,15 +64,16 @@ fn test_host_config_build_with_header() {
         .build()
         .unwrap();
 
-    assert!(config
-        .default_headers()
-        .is_some());
+    assert!(
+        config
+            .default_headers()
+            .is_some()
+    );
     let headers = config
         .default_headers()
-        .as_ref()
         .unwrap();
     assert_eq!(headers.len(), 1);
-    assert_eq!(headers[0], (String::from("X-Custom"), String::from("value")));
+    assert_eq!(headers[0], ("X-Custom".into(), "value".into()));
 }
 
 #[test]
@@ -80,38 +85,39 @@ fn test_host_config_build_with_multiple_headers() {
         .build()
         .unwrap();
 
-    assert!(config
-        .default_headers()
-        .is_some());
+    assert!(
+        config
+            .default_headers()
+            .is_some()
+    );
     let headers = config
         .default_headers()
-        .as_ref()
         .unwrap();
     assert_eq!(headers.len(), 2);
-    assert_eq!(headers[0], (String::from("X-Custom-1"), String::from("value1")));
-    assert_eq!(headers[1], (String::from("X-Custom-2"), String::from("value2")));
+    assert_eq!(headers[0], ("X-Custom-1".into(), "value1".into()));
+    assert_eq!(headers[1], ("X-Custom-2".into(), "value2".into()));
 }
 
 #[test]
-fn test_host_config_build_with_security() -> Result<(), Box<dyn Error>> {
-    let security = SecurityConfig::builder()
-        .cert_from_bytes(vec![1, 2, 3])
-        .key_from_bytes(vec![4, 5, 6])
+fn test_host_config_build_with_security() -> VetisTestResult<()> {
+    let security = TlsConfig::builder()
+        .cert_file("../certs/server.der")
+        .key_file("../certs/server.key.der")
         .build()
         .unwrap();
 
     let host = HostConfig::builder()
-        .security(security.clone())
+        .tls(security.clone())
         .build()
         .unwrap();
 
     let host_security = host
-        .security()
+        .tls()
         .as_ref()
         .unwrap();
 
-    assert_eq!(host_security.cert(), security.cert());
-    assert_eq!(host_security.key(), security.key());
+    assert_eq!(host_security.cert_file(), security.cert_file());
+    assert_eq!(host_security.key_file(), security.key_file());
 
     Ok(())
 }
@@ -123,8 +129,8 @@ fn test_host_config_build_with_status_pages() {
     fs::create_dir_all(&root_dir).unwrap();
 
     let mut status_pages = HashMap::new();
-    status_pages.insert(404, String::from("404.html"));
-    status_pages.insert(500, String::from("500.html"));
+    status_pages.insert(404, "404.html".into());
+    status_pages.insert(500, "500.html".into());
 
     let config = HostConfig::builder()
         .hostname("example.com")
@@ -133,29 +139,19 @@ fn test_host_config_build_with_status_pages() {
         .build()
         .unwrap();
 
-    assert!(config
-        .status_pages()
-        .is_some());
+    assert!(
+        config
+            .status_pages()
+            .is_some()
+    );
     let pages = config
         .status_pages()
-        .as_ref()
         .unwrap();
     assert_eq!(pages.len(), 2);
-    assert_eq!(pages.get(&404), Some(&String::from("404.html")));
-    assert_eq!(pages.get(&500), Some(&String::from("500.html")));
+    assert_eq!(pages.get(&404), Some(&"404.html".into()));
+    assert_eq!(pages.get(&500), Some(&"500.html".into()));
 
     fs::remove_dir_all(&root_dir).unwrap();
-}
-
-#[test]
-fn test_host_config_build_with_logging_disabled() {
-    let config = HostConfig::builder()
-        .hostname("example.com")
-        .enable_logging(false)
-        .build()
-        .unwrap();
-
-    assert!(!config.enable_logging());
 }
 
 #[test]
@@ -164,34 +160,36 @@ fn test_host_config_build_full() {
     let root_dir = temp_dir.join("test_vetis_root_full");
     fs::create_dir_all(&root_dir).unwrap();
 
-    let security = SecurityConfig::builder()
-        .cert_from_bytes(vec![1, 2, 3])
-        .key_from_bytes(vec![4, 5, 6])
+    let tls = TlsConfig::builder()
+        .cert_file("../certs/server.der")
+        .key_file("../certs/server.key.der")
         .build()
         .unwrap();
 
     let mut status_pages = HashMap::new();
-    status_pages.insert(404, String::from("404.html"));
+    status_pages.insert(404, "404.html".into());
 
     let config = HostConfig::builder()
         .hostname("example.com")
         .root_directory(root_dir.clone())
         .header("X-Custom", "value")
-        .security(security)
+        .tls(tls)
         .status_pages(status_pages)
-        .enable_logging(false)
         .build()
         .unwrap();
 
     assert_eq!(config.hostname(), "example.com");
     assert_eq!(config.root_directory(), &Some(root_dir.clone()));
-    assert!(config
-        .default_headers()
-        .is_some());
-    assert!(config
-        .status_pages()
-        .is_some());
-    assert!(!config.enable_logging());
+    assert!(
+        config
+            .default_headers()
+            .is_some()
+    );
+    assert!(
+        config
+            .status_pages()
+            .is_some()
+    );
 
     fs::remove_dir_all(&root_dir).unwrap();
 }
@@ -224,7 +222,7 @@ fn test_host_config_build_missing_root_directory() {
 fn test_host_config_build_nonexistent_root_directory() {
     let result = HostConfig::builder()
         .hostname("example.com")
-        .root_directory("/nonexistent/path/to/root".into())
+        .root_directory("/nonexistent/path/to/root")
         .build();
 
     assert!(result.is_err());
@@ -268,9 +266,11 @@ fn test_host_config_default_headers_getter_none() {
         .build()
         .unwrap();
 
-    assert!(config
-        .default_headers()
-        .is_none());
+    assert!(
+        config
+            .default_headers()
+            .is_none()
+    );
 }
 
 #[test]
@@ -281,9 +281,11 @@ fn test_host_config_default_headers_getter_some() {
         .build()
         .unwrap();
 
-    assert!(config
-        .default_headers()
-        .is_some());
+    assert!(
+        config
+            .default_headers()
+            .is_some()
+    );
 }
 
 #[test]
@@ -293,9 +295,11 @@ fn test_host_config_status_pages_getter_none() {
         .build()
         .unwrap();
 
-    assert!(config
-        .status_pages()
-        .is_none());
+    assert!(
+        config
+            .status_pages()
+            .is_none()
+    );
 }
 
 #[test]
@@ -305,7 +309,7 @@ fn test_host_config_status_pages_getter_some() {
     fs::create_dir_all(&root_dir).unwrap();
 
     let mut status_pages = HashMap::new();
-    status_pages.insert(404, String::from("404.html"));
+    status_pages.insert(404, "404.html".into());
 
     let config = HostConfig::builder()
         .hostname("example.com")
@@ -314,33 +318,13 @@ fn test_host_config_status_pages_getter_some() {
         .build()
         .unwrap();
 
-    assert!(config
-        .status_pages()
-        .is_some());
+    assert!(
+        config
+            .status_pages()
+            .is_some()
+    );
 
     fs::remove_dir_all(&root_dir).unwrap();
-}
-
-#[test]
-fn test_host_config_enable_logging_getter_true() {
-    let config = HostConfig::builder()
-        .hostname("example.com")
-        .enable_logging(true)
-        .build()
-        .unwrap();
-
-    assert!(config.enable_logging());
-}
-
-#[test]
-fn test_host_config_enable_logging_getter_false() {
-    let config = HostConfig::builder()
-        .hostname("example.com")
-        .enable_logging(false)
-        .build()
-        .unwrap();
-
-    assert!(!config.enable_logging());
 }
 
 #[test]
@@ -350,9 +334,11 @@ fn test_host_config_paths_getter_none() {
         .build()
         .unwrap();
 
-    assert!(config
-        .paths()
-        .is_empty());
+    assert!(
+        config
+            .paths()
+            .is_empty()
+    );
 }
 
 #[test]
@@ -371,50 +357,42 @@ fn test_listener_config_builder_default_port() {
 }
 
 #[test]
-fn test_host_config_builder_default_logging() {
-    let config = HostConfig::builder()
-        .hostname("example.com")
-        .build()
-        .unwrap();
-
-    assert!(config.enable_logging());
-}
-
-#[test]
 fn test_host_config_builder_chain() {
     let temp_dir = std::env::temp_dir();
     let root_dir = temp_dir.join("test_vetis_root_chain");
     fs::create_dir_all(&root_dir).unwrap();
 
-    let security = SecurityConfig::builder()
-        .cert_from_bytes(vec![1, 2, 3])
-        .key_from_bytes(vec![4, 5, 6])
+    let tls = TlsConfig::builder()
+        .cert_file("../certs/server.der")
+        .key_file("../certs/server.key.der")
         .build()
         .unwrap();
 
     let mut status_pages = HashMap::new();
-    status_pages.insert(404, String::from("404.html"));
+    status_pages.insert(404, "404.html".into());
 
     let config = HostConfig::builder()
         .hostname("example.com")
         .root_directory(root_dir.clone())
         .header("X-Custom-1", "value1")
         .header("X-Custom-2", "value2")
-        .security(security)
+        .tls(tls)
         .status_pages(status_pages)
-        .enable_logging(false)
         .build()
         .unwrap();
 
     expect(config.hostname()).to_be(eq("example.com"));
     assert_eq!(config.root_directory(), &Some(root_dir));
-    assert!(config
-        .default_headers()
-        .is_some());
-    assert!(config
-        .status_pages()
-        .is_some());
-    assert!(!config.enable_logging());
+    assert!(
+        config
+            .default_headers()
+            .is_some()
+    );
+    assert!(
+        config
+            .status_pages()
+            .is_some()
+    );
 }
 
 #[test]
@@ -434,18 +412,16 @@ fn test_hostname_rootdir_into_hostconfig() {
 fn test_host_config_enable_flags() {
     let config = HostConfig::builder()
         .enable_hsts(true)
-        .enable_logging(true)
         .build()
         .unwrap();
 
     expect(config.enable_hsts()).to_be(truthy());
-    expect(config.enable_logging()).to_be(truthy());
 }
 
 #[test]
 fn test_bind_addresses() {
     let config = HostConfig::builder()
-        .bind_addresses(vec![(Ipv4Addr::UNSPECIFIED.into(), 80)])
+        .bind_addresses(&[(Ipv4Addr::UNSPECIFIED.into(), 80)])
         .build()
         .unwrap();
     expect(config.bind_addresses()).to_be(eq(config.bind_addresses()));

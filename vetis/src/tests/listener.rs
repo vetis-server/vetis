@@ -1,12 +1,6 @@
+use crate::{listener::ListenerConfig, security::Alpn};
+use caramelo::{expect, matchers::eq};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-
-use caramelo::{
-    expect,
-    matchers::{eq, truthy},
-};
-use http::Version;
-
-use crate::listener::ListenerConfig;
 
 #[test]
 fn test_listener_config_builder_default() {
@@ -16,7 +10,6 @@ fn test_listener_config_builder_default() {
         .unwrap();
 
     assert_eq!(config.port(), 80);
-    assert_eq!(config.protos(), &vec![Version::HTTP_11]);
     assert_eq!(
         config.interface(),
         &"0.0.0.0"
@@ -46,27 +39,15 @@ fn test_listener_config_builder_with_interface() {
 }
 
 #[test]
-fn test_listener_config_builder_with_protocol_version() {
-    let config = ListenerConfig::builder()
-        .protos(vec![Version::HTTP_2])
-        .build()
-        .unwrap();
-
-    assert_eq!(config.protos(), &vec![Version::HTTP_2]);
-}
-
-#[test]
 fn test_listener_config_builder_chain() {
     let config = ListenerConfig::builder()
         .port(8443)
         .interface(Ipv4Addr::LOCALHOST.into())
-        .protos(vec![Version::HTTP_2])
         .build()
         .unwrap();
 
     assert_eq!(config.port(), 8443);
     assert_eq!(config.interface(), &IpAddr::V4(Ipv4Addr::LOCALHOST));
-    assert_eq!(config.protos(), &vec![Version::HTTP_2]);
 }
 
 #[test]
@@ -77,23 +58,6 @@ fn test_listener_config_port_getter() {
         .unwrap();
 
     assert_eq!(config.port(), 9090);
-}
-
-#[test]
-fn test_listener_config_protocol_getter() {
-    let config = ListenerConfig::builder()
-        .protos(vec![Version::HTTP_11])
-        .build()
-        .unwrap();
-
-    assert_eq!(config.protos(), &vec![Version::HTTP_11]);
-
-    let config = ListenerConfig::builder()
-        .protos(vec![Version::HTTP_2])
-        .build()
-        .unwrap();
-
-    assert_eq!(config.protos(), &vec![Version::HTTP_2]);
 }
 
 #[test]
@@ -145,13 +109,11 @@ fn test_listener_config_builder_preserves_settings() {
     let config = ListenerConfig::builder()
         .port(3000)
         .interface(Ipv4Addr::LOCALHOST.into())
-        .protos(vec![Version::HTTP_11])
         .build()
         .unwrap();
 
     assert_eq!(config.port(), 3000);
     assert_eq!(config.interface(), &IpAddr::V4(Ipv4Addr::LOCALHOST));
-    assert_eq!(config.protos(), &vec![Version::HTTP_11]);
 }
 
 #[test]
@@ -181,24 +143,65 @@ fn test_port_into_listener() {
 }
 
 #[test]
-fn test_version_into_listener() {
-    let config: ListenerConfig = Version::HTTP_11.into();
-    assert_eq!(config.protos()[0], Version::HTTP_11);
+fn test_from_str_to_alpn() {
+    expect("http/1.1".into()).to_be(eq(Alpn::Http11));
+    expect("h2".into()).to_be(eq(Alpn::H2));
+    expect("h2c".into()).to_be(eq(Alpn::H2c));
+    expect("h3".into()).to_be(eq(Alpn::H3));
+    expect("dot".into()).to_be(eq(Alpn::Dot));
+    expect("doq".into()).to_be(eq(Alpn::Doq));
+    expect("doh".into()).to_be(eq(Alpn::Doh));
+    expect("acme-tls/1".into()).to_be(eq(Alpn::AcmeTls1));
 }
 
 #[test]
-fn test_port_version_into_listener() {
-    let config: ListenerConfig = (80, Version::HTTP_11).into();
-    expect(config.port()).to_be(eq(80));
-    assert_eq!(config.protos()[0], Version::HTTP_11);
-}
-
-#[test]
-fn test_listener_config_builder_allow_unsage() {
-    let config = ListenerConfig::builder()
-        .allow_unsafe_connections(true)
-        .build()
-        .unwrap();
-
-    expect(config.allow_unsafe_connections()).to_be(truthy());
+fn test_from_alpn_to_bytes() {
+    expect(
+        b"http/1.1"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::Http11));
+    expect(
+        b"h2"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::H2));
+    expect(
+        b"h2c"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::H2c));
+    expect(
+        b"h3"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::H3));
+    expect(
+        b"dot"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::Dot));
+    expect(
+        b"doq"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::Doq));
+    expect(
+        b"doh"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::Doh));
+    expect(
+        b"acme-tls/1"
+            .to_vec()
+            .into(),
+    )
+    .to_be(eq(Alpn::AcmeTls1));
 }

@@ -1,6 +1,6 @@
 use syn::{
+    Expr, Ident, LitInt, Result, Token,
     parse::{Parse, ParseStream},
-    Expr, Ident, Result, Token,
 };
 
 pub(crate) struct HttpArgs {
@@ -9,9 +9,12 @@ pub(crate) struct HttpArgs {
     pub(crate) from_crate: Option<Ident>,
     pub(crate) hostname: Option<Expr>,
     pub(crate) root_directory: Option<Expr>,
+    pub(crate) workers: Option<LitInt>,
+    pub(crate) logger_queue_size: Option<LitInt>,
+    pub(crate) log: Option<Expr>,
     pub(crate) port: Option<Expr>,
     pub(crate) interface: Option<Expr>,
-    pub(crate) security: Option<Expr>,
+    pub(crate) tls: Option<Expr>,
     pub(crate) allow_unsafe_conn: Option<Expr>,
 }
 
@@ -22,9 +25,12 @@ impl Parse for HttpArgs {
         let mut from_crate = None;
         let mut hostname = None;
         let mut root_directory = None;
+        let mut workers = None;
+        let mut logger_queue_size = None;
+        let mut log = None;
         let mut port = None;
         let mut interface = None;
-        let mut security = None;
+        let mut tls = None;
         let mut allow_unsafe_conn = None;
 
         while !input.is_empty() {
@@ -70,6 +76,27 @@ impl Parse for HttpArgs {
                     let expr: Expr = input.parse()?;
                     root_directory = Some(expr);
                 }
+                "logger_queue_size" => {
+                    if logger_queue_size.is_some() {
+                        return Err(input.error("Duplicate 'logger_queue_size' key"));
+                    }
+                    let expr: LitInt = input.parse()?;
+                    logger_queue_size = Some(expr);
+                }
+                "workers" => {
+                    if workers.is_some() {
+                        return Err(input.error("Duplicate 'workers' key"));
+                    }
+                    let expr: LitInt = input.parse()?;
+                    workers = Some(expr);
+                }
+                "log" => {
+                    if log.is_some() {
+                        return Err(input.error("Duplicate 'log' key"));
+                    }
+                    let expr: Expr = input.parse()?;
+                    log = Some(expr);
+                }
                 "port" => {
                     if port.is_some() {
                         return Err(input.error("Duplicate 'port' key"));
@@ -84,12 +111,12 @@ impl Parse for HttpArgs {
                     let expr: Expr = input.parse()?;
                     interface = Some(expr);
                 }
-                "security_config" => {
-                    if security.is_some() {
-                        return Err(input.error("Duplicate 'security' key"));
+                "tls" => {
+                    if tls.is_some() {
+                        return Err(input.error("Duplicate 'tls' key"));
                     }
                     let expr: Expr = input.parse()?;
-                    security = Some(expr);
+                    tls = Some(expr);
                 }
                 "allow_unsafe_conn" => {
                     if allow_unsafe_conn.is_some() {
@@ -112,9 +139,12 @@ impl Parse for HttpArgs {
             from_crate,
             hostname,
             root_directory,
+            workers,
+            logger_queue_size,
+            log,
             port,
             interface,
-            security,
+            tls,
             allow_unsafe_conn,
         })
     }

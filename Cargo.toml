@@ -2,39 +2,36 @@
 # Use the latest resolver available
 resolver = "3"
 # Include both parts of the library in the workspace
-members = [
-  "vetis",
-  "vetis-macros",
-  "examples/simple"
-]
+members = ["vetis", "vetis-macros", "examples/simple"]
 
 [workspace.package]
 authors = ["Rogerio Araújo <rogerio.araujo@gmail.com>"]
-edition = "2021"
+edition = "2024"
 repository = "https://github.com/vetis-server/vetis"
 homepage = "https://github.com/vetis-server/vetis"
 license = "MIT OR Apache-2.0"
-rust-version = "1.75.0"
+rust-version = "1.85.0"
 
 [workspace.dependencies]
 bytes = "1.12.1"
 futures-util = { version = "0.3.32" }
-http = "1.4.2"
-http-body-util = { version = "0.1.3" }
+http = "1.5.0"
+http-body-util = { version = "0.1.5" }
 hyper = { version = "1.11.1", default-features = false }
 hyper-body-utils = { version = "0.1.17", default-features = false }
 log = "0.4.34"
-radix_trie = { version = "0.3.0", default-features = false }
+logforth-core = "0.4.0"
+patricia_tree = { version = "0.10.1", default-features = false }
 rand = { version = "0.10.2", default-features = false }
 serde = "1.0.228"
 serde_yaml_ng = "0.10.0"
 socket2 = "0.6.4"
-thiserror = "2.0.17"
+thiserror = "2.0.21"
 time = { version = "0.3.55", features = ["formatting"] }
 typetag = "0.2.22"
 url = "2.5.7"
 #vetis = { path = "vetis" }
-vetis = { version = "0.1.7-beta.3" }
+vetis = { version = "0.1.7-beta.4" }
 vetis-macros = { path = "vetis-macros" }
 
 [profile.release]

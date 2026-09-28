@@ -1,5 +1,4 @@
-use crate::{Alpn, VetisResult};
-use http::Version;
+use crate::VetisResult;
 use serde::Deserialize;
 use std::{
     future::Future,
@@ -16,17 +15,26 @@ pub trait Listener {
     /// The type of host that this listener can handle
     type RuntimeHost;
 
+    /// The type of logger and its inner sender
+    type Logger;
+
     /// Add a host to this listener
     fn add_host(&mut self, host: Arc<Self::RuntimeHost>) -> VetisResult<()>;
 
     /// Remove a host from this listener
     fn remove_host(&mut self, hostname: &str) -> VetisResult<()>;
 
+    /// Allow set logger
+    fn logger(&mut self, logger: Self::Logger);
+
     /// Returns the number of hosts
     fn total_hosts(&self) -> usize;
 
     /// Ask OS to reserve a free port
     fn reserve_port(&mut self) -> impl Future<Output = VetisResult<()>>;
+
+    /// Reassign port to listener
+    fn reassign_port(&mut self, port: u16);
 
     /// Returns listener config
     fn config(&self) -> &ListenerConfig;
@@ -38,6 +46,7 @@ pub trait Listener {
     fn stop(&mut self) -> impl Future<Output = VetisResult<()>>;
 }
 
+#[derive(Deserialize)]
 /// Builder for creating `ListenerConfig` instances.
 ///
 /// Provides a fluent API for configuring server listeners.
@@ -55,14 +64,29 @@ pub trait Listener {
 ///     .build();
 /// ```
 pub struct ListenerConfigBuilder {
+    workers: usize,
     port: u16,
-    protos: Vec<Version>,
     interface: IpAddr,
-    alpn_protos: Vec<Alpn>,
-    allow_unsafe_conn: bool,
 }
 
 impl ListenerConfigBuilder {
+    /// Sets the number of workers for this listener.
+    /// Default value is 1.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use vetis::listener::ListenerConfig;
+    ///
+    /// let config = ListenerConfig::builder()
+    ///     .workers(4)
+    ///     .build();
+    /// ```
+    pub fn workers(mut self, workers: usize) -> Self {
+        self.workers = workers;
+        self
+    }
+
     /// Sets the port number for the listener.
     ///
     /// # Examples
@@ -101,96 +125,9 @@ impl ListenerConfigBuilder {
         self
     }
 
-    /// Sets the HTTP protocol for this listener.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use http::Version;
-    /// use vetis::{listener::ListenerConfig};
-    ///
-    /// #[cfg(feature = "http1")]
-    /// let config = ListenerConfig::builder()
-    ///     .protos(Version::HTTP_11)
-    ///     .build();
-    /// ```
-    pub fn protos(mut self, protos: Vec<Version>) -> Self {
-        self.protos = protos;
-        self
-    }
-
-    /// Sets the HTTP protocol for this listener.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::{Alpn, {listener::ListenerConfig}};
-    ///
-    /// #[cfg(feature = "http1")]
-    /// let config = ListenerConfig::builder()
-    ///     .alpn_protos(vec![Alpn::Http11])
-    ///     .build();
-    /// ```
-    pub fn alpn_protos(mut self, alpn: Vec<Alpn>) -> Self {
-        self.alpn_protos = alpn;
-        self
-    }
-
-    /// Sets the HTTP to allow unsafe connections for this listener.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use http::Version;
-    /// use vetis::{listener::ListenerConfig};
-    ///
-    /// #[cfg(feature = "http1")]
-    /// let config = ListenerConfig::builder()
-    ///     .allow_unsafe_connections(true)
-    ///     .build();
-    /// ```
-    ///
-    /// # Notes
-    ///
-    /// Enable unsafe connections should be only enabled for testing purposes.
-    /// Please be cautious when using this setting.
-    ///
-    pub fn allow_unsafe_connections(mut self, allow_unsafe_conn: bool) -> Self {
-        self.allow_unsafe_conn = allow_unsafe_conn;
-        self
-    }
-
     /// Creates the `ListenerConfig` with the configured settings.
     pub fn build(self) -> VetisResult<ListenerConfig> {
-        let mut alpn_protos = self.alpn_protos;
-
-        if self
-            .protos
-            .contains(&Version::HTTP_2)
-            && !alpn_protos.contains(&Alpn::H2)
-        {
-            alpn_protos.push(Alpn::H2);
-        }
-
-        if self
-            .protos
-            .contains(&Version::HTTP_3)
-            && !alpn_protos.contains(&Alpn::H3)
-        {
-            alpn_protos.push(Alpn::H3);
-        }
-
-        if self.allow_unsafe_conn && !alpn_protos.contains(&Alpn::H2c) {
-            alpn_protos.push(Alpn::H2c);
-        }
-
-        Ok(ListenerConfig {
-            port: self.port,
-            protos: self.protos,
-            interface: self.interface,
-            alpn_protos: alpn_protos,
-            allow_unsafe_conn: self.allow_unsafe_conn,
-        })
+        Ok(ListenerConfig { workers: self.workers, port: self.port, interface: self.interface })
     }
 }
 
@@ -216,42 +153,22 @@ impl ListenerConfigBuilder {
 /// println!("Listening on port {}", config.port());
 /// ```
 #[derive(Deserialize, Clone)]
+#[serde(default)]
 pub struct ListenerConfig {
+    workers: usize,
     port: u16,
-    #[serde(with = "http_serde_ext::version::vec")]
-    protos: Vec<Version>,
     interface: IpAddr,
-    alpn_protos: Vec<Alpn>,
-    allow_unsafe_conn: bool,
 }
 
 impl Default for ListenerConfig {
     fn default() -> Self {
-        ListenerConfig {
-            port: 80,
-            protos: vec![Version::HTTP_11],
-            interface: Ipv4Addr::UNSPECIFIED.into(),
-            alpn_protos: vec![Alpn::Http11],
-            allow_unsafe_conn: false,
-        }
+        ListenerConfig { workers: 1, port: 80, interface: Ipv4Addr::UNSPECIFIED.into() }
     }
 }
 
 impl From<u16> for ListenerConfig {
     fn from(port: u16) -> Self {
         ListenerConfig { port, ..Default::default() }
-    }
-}
-
-impl From<Version> for ListenerConfig {
-    fn from(protos: Version) -> Self {
-        ListenerConfig { protos: vec![protos], ..Default::default() }
-    }
-}
-
-impl From<(u16, Version)> for ListenerConfig {
-    fn from((port, protos): (u16, Version)) -> Self {
-        ListenerConfig { port, protos: vec![protos], ..Default::default() }
     }
 }
 
@@ -273,13 +190,7 @@ impl ListenerConfig {
     /// let config = builder.port(8080).build();
     /// ```
     pub fn builder() -> ListenerConfigBuilder {
-        ListenerConfigBuilder {
-            port: 80,
-            protos: vec![Version::HTTP_11],
-            interface: Ipv4Addr::UNSPECIFIED.into(),
-            alpn_protos: vec![Alpn::Http11],
-            allow_unsafe_conn: false,
-        }
+        ListenerConfigBuilder { workers: 1, port: 80, interface: Ipv4Addr::UNSPECIFIED.into() }
     }
 
     /// Returns mutable port number.
@@ -287,28 +198,18 @@ impl ListenerConfig {
         self.port = port;
     }
 
+    /// Returns number of workers.
+    pub fn workers(&self) -> usize {
+        self.workers
+    }
+
     /// Returns port number.
     pub fn port(&self) -> u16 {
         self.port
     }
 
-    /// Returns HTTP protocol.
-    pub fn protos(&self) -> &Vec<Version> {
-        &self.protos
-    }
-
     /// Returns network interface.
     pub fn interface(&self) -> &IpAddr {
         &self.interface
-    }
-
-    /// Returns HTTP protocol.
-    pub fn alpn_protos(&self) -> &Vec<Alpn> {
-        &self.alpn_protos
-    }
-
-    /// Returns boolean indicating if it is allowed unsafe connections.
-    pub fn allow_unsafe_connections(&self) -> bool {
-        self.allow_unsafe_conn
     }
 }

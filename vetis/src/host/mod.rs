@@ -1,49 +1,22 @@
 use crate::{
+    LogSender, Request, Response, VetisFutureResult, VetisPathRouter, VetisResult,
     errors::{ConfigError, VetisError},
     host::path::PathConfig,
-    security::SecurityConfig,
-    HandlerFn, Request, Response, VetisFutureResult, VetisResult,
+    log::{self, LogConfig, Logger},
+    security::TlsConfig,
 };
-use http::{uri::Authority, Version};
-use radix_trie::Trie;
+use http::{Version, uri::Authority};
 use serde::Deserialize;
 use std::{
-    collections::HashMap, future::Future, net::IpAddr, path::PathBuf, sync::Arc, time::Duration,
+    collections::HashMap,
+    net::{IpAddr, Ipv4Addr},
+    path::PathBuf,
+    sync::Arc,
+    time::Duration,
 };
 
 /// Path configuration for hosts.
 pub mod path;
-
-/// Creates a handler function from a function.
-///
-/// This utility function converts any compatible async function into a
-/// `HandlerFn` that can be used with hosts.
-///
-/// # Arguments
-///
-/// * `f` - An async function that takes a `Request` and returns a `VetisResult<Response>`
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::{
-///     host::{handler_fn, HostConfig},
-/// };
-///
-/// let config = HostConfig::builder()
-///     .hostname("example.com")
-///     .build()
-///     .unwrap();
-///
-/// assert_eq!("example.com", config.hostname());
-/// ```
-pub fn handler_fn<F, Fut>(f: F) -> HandlerFn
-where
-    F: Fn(Request) -> Fut + Send + Sync + 'static,
-    Fut: Future<Output = VetisResult<Response>> + Send + Sync + 'static,
-{
-    Box::new(move |req| Box::pin(f(req)))
-}
 
 /// AltService builder type
 pub struct AltServiceBuilder {
@@ -166,15 +139,17 @@ impl From<AltService> for String {
 ///     .unwrap();
 /// ```
 pub struct HostConfigBuilder {
-    hostname: String,
+    hostname: Arc<str>,
     root_directory: Option<PathBuf>,
-    default_headers: Option<Vec<(String, String)>>,
-    security: Option<SecurityConfig>,
-    status_pages: Option<HashMap<u16, String>>,
-    enable_logging: bool,
+    protos: Vec<Version>,
+    allow_unsafe_conn: bool,
+    default_headers: Option<Vec<(Arc<str>, Arc<str>)>>,
+    tls: Option<TlsConfig>,
+    status_pages: Option<HashMap<u16, Arc<str>>>,
     enable_hsts: bool,
     bind_addresses: Vec<(IpAddr, u16)>,
     paths: Vec<Box<dyn path::PathConfig>>,
+    log: Option<Box<dyn log::LogConfig>>,
 }
 
 impl HostConfigBuilder {
@@ -193,7 +168,49 @@ impl HostConfigBuilder {
     ///     .unwrap();
     /// ```
     pub fn hostname(mut self, hostname: &str) -> Self {
-        self.hostname = hostname.to_string();
+        self.hostname = hostname.into();
+        self
+    }
+
+    /// Sets the HTTP protocol for this listener.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use http::Version;
+    /// use vetis::{listener::ListenerConfig};
+    ///
+    /// #[cfg(feature = "http1")]
+    /// let config = ListenerConfig::builder()
+    ///     .protos(Version::HTTP_11)
+    ///     .build();
+    /// ```
+    pub fn protos(mut self, protos: &[Version]) -> Self {
+        self.protos = protos.to_vec();
+        self
+    }
+
+    /// Sets the HTTP to allow unsafe connections for this listener.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use http::Version;
+    /// use vetis::{listener::ListenerConfig};
+    ///
+    /// #[cfg(feature = "http1")]
+    /// let config = ListenerConfig::builder()
+    ///     .allow_unsafe_connections(true)
+    ///     .build();
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// Enable unsafe connections should be only enabled for testing purposes.
+    /// Please be cautious when using this setting.
+    ///
+    pub fn allow_unsafe_connections(mut self, allow_unsafe_conn: bool) -> Self {
+        self.allow_unsafe_conn = allow_unsafe_conn;
         self
     }
 
@@ -211,8 +228,8 @@ impl HostConfigBuilder {
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn root_directory(mut self, root_directory: PathBuf) -> Self {
-        self.root_directory = Some(root_directory);
+    pub fn root_directory(mut self, root_directory: impl Into<PathBuf>) -> Self {
+        self.root_directory = Some(root_directory.into());
         self
     }
 
@@ -233,11 +250,11 @@ impl HostConfigBuilder {
     pub fn header(mut self, key: &str, value: &str) -> Self {
         match self.default_headers {
             None => {
-                let vec = vec![(key.to_string(), value.to_string())];
+                let vec = vec![(key.into(), value.into())];
                 self.default_headers = Some(vec);
             }
             Some(ref mut headers) => {
-                headers.push((key.to_string(), value.to_string()));
+                headers.push((key.into(), value.into()));
             }
         }
         self
@@ -262,12 +279,12 @@ impl HostConfigBuilder {
     ///     .unwrap();
     ///
     /// let config = HostConfig::builder()
-    ///     .security(security)
+    ///     .tls(security)
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn security(mut self, security: SecurityConfig) -> Self {
-        self.security = Some(security);
+    pub fn tls(mut self, tls: TlsConfig) -> Self {
+        self.tls = Some(tls);
         self
     }
 
@@ -289,27 +306,8 @@ impl HostConfigBuilder {
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn status_pages(mut self, status_pages: HashMap<u16, String>) -> Self {
+    pub fn status_pages(mut self, status_pages: HashMap<u16, Arc<str>>) -> Self {
         self.status_pages = Some(status_pages);
-        self
-    }
-
-    /// Enables or disables logging for this host.
-    ///
-    /// When enabled, all requests to this host will be logged.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    ///
-    /// let config = HostConfig::builder()
-    ///     .enable_logging(true)
-    ///     .build()
-    ///     .unwrap();
-    /// ```
-    pub fn enable_logging(mut self, logging: bool) -> Self {
-        self.enable_logging = logging;
         self
     }
 
@@ -339,8 +337,8 @@ impl HostConfigBuilder {
     /// ```rust,norun
     ///
     /// ```
-    pub fn bind_addresses(mut self, addresses: Vec<(IpAddr, u16)>) -> Self {
-        self.bind_addresses = addresses;
+    pub fn bind_addresses(mut self, addresses: &[(IpAddr, u16)]) -> Self {
+        self.bind_addresses = addresses.into();
         self
     }
 
@@ -365,6 +363,21 @@ impl HostConfigBuilder {
     {
         self.paths
             .push(Box::new(path));
+        self
+    }
+
+    /// Log host log
+    ///
+    /// # Examples
+    ///
+    /// ```rust,norun
+    ///
+    /// ```
+    pub fn log<L>(mut self, log: L) -> Self
+    where
+        L: LogConfig + 'static,
+    {
+        self.log = Some(Box::new(log));
         self
     }
 
@@ -405,13 +418,25 @@ impl HostConfigBuilder {
         Ok(HostConfig {
             hostname: self.hostname,
             root_directory: self.root_directory,
-            default_headers: self.default_headers,
-            security: self.security,
+            protos: self.protos,
+            allow_unsafe_conn: self.allow_unsafe_conn,
+            default_headers: self
+                .default_headers
+                .map_or(None, |val| {
+                    Some(
+                        val.as_slice()
+                            .into(),
+                    )
+                }),
+            tls: self.tls,
             status_pages: self.status_pages,
-            enable_logging: self.enable_logging,
             enable_hsts: self.enable_hsts,
-            paths: self.paths,
-            bind_addresses: self.bind_addresses,
+            bind_addresses: self
+                .bind_addresses
+                .as_slice()
+                .into(),
+            paths: self.paths.into(),
+            log: self.log,
         })
     }
 }
@@ -436,18 +461,21 @@ impl HostConfigBuilder {
 ///
 /// println!("Host: {}", config.hostname());
 /// ```
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
+#[serde(default)]
 pub struct HostConfig {
-    hostname: String,
+    hostname: Arc<str>,
     root_directory: Option<PathBuf>,
-    default_headers: Option<Vec<(String, String)>>,
-    #[serde(deserialize_with = "crate::security::config_from_file")]
-    security: Option<SecurityConfig>,
-    status_pages: Option<HashMap<u16, String>>,
-    enable_logging: bool,
+    #[serde(with = "http_serde_ext::version::vec")]
+    protos: Vec<Version>,
+    allow_unsafe_conn: bool,
+    default_headers: Option<Arc<[(Arc<str>, Arc<str>)]>>,
+    tls: Option<TlsConfig>,
+    status_pages: Option<HashMap<u16, Arc<str>>>,
     enable_hsts: bool,
-    paths: Vec<Box<dyn path::PathConfig>>,
-    bind_addresses: Vec<(IpAddr, u16)>,
+    bind_addresses: Arc<[(IpAddr, u16)]>,
+    paths: Arc<[Box<dyn path::PathConfig>]>,
+    log: Option<Box<dyn log::LogConfig>>,
 }
 
 impl HostConfig {
@@ -470,15 +498,17 @@ impl HostConfig {
     /// ```
     pub fn builder() -> HostConfigBuilder {
         HostConfigBuilder {
-            hostname: "localhost".to_string(),
+            hostname: "localhost".into(),
             root_directory: None,
+            protos: vec![Version::HTTP_11],
+            allow_unsafe_conn: false,
             default_headers: None,
-            security: None,
+            tls: None,
             status_pages: None,
-            enable_logging: true,
             enable_hsts: false,
-            paths: Vec::new(),
-            bind_addresses: Vec::new(),
+            bind_addresses: [(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 80)].into(),
+            paths: [].into(),
+            log: None,
         }
     }
 
@@ -500,22 +530,33 @@ impl HostConfig {
         &self.root_directory
     }
 
+    /// Returns HTTP protocol.
+    pub fn protos(&self) -> &Vec<Version> {
+        &self.protos
+    }
+
+    /// Returns HTTP protocol.
+    pub fn allow_unsafe_connections(&self) -> bool {
+        self.allow_unsafe_conn
+    }
+
     /// Returns the default headers.
     ///
     /// # Returns
     ///
-    /// * `&Option<Vec<(String, String)>>` - The default headers.
-    pub fn default_headers(&self) -> &Option<Vec<(String, String)>> {
-        &self.default_headers
+    /// * `Option<&Arc<[(Arc<str>, Arc<str>)]>>` - The default headers.
+    pub fn default_headers(&self) -> Option<&Arc<[(Arc<str>, Arc<str>)]>> {
+        self.default_headers
+            .as_ref()
     }
 
-    /// Returns the security configuration if present.
+    /// Returns the tls configuration if present.
     ///
     /// # Returns
     ///
-    /// * `&Option<SecurityConfig>` - The security configuration if present.
-    pub fn security(&self) -> &Option<SecurityConfig> {
-        &self.security
+    /// * `&Option<TlsConfig>` - The security configuration if present.
+    pub fn tls(&self) -> &Option<TlsConfig> {
+        &self.tls
     }
 
     /// Returns the status pages.
@@ -523,17 +564,9 @@ impl HostConfig {
     /// # Returns
     ///
     /// * `&Option<HashMap<u16, String>>` - The status pages.
-    pub fn status_pages(&self) -> &Option<HashMap<u16, String>> {
-        &self.status_pages
-    }
-
-    /// Returns the logging setting.
-    ///
-    /// # Returns
-    ///
-    /// * `bool` - The logging setting.
-    pub fn enable_logging(&self) -> bool {
-        self.enable_logging
+    pub fn status_pages(&self) -> Option<&HashMap<u16, Arc<str>>> {
+        self.status_pages
+            .as_ref()
     }
 
     /// Returns hsts setting.
@@ -549,61 +582,116 @@ impl HostConfig {
     ///
     /// # Returns
     ///
-    /// * `&Vec<(IpAddr, u16)>` - The static paths.
-    pub fn bind_addresses(&self) -> &Vec<(IpAddr, u16)> {
+    /// * `&Vec<(IpAddr, u16)>` - The bind addresses.
+    pub fn bind_addresses(&self) -> &Arc<[(IpAddr, u16)]> {
         &self.bind_addresses
     }
 
-    /// Return paths.
+    /// Return paths configuration.
     ///
     /// # Returns
     ///
-    /// * `&Vec<Box<dyn Path>>` - The static paths.
-    pub fn paths(&self) -> &Vec<Box<dyn path::PathConfig>> {
+    /// * `&Vec<Box<dyn Path>>` - The paths configuration.
+    pub fn paths(&self) -> &Arc<[Box<dyn path::PathConfig>]> {
         &self.paths
+    }
+
+    /// Return log config instance.
+    ///
+    /// # Returns
+    ///
+    /// * `&Vec<Box<dyn LogConfig>>` - The log config.
+    pub fn log(&self) -> Option<&Box<dyn log::LogConfig>> {
+        self.log.as_ref()
     }
 }
 
 impl Default for HostConfig {
     fn default() -> Self {
         HostConfig {
-            hostname: "localhost".to_string(),
+            hostname: "localhost".into(),
             root_directory: None,
+            protos: vec![Version::HTTP_11],
+            allow_unsafe_conn: false,
             default_headers: None,
-            security: None,
+            tls: None,
             status_pages: None,
-            enable_logging: true,
             enable_hsts: false,
-            paths: Vec::new(),
-            bind_addresses: Vec::new(),
+            bind_addresses: [(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 80)].into(),
+            paths: [].into(),
+            log: None,
         }
     }
 }
 
 impl From<&str> for HostConfig {
     fn from(hostname: &str) -> Self {
-        HostConfig { hostname: hostname.to_string(), ..Default::default() }
+        HostConfig { hostname: hostname.into(), ..Default::default() }
     }
 }
 
 impl From<(&str, &str)> for HostConfig {
     fn from((hostname, root_directory): (&str, &str)) -> Self {
         HostConfig {
-            hostname: hostname.to_string(),
+            hostname: hostname.into(),
             root_directory: Some(root_directory.into()),
             ..Default::default()
         }
     }
 }
 
+/// A type to give more context about the
+/// host served by this vetis instance
+pub struct HostContext {
+    path_uri: String,
+    root_directory: Option<PathBuf>,
+    logger: Option<Logger<LogSender>>,
+}
+
+impl HostContext {
+    /// Create a HostContext from Uri
+    pub fn from_uri(uri: &str) -> Self {
+        Self { root_directory: None, path_uri: uri.into(), logger: None }
+    }
+
+    /// Allow set root directory
+    pub fn with_root_directory(mut self, directory: Option<PathBuf>) -> Self {
+        self.root_directory = directory;
+        self
+    }
+
+    /// Allow set logger
+    pub fn with_logger(mut self, logger: Option<Logger<LogSender>>) -> Self {
+        self.logger = logger;
+        self
+    }
+
+    /// Returns the root directory
+    pub fn root_directory(&self) -> &Option<PathBuf> {
+        &self.root_directory
+    }
+
+    /// Returns the current Path uri
+    pub fn path_uri(&self) -> &str {
+        &self.path_uri
+    }
+
+    /// Returns the current Logger
+    pub fn logger(&self) -> &Option<Logger<LogSender>> {
+        &self.logger
+    }
+}
+
 /// Host trait
 pub trait Host {
-    /// Returns the paths trie
+    /// Path associated type
+    type Path;
+    /// Returns the paths router
     ///
     /// # Returns
     ///
-    /// * `Trie<String, Box<dyn path::Path>>` - The paths trie.
-    fn paths(&self) -> Trie<String, Arc<Box<dyn path::Path>>>;
+    /// * `VetisPathRouter` - The paths router.
+    fn paths(&self) -> &VetisPathRouter<Self::Path>;
 
     /// Returns host configuration
     ///
@@ -637,8 +725,13 @@ pub trait Host {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
-    fn serve_status_page<'a>(&'a self, status: u16) -> VetisFutureResult<'a, Response>;
+    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box
+    ///    containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn serve_status_page<'a>(
+        &'a self,
+        status: u16,
+        logger: Option<Logger<LogSender>>,
+    ) -> VetisFutureResult<'a, Response>;
 
     /// Route request to the appropriate handler
     ///
@@ -648,8 +741,11 @@ pub trait Host {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box containing the future that will resolve to a `Result<Response, VetisError>`.
-    fn route<'a>(&'a self, request: Request) -> VetisFutureResult<'a, Response>
-    where
-        Self: Sync;
+    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box
+    ///    containing the future that will resolve to a `Result<Response, VetisError>`.
+    fn route<'a>(
+        &'a self,
+        request: Request,
+        logger: Option<Logger<LogSender>>,
+    ) -> VetisFutureResult<'a, Response>;
 }

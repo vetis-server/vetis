@@ -6,7 +6,7 @@ use proc_macro2::{Span, TokenStream as TS2};
 use quote::quote;
 use syn::parse_macro_input;
 
-use crate::parsers::{HttpArgs, SecurityArgs, StatusPagesArgs};
+use crate::parsers::{HttpArgs, StatusPagesArgs, TlsArgs};
 
 mod parsers;
 
@@ -52,7 +52,7 @@ mod parsers;
 ///         from_crate => vetis_tokio,
 ///         hostname => "localhost",
 ///         root_directory => "src",
-///         protos => vec![Version::Http1],
+///         protos => &[Version::Http1],
 ///         port => 8080,
 ///         interface => "0.0.0.0",
 ///         handler => handler
@@ -79,7 +79,7 @@ pub fn http(item: TokenStream) -> TokenStream {
         None => {
             return syn::Error::new(Span::call_site(), "Missing required field: 'from_crate'")
                 .to_compile_error()
-                .into()
+                .into();
         }
     };
 
@@ -88,7 +88,7 @@ pub fn http(item: TokenStream) -> TokenStream {
         None => {
             return syn::Error::new(Span::call_site(), "Missing required field: 'handler'")
                 .to_compile_error()
-                .into()
+                .into();
         }
     };
 
@@ -97,7 +97,7 @@ pub fn http(item: TokenStream) -> TokenStream {
         None => {
             return syn::Error::new(Span::call_site(), "Missing required field: 'protos'")
                 .to_compile_error()
-                .into()
+                .into();
         }
     };
 
@@ -106,20 +106,35 @@ pub fn http(item: TokenStream) -> TokenStream {
         None => TS2::new(),
     };
 
-    let security_config = match args.security {
-        Some(security_config) => quote! { .security(#security_config) },
+    let workers = match args.workers {
+        Some(workers) => quote! { .tls(#workers) },
+        None => TS2::new(),
+    };
+
+    let logger_queue_size = match args.logger_queue_size {
+        Some(logger_queue_size) => quote! { .tls(#logger_queue_size) },
+        None => TS2::new(),
+    };
+
+    let log = match args.log {
+        Some(log) => quote! { .log(#log) },
+        None => TS2::new(),
+    };
+
+    let tls = match args.tls {
+        Some(tls) => quote! { .tls(#tls) },
         None => TS2::new(),
     };
 
     let hostname = match args.hostname {
-        Some(hostname) => quote! { #hostname },
+        Some(hostname) => quote! { #hostname.into() },
         None => {
-            quote! { "localhost" }
+            quote! { "localhost".into() }
         }
     };
 
     let interface = match args.interface {
-        Some(interface) => quote! { #interface },
+        Some(interface) => quote! { #interface.into() },
         None => {
             quote! { std::net::Ipv4Addr::UNSPECIFIED.into() }
         }
@@ -143,34 +158,33 @@ pub fn http(item: TokenStream) -> TokenStream {
         async move {
             use vetis::{
                 errors::VetisError,
-                listener::ListenerConfig,
                 server::ServerConfig,
                 host::{Host as _, HostConfig},
             };
 
             use #from_crate::{
                 host::{path::HandlerPath, Host},
-                listener::build_listeners,
                 rt::Vetis,
             };
 
-            let listener = ListenerConfig::builder()
-                .port(#port)
-                .protos(#protos)
-                .interface(#interface)
-                .allow_unsafe_connections(#allow_unsafe_conn)
+            let server_config = ServerConfig::builder()
+                #workers
+                #logger_queue_size
+                #log
                 .build()?;
 
             let mut host_config = HostConfig::builder()
                 .hostname(#hostname)
                 #root_directory
-                #security_config
-                .bind_addresses(vec![
+                .protos(#protos)
+                .allow_unsafe_connections(#allow_unsafe_conn)
+                #tls
+                .bind_addresses(&[
                     (#interface, #port)
                 ])
                 .build()?;
 
-            let mut host = Host::new(host_config);
+            let mut host = Host::new(host_config).await?;
 
             let root_path = HandlerPath::builder()
                 .uri("/")
@@ -180,8 +194,8 @@ pub fn http(item: TokenStream) -> TokenStream {
             host.add_path(root_path);
 
             let vetis = Vetis::builder()
-                .add_listeners(build_listeners(listener))?
-                .add_host(host)?
+                .config(server_config)
+                .add_host(host).await?
                 .build();
 
             Ok::<Vetis, VetisError>(vetis)
@@ -192,7 +206,7 @@ pub fn http(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-/// Creates a `SecurityConfig` from file paths.
+/// Creates a `TlsConfig` from file paths.
 ///
 /// # Arguments
 ///
@@ -209,11 +223,11 @@ pub fn http(item: TokenStream) -> TokenStream {
 /// # Examples
 ///
 /// ```rust,ignore
-/// use vetis_macros::security;
+/// use vetis_macros::tls;
 ///
 /// #[tokio::main]
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let security = security! {
+///     let security = tls! {
 ///         cert => "/path/to/server.der",
 ///         key => "/path/to/server.key.der",
 ///         ca_cert => "/path/to/ca.der",
@@ -223,15 +237,15 @@ pub fn http(item: TokenStream) -> TokenStream {
 ///     Ok(())
 /// }
 /// ```
-pub fn security(item: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(item as SecurityArgs);
+pub fn tls(item: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(item as TlsArgs);
 
     let cert = match args.cert {
         Some(e) => e,
         None => {
             return syn::Error::new(Span::call_site(), "Missing required field: 'cert'")
                 .to_compile_error()
-                .into()
+                .into();
         }
     };
 
@@ -240,7 +254,7 @@ pub fn security(item: TokenStream) -> TokenStream {
         None => {
             return syn::Error::new(Span::call_site(), "Missing required field: 'key'")
                 .to_compile_error()
-                .into()
+                .into();
         }
     };
 
@@ -249,7 +263,7 @@ pub fn security(item: TokenStream) -> TokenStream {
         None => {
             return syn::Error::new(Span::call_site(), "Missing required field: 'ca_cert'")
                 .to_compile_error()
-                .into()
+                .into();
         }
     };
 
@@ -259,10 +273,10 @@ pub fn security(item: TokenStream) -> TokenStream {
     };
 
     let expanded = quote! {
-        vetis::security::SecurityConfig::builder()
-            .cert_from_file(#cert)
-            .key_from_file(#key)
-            .ca_cert_from_file(#ca_cert)
+        vetis::security::TlsConfig::builder()
+            .cert_file(#cert)
+            .key_file(#key)
+            .ca_file(#ca_cert)
             #client_auth
             .build()?
     };
@@ -284,8 +298,8 @@ pub fn security(item: TokenStream) -> TokenStream {
 /// use vetis_macros::status_pages;
 ///
 /// let pages = status_pages! {
-///     404 @ "404.html".to_string(),
-///     500 @ "500.html".to_string()
+///     404 @ "404.html",
+///     500 @ "500.html"
 /// };
 /// ```
 pub fn status_pages(item: TokenStream) -> TokenStream {
@@ -296,13 +310,13 @@ pub fn status_pages(item: TokenStream) -> TokenStream {
         .iter()
         .map(|(code, path)| {
             quote! {
-                status_pages.insert(#code, #path);
+                status_pages.insert(#code, #path.into());
             }
         });
 
     let expanded = quote! {
       {
-        let mut status_pages = std::collections::HashMap::<u16, String>::new();
+        let mut status_pages = std::collections::HashMap::<u16, std::sync::Arc<str>>::new();
         #(#pages)*
         status_pages
       }

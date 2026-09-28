@@ -17,39 +17,36 @@ pub enum VetisError {
     /// Configuration-related errors
     #[error("Configuration error: {0}")]
     Config(#[from] ConfigError),
-
     /// Failed to bind to a network address
     #[error("Failed to bind to address: {0}")]
     Bind(String),
-
+    /// Failed to log message
+    #[error("Failed to log message: {0}")]
+    Log(String),
+    /// IO error
+    #[error("IO error: {0}")]
+    Io(String),
     /// Server startup errors
     #[error("Failed to start server: {0}")]
     Start(#[from] StartError),
-
     /// Server shutdown errors
     #[error("Failed to stop server: {0}")]
     Stop(String),
-
     /// Request handler errors
     #[error("Handler error: {0}")]
     Handler(String),
-
     /// Request handler errors
     #[error("Worker error: {0}")]
     Worker(String),
-
     /// TLS/SSL related errors
     #[error("Tls error: {0}")]
     Tls(String),
-
     /// No server instances are running
     #[error("No instances")]
     NoInstances,
-
     /// Listener related errors
     #[error("Listener error: {0}")]
     Listener(#[from] ListenerError),
-
     /// Virtual host related errors
     #[error("Host error: {0}")]
     Host(#[from] HostError),
@@ -77,8 +74,8 @@ pub enum ConfigError {
     #[error("Invalid path config: {0}")]
     Path(String),
     /// Invalid security configuration
-    #[error("Invalid security config: {0}")]
-    Security(String),
+    #[error("Invalid tls config: {0}")]
+    Tls(String),
 }
 
 /// Listener-related errors.
@@ -104,7 +101,6 @@ pub enum StartError {
     /// TLS/SSL initialization errors
     #[error("Tls initialization: {0}")]
     Tls(String),
-
     /// Server is already running
     #[error("Server is already running")]
     AlreadyRunning,
@@ -116,26 +112,21 @@ pub enum StartError {
 /// such as missing handlers or configuration issues.
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum HostError {
+    /// Initialization error
+    #[error("Initialization error: {0}")]
+    Init(String),
     /// No virtual hosts have been added to the server
     #[error("No hosts")]
     NoHosts,
-
     /// Handler errors
     #[error("Handler error: {0}")]
     Handler(HandlerError),
-
     /// File errors
-    #[error("File error: {0}")]
-    File(FileError),
-
+    #[error("Content error: {0}")]
+    Content(ContentError),
     /// Proxy errors
     #[error("Proxy error: {0}")]
     Proxy(String),
-
-    /// Interface errors
-    #[error("Interface error: {0}")]
-    Interface(String),
-
     /// Authentication errors
     #[error("Auth error: {0}")]
     Auth(String),
@@ -150,27 +141,30 @@ pub enum HandlerError {
     /// URI parsing errors
     #[error("Uri error: {0}")]
     Uri(String),
-
     /// Handler execution errors
     #[error("Handler error: {0}")]
     Handler(String),
 }
 
-/// File related errors.
+/// Content related errors.
 ///
 /// These errors occur when working with files,
 /// such as missing files or invalid metadata.
 #[derive(Debug, Clone, Error, PartialEq)]
-pub enum FileError {
+pub enum ContentError {
+    /// Forbidden
+    #[error("Forbidden")]
+    Forbidden,
     /// File not found
-    #[error("File not found")]
-    NotFound,
-
+    #[error("Not found: {0}")]
+    NotFound(String),
     /// Invalid file metadata
-    #[error("Invalid metadata")]
-    InvalidMetadata,
-
+    #[error("Invalid metadata: {0}")]
+    InvalidMetadata(String),
     /// Invalid range
-    #[error("Invalid range")]
-    InvalidRange,
+    #[error("Invalid range: {0}")]
+    InvalidRange(String),
+    /// Invalid range
+    #[error("Server error: {0}")]
+    ServerError(String),
 }

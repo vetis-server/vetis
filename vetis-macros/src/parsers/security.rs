@@ -1,16 +1,16 @@
 use syn::{
-    parse::{Parse, ParseStream},
     Expr, Ident, Result, Token,
+    parse::{Parse, ParseStream},
 };
 
-pub(crate) struct SecurityArgs {
+pub(crate) struct TlsArgs {
     pub(crate) cert: Option<Expr>,
     pub(crate) key: Option<Expr>,
     pub(crate) ca_cert: Option<Expr>,
     pub(crate) client_auth: Option<Expr>,
 }
 
-impl Parse for SecurityArgs {
+impl Parse for TlsArgs {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut cert_file = None;
         let mut key_file = None;
@@ -64,6 +64,6 @@ impl Parse for SecurityArgs {
             }
         }
 
-        Ok(SecurityArgs { cert: cert_file, key: key_file, ca_cert, client_auth })
+        Ok(TlsArgs { cert: cert_file, key: key_file, ca_cert, client_auth })
     }
 }

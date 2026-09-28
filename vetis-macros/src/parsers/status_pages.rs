@@ -1,6 +1,6 @@
 use syn::{
-    parse::{Parse, ParseStream},
     Expr, LitInt, Result, Token,
+    parse::{Parse, ParseStream},
 };
 
 pub(crate) struct StatusPagesArgs {

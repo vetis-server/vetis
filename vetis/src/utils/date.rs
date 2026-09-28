@@ -1,5 +1,5 @@
 use std::time::SystemTime;
-use time::{format_description::well_known::Rfc2822, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 
 /// Format a date to RFC 2822 format.
 pub fn format_date(date: SystemTime) -> String {
