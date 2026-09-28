@@ -133,23 +133,11 @@ impl TlsConfigBuilder {
             )));
         };
 
-        if !cert_file.exists() {
-            return Err(VetisError::Config(ConfigError::Tls(
-                "Certificate file does not exist".to_string(),
-            )));
-        }
-
         let Some(key_file) = self.key_file else {
             return Err(VetisError::Config(ConfigError::Tls(
                 "Missing certificate key file".to_string(),
             )));
         };
-
-        if !key_file.exists() {
-            return Err(VetisError::Config(ConfigError::Tls(
-                "Certificate file does not exist".to_string(),
-            )));
-        }
 
         Ok(TlsConfig {
             cert_file,
