@@ -4,3 +4,4 @@ target
 /target
 .DS_Store
 .samoyed
+lcov.info
