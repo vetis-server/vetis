@@ -41,85 +41,38 @@ impl Request {
         Self { inner: http::Request::from_parts(parts, body) }
     }
 
+    /// Returns inner request
+    pub fn inner(&self) -> &http::Request<HttpBody> {
+        &self.inner
+    }
+
+    /// Returns mutable version of inner request
+    pub fn inner_mut(&mut self) -> &mut http::Request<HttpBody> {
+        &mut self.inner
+    }
+
     /// Returns the request URI.
     pub fn uri(&self) -> &http::Uri {
         self.inner.uri()
     }
 
     /// Returns the request headers.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::{Request, Response, VetisResult};
-    /// use http::{Method, StatusCode};
-    ///
-    /// async fn handler(request: Request) -> VetisResult<Response> {
-    ///     let content_type = request.headers().get("content-type");
-    ///     let user_agent = request.headers().get("user-agent");
-    ///     Ok(Response::builder().status(StatusCode::OK).text("Hello"))
-    /// }
-    /// ```
     pub fn headers(&self) -> &http::HeaderMap {
         self.inner.headers()
     }
 
     /// Returns the request headers (mutable).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use vetis::{Request, Response, VetisResult};
-    /// use http::{Method, StatusCode};
-    ///
-    /// async fn handler(mut request: Request) -> VetisResult<Response> {
-    ///     request.headers_mut().insert("x-custom-header", "value".parse().unwrap());
-    ///     Ok(Response::builder().status(StatusCode::OK).text("Hello"))
-    /// }
-    /// ```
     pub fn headers_mut(&mut self) -> &mut http::HeaderMap {
         self.inner
             .headers_mut()
     }
 
     /// Returns the HTTP method.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::{Request, Response, VetisResult};
-    /// use http::{Method, StatusCode};
-    ///
-    /// async fn handler(request: Request) -> VetisResult<Response> {
-    ///     match request.method() {
-    ///         &Method::GET => { /* handle GET */ }
-    ///         &Method::POST => { /* handle POST */ }
-    ///         _ => { /* handle other methods */ }
-    ///     }
-    ///     Ok(Response::builder().status(StatusCode::OK).text("Hello"))
-    /// }
-    /// ```
     pub fn method(&self) -> &http::Method {
         self.inner.method()
     }
 
     /// Returns the HTTP version.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::{Request, Response, VetisResult};
-    /// use http::{Method, StatusCode};
-    ///
-    /// async fn handler(request: Request) -> VetisResult<Response> {
-    ///     match request.version() {
-    ///         http::Version::HTTP_11 => { /* handle HTTP/1.1 */ }
-    ///         http::Version::HTTP_2 => { /* handle HTTP/2 */ }
-    ///         _ => { /* handle other versions */ }
-    ///     }
-    ///     Ok(Response::builder().status(StatusCode::OK).text("Hello"))
-    /// }
-    /// ```
     pub fn version(&self) -> http::Version {
         self.inner.version()
     }

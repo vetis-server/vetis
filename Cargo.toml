@@ -30,8 +30,8 @@ thiserror = "2.0.21"
 time = { version = "0.3.55", features = ["formatting"] }
 typetag = "0.2.22"
 url = "2.5.7"
-#vetis = { path = "vetis" }
-vetis = { version = "0.1.7-beta.4" }
+vetis = { path = "vetis" }
+#vetis = { version = "0.1.7-beta.4" }
 vetis-macros = { path = "vetis-macros" }
 
 [profile.release]

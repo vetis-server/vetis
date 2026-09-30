@@ -50,6 +50,9 @@ pub enum VetisError {
     /// Virtual host related errors
     #[error("Host error: {0}")]
     Host(#[from] HostError),
+    /// WebSocket errors
+    #[error("WebSocket error: {0}")]
+    WebSocket(String),
 }
 
 /// Configuration-related errors.
