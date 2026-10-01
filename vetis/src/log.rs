@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use crate::{VetisResult, errors::VetisError};
+use crate::{Str, VetisResult, errors::VetisError};
 use crossfire::AsyncTxTrait;
 use log::Level;
 use logforth_core::DispatchBuilder;
@@ -38,9 +36,9 @@ impl Clone for Box<dyn LogConfig> {
 
 /// LogMessage type
 pub struct LogMessage {
-    level: Arc<str>,
-    target: Arc<str>,
-    message: Arc<str>,
+    level: Str,
+    target: Str,
+    message: Str,
 }
 
 impl LogMessage {

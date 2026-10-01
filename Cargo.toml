@@ -13,6 +13,7 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.85.0"
 
 [workspace.dependencies]
+arcstr = { version = "1.2.0", features = ["serde"] }
 bytes = "1.12.1"
 futures-util = { version = "0.3.32" }
 http = "1.5.0"

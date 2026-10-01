@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 use crate::log::LogMessage;
+use arcstr::ArcStr;
 pub use base::VetisServer;
 use crossfire::{MAsyncTx, Rx, mpsc};
 use papaya::HashMap;
@@ -36,6 +37,9 @@ mod tests;
 
 /// Utility functions and helpers
 pub mod utils;
+
+/// Type alias for ArcStr
+pub type Str = ArcStr;
 
 /// A type alias for path router
 ///

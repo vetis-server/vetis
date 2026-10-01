@@ -1,5 +1,5 @@
 use crate::{
-    LogSender, Request, Response, VetisFutureResult, VetisPathRouter, VetisResult,
+    LogSender, Request, Response, Str, VetisFutureResult, VetisPathRouter, VetisResult,
     errors::{ConfigError, VetisError},
     host::path::PathConfig,
     log::{self, LogConfig, Logger},
@@ -139,13 +139,13 @@ impl From<AltService> for String {
 ///     .unwrap();
 /// ```
 pub struct HostConfigBuilder {
-    hostname: Arc<str>,
+    hostname: Str,
     root_directory: Option<PathBuf>,
     protos: Vec<Version>,
     allow_unsafe_conn: bool,
-    default_headers: Option<Vec<(Arc<str>, Arc<str>)>>,
+    default_headers: Option<Vec<(Str, Str)>>,
     tls: Option<TlsConfig>,
-    status_pages: Option<HashMap<u16, Arc<str>>>,
+    status_pages: Option<HashMap<u16, Str>>,
     enable_hsts: bool,
     bind_addresses: Vec<(IpAddr, u16)>,
     paths: Vec<Box<dyn path::PathConfig>>,
@@ -306,7 +306,7 @@ impl HostConfigBuilder {
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn status_pages(mut self, status_pages: HashMap<u16, Arc<str>>) -> Self {
+    pub fn status_pages(mut self, status_pages: HashMap<u16, Str>) -> Self {
         self.status_pages = Some(status_pages);
         self
     }
@@ -464,14 +464,14 @@ impl HostConfigBuilder {
 #[derive(Deserialize, Clone)]
 #[serde(default)]
 pub struct HostConfig {
-    hostname: Arc<str>,
+    hostname: Str,
     root_directory: Option<PathBuf>,
     #[serde(with = "http_serde_ext::version::vec")]
     protos: Vec<Version>,
     allow_unsafe_conn: bool,
-    default_headers: Option<Arc<[(Arc<str>, Arc<str>)]>>,
+    default_headers: Option<Arc<[(Str, Str)]>>,
     tls: Option<TlsConfig>,
-    status_pages: Option<HashMap<u16, Arc<str>>>,
+    status_pages: Option<HashMap<u16, Str>>,
     enable_hsts: bool,
     bind_addresses: Arc<[(IpAddr, u16)]>,
     paths: Arc<[Box<dyn path::PathConfig>]>,
@@ -544,8 +544,8 @@ impl HostConfig {
     ///
     /// # Returns
     ///
-    /// * `Option<&Arc<[(Arc<str>, Arc<str>)]>>` - The default headers.
-    pub fn default_headers(&self) -> Option<&Arc<[(Arc<str>, Arc<str>)]>> {
+    /// * `Option<&Arc<[(Str, Str)]>>` - The default headers.
+    pub fn default_headers(&self) -> Option<&Arc<[(Str, Str)]>> {
         self.default_headers
             .as_ref()
     }
@@ -564,7 +564,7 @@ impl HostConfig {
     /// # Returns
     ///
     /// * `&Option<HashMap<u16, String>>` - The status pages.
-    pub fn status_pages(&self) -> Option<&HashMap<u16, Arc<str>>> {
+    pub fn status_pages(&self) -> Option<&HashMap<u16, Str>> {
         self.status_pages
             .as_ref()
     }

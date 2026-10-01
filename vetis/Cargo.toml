@@ -19,11 +19,12 @@ all-features = true
 default = []
 
 [dependencies]
-bytes =  { workspace = true }
+arcstr = { workspace = true }
+bytes = { workspace = true }
 crossfire = "3.1.20"
 futures-util = { workspace = true }
-http =  { workspace = true }
-http-body-util =  { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
 http-serde-ext = "1.0.2"
 hyper = { workspace = true, default-features = false, features = ["server"] }
 hyper-body-utils = { workspace = true, default-features = false }

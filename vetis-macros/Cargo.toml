@@ -22,8 +22,9 @@ syn = "3.0.5"
 vetis = { workspace = true }
 
 [dev-dependencies]
+arcstr = { workspace = true }
 caramelo = "0.1.4"
-http = "1"
+http = { workspace = true }
 tokio = { version = "1.53.1", features = ["macros"] }
 trybuild = "1.0.121"
 vetis-tokio = { path = "../../vetis-tokio" }

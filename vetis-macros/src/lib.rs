@@ -316,7 +316,7 @@ pub fn status_pages(item: TokenStream) -> TokenStream {
 
     let expanded = quote! {
       {
-        let mut status_pages = std::collections::HashMap::<u16, std::sync::Arc<str>>::new();
+        let mut status_pages = std::collections::HashMap::<u16, vetis::Str>::new();
         #(#pages)*
         status_pages
       }
