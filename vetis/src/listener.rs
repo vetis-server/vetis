@@ -3,12 +3,8 @@ use serde::Deserialize;
 use std::{
     future::Future,
     net::{IpAddr, Ipv4Addr},
-    pin::Pin,
     sync::Arc,
 };
-
-/// A pinned future that resolves to a result of type T or a VetisError
-pub type ListenerResult<'a, T> = Pin<Box<dyn Future<Output = VetisResult<T>> + Send + 'a>>;
 
 /// A trait for defining server listeners that can handle HTTP requests
 pub trait Listener {
@@ -43,7 +39,7 @@ pub trait Listener {
     fn listen(&mut self) -> impl Future<Output = VetisResult<()>>;
 
     /// Stops the listener and closes all connections
-    fn stop(&mut self) -> impl Future<Output = VetisResult<()>>;
+    fn stop(self) -> impl Future<Output = VetisResult<()>>;
 }
 
 #[derive(Deserialize)]
@@ -72,32 +68,12 @@ pub struct ListenerConfigBuilder {
 impl ListenerConfigBuilder {
     /// Sets the number of workers for this listener.
     /// Default value is 1.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::listener::ListenerConfig;
-    ///
-    /// let config = ListenerConfig::builder()
-    ///     .workers(4)
-    ///     .build();
-    /// ```
     pub fn workers(mut self, workers: usize) -> Self {
         self.workers = workers;
         self
     }
 
     /// Sets the port number for the listener.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::listener::ListenerConfig;
-    ///
-    /// let config = ListenerConfig::builder()
-    ///     .port(8443)
-    ///     .build();
-    /// ```
     pub fn port(mut self, port: u16) -> Self {
         self.port = port;
         self
@@ -109,19 +85,8 @@ impl ListenerConfigBuilder {
     /// - "0.0.0.0" - All interfaces
     /// - "127.0.0.1" - Localhost only
     /// - "::1" - IPv6 localhost
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use std::net::Ipv4Addr;
-    /// use vetis::listener::ListenerConfig;
-    ///
-    /// let config = ListenerConfig::builder()
-    ///     .interface(Ipv4Addr::LOCALHOST.into())
-    ///     .build();
-    /// ```
-    pub fn interface(mut self, interface: IpAddr) -> Self {
-        self.interface = interface;
+    pub fn interface(mut self, interface: impl Into<IpAddr>) -> Self {
+        self.interface = interface.into();
         self
     }
 
@@ -146,7 +111,7 @@ impl ListenerConfigBuilder {
 /// let config = ListenerConfig::builder()
 ///     .port(8443)
 ///     .protos(vec![Version::HTTP_11])
-///     .interface(Ipv4Addr::UNSPECIFIED.into()) // or (0, 0, 0, 0).into()
+///     .interface(Ipv4Addr::UNSPECIFIED) // or (0, 0, 0, 0)
 ///     .build()
 ///     .unwrap();
 ///
@@ -180,15 +145,6 @@ impl ListenerConfig {
     /// - ssl: false
     /// - protocol: HTTP1 (if available)
     /// - interface: "0.0.0.0"
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::listener::ListenerConfig;
-    ///
-    /// let builder = ListenerConfig::builder();
-    /// let config = builder.port(8080).build();
-    /// ```
     pub fn builder() -> ListenerConfigBuilder {
         ListenerConfigBuilder { workers: 1, port: 80, interface: Ipv4Addr::UNSPECIFIED.into() }
     }
