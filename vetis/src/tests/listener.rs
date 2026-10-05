@@ -31,7 +31,7 @@ fn test_listener_config_builder_with_port() {
 #[test]
 fn test_listener_config_builder_with_interface() {
     let config = ListenerConfig::builder()
-        .interface(Ipv4Addr::LOCALHOST.into())
+        .interface(Ipv4Addr::LOCALHOST)
         .build()
         .unwrap();
 
@@ -42,7 +42,7 @@ fn test_listener_config_builder_with_interface() {
 fn test_listener_config_builder_chain() {
     let config = ListenerConfig::builder()
         .port(8443)
-        .interface(Ipv4Addr::LOCALHOST.into())
+        .interface(Ipv4Addr::LOCALHOST)
         .build()
         .unwrap();
 
@@ -63,7 +63,7 @@ fn test_listener_config_port_getter() {
 #[test]
 fn test_listener_config_interface_getter() {
     let config = ListenerConfig::builder()
-        .interface(Ipv6Addr::LOCALHOST.into())
+        .interface(Ipv6Addr::LOCALHOST)
         .build()
         .unwrap();
 
@@ -108,7 +108,7 @@ fn test_listener_config_various_interfaces() {
 fn test_listener_config_builder_preserves_settings() {
     let config = ListenerConfig::builder()
         .port(3000)
-        .interface(Ipv4Addr::LOCALHOST.into())
+        .interface(Ipv4Addr::LOCALHOST)
         .build()
         .unwrap();
 

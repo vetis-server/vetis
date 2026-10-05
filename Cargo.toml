@@ -19,7 +19,8 @@ futures-util = { version = "0.3.32" }
 http = "1.5.0"
 http-body-util = { version = "0.1.5" }
 hyper = { version = "1.11.1", default-features = false }
-hyper-body-utils = { version = "0.1.17", default-features = false }
+#hyper-body-utils = { version = "0.1.17", default-features = false }
+hyper-body-utils = { path = "../hyper-body-utils", default-features = false }
 log = "0.4.34"
 logforth-core = "0.4.0"
 patricia_tree = { version = "0.10.1", default-features = false }

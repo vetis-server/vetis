@@ -143,7 +143,7 @@ fn test_response_builder_bytes() {
 
 #[test]
 fn test_response_builder_body() {
-    let body = HttpBody::from_text("custom body");
+    let body = HttpBody::text("custom body");
     let response = Response::builder().body(body);
 
     let inner = response.into_inner();

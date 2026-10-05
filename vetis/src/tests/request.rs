@@ -110,7 +110,7 @@ fn test_request_into_parts() {
         .method(Method::GET)
         .uri("/test")
         .header("x-test", "value")
-        .body(HttpBody::from_text("test body"))
+        .body(HttpBody::text("test body"))
         .unwrap();
     let (parts, body) = http_request.into_parts();
     let request = Request::from_parts(parts, body);

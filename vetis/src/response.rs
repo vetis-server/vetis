@@ -84,7 +84,7 @@ impl ResponseBuilder {
     pub fn text(mut self, text: &str) -> Response {
         *self
             .inner
-            .body_mut() = HttpBody::from_text(text);
+            .body_mut() = HttpBody::text(text);
         self.build()
     }
 
@@ -96,7 +96,7 @@ impl ResponseBuilder {
     pub fn bytes(mut self, bytes: &[u8]) -> Response {
         *self
             .inner
-            .body_mut() = HttpBody::from_bytes(bytes);
+            .body_mut() = HttpBody::bytes(bytes);
         self.build()
     }
 
