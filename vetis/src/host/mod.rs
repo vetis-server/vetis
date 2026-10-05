@@ -4,6 +4,7 @@ use crate::{
     host::path::PathConfig,
     log::{self, LogConfig, Logger},
     security::TlsConfig,
+    telemetry::{self, TelemetryConfig},
 };
 use http::{Version, uri::Authority};
 use serde::Deserialize;
@@ -150,41 +151,19 @@ pub struct HostConfigBuilder {
     bind_addresses: Vec<(IpAddr, u16)>,
     paths: Vec<Box<dyn path::PathConfig>>,
     log: Option<Box<dyn log::LogConfig>>,
+    telemetry: Option<Box<dyn telemetry::TelemetryConfig>>,
 }
 
 impl HostConfigBuilder {
     /// Sets the hostname for the virtual host.
     ///
     /// This is used to match incoming requests to the correct virtual host.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    ///
-    /// let config = HostConfig::builder()
-    ///     .hostname("api.example.com")
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn hostname(mut self, hostname: &str) -> Self {
         self.hostname = hostname.into();
         self
     }
 
     /// Sets the HTTP protocol for this listener.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use http::Version;
-    /// use vetis::{listener::ListenerConfig};
-    ///
-    /// #[cfg(feature = "http1")]
-    /// let config = ListenerConfig::builder()
-    ///     .protos(Version::HTTP_11)
-    ///     .build();
-    /// ```
     pub fn protos(mut self, protos: &[Version]) -> Self {
         self.protos = protos.to_vec();
         self
@@ -192,23 +171,10 @@ impl HostConfigBuilder {
 
     /// Sets the HTTP to allow unsafe connections for this listener.
     ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use http::Version;
-    /// use vetis::{listener::ListenerConfig};
-    ///
-    /// #[cfg(feature = "http1")]
-    /// let config = ListenerConfig::builder()
-    ///     .allow_unsafe_connections(true)
-    ///     .build();
-    /// ```
-    ///
     /// # Notes
     ///
     /// Enable unsafe connections should be only enabled for testing purposes.
     /// Please be cautious when using this setting.
-    ///
     pub fn allow_unsafe_connections(mut self, allow_unsafe_conn: bool) -> Self {
         self.allow_unsafe_conn = allow_unsafe_conn;
         self
@@ -217,17 +183,6 @@ impl HostConfigBuilder {
     /// Sets the root directory for the virtual host.
     ///
     /// This is the base directory for all static file paths.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    ///
-    /// let config = HostConfig::builder()
-    ///     .root_directory("/var/www".into())
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn root_directory(mut self, root_directory: impl Into<PathBuf>) -> Self {
         self.root_directory = Some(root_directory.into());
         self
@@ -236,17 +191,6 @@ impl HostConfigBuilder {
     /// Adds a default header to the virtual host.
     ///
     /// These headers will be added to all responses from this virtual host.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    ///
-    /// let config = HostConfig::builder()
-    ///     .header("X-Custom", "value")
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn header(mut self, key: &str, value: &str) -> Self {
         match self.default_headers {
             None => {
@@ -263,26 +207,6 @@ impl HostConfigBuilder {
     /// Sets the security configuration for HTTPS.
     ///
     /// When provided, the virtual host will use TLS for secure connections.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::{
-    ///     security::SecurityConfig,
-    ///     host::HostConfig,
-    /// };
-    ///
-    /// let security = SecurityConfig::builder()
-    ///     .cert_from_bytes(vec![])
-    ///     .key_from_bytes(vec![])
-    ///     .build()
-    ///     .unwrap();
-    ///
-    /// let config = HostConfig::builder()
-    ///     .tls(security)
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn tls(mut self, tls: TlsConfig) -> Self {
         self.tls = Some(tls);
         self
@@ -291,21 +215,6 @@ impl HostConfigBuilder {
     /// Sets the status pages for this host.
     ///
     /// These status pages will be used to serve custom error pages.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    /// use std::collections::HashMap;
-    ///
-    /// let mut status_pages = HashMap::new();
-    /// status_pages.insert(404, "404.html".to_string());
-    ///
-    /// let config = HostConfig::builder()
-    ///     .status_pages(status_pages)
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn status_pages(mut self, status_pages: HashMap<u16, Str>) -> Self {
         self.status_pages = Some(status_pages);
         self
@@ -314,29 +223,12 @@ impl HostConfigBuilder {
     /// Enables or disables HSTS for this host.
     ///
     /// When enabled, responses will contain a header to enforce use of HTTPS.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    ///
-    /// let config = HostConfig::builder()
-    ///     .enable_hsts(true)
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn enable_hsts(mut self, enable_hsts: bool) -> Self {
         self.enable_hsts = enable_hsts;
         self
     }
 
     /// Add all addresses to bind this host to one or more listeners
-    ///
-    /// # Examples
-    ///
-    /// ```rust,norun
-    ///
-    /// ```
     pub fn bind_addresses(mut self, addresses: &[(IpAddr, u16)]) -> Self {
         self.bind_addresses = addresses.into();
         self
@@ -345,18 +237,6 @@ impl HostConfigBuilder {
     /// Adds a path configuration to the server.
     ///
     /// Multiple paths can be added to serve different content.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::{host::HostConfig, server::ServerConfig};
-    ///
-    /// let path_config = PathConfig::default();
-    /// let config = ServerConfig::builder()
-    ///     .add_path(path_config)
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn add_path<P>(mut self, path: P) -> Self
     where
         P: PathConfig + 'static,
@@ -366,13 +246,7 @@ impl HostConfigBuilder {
         self
     }
 
-    /// Log host log
-    ///
-    /// # Examples
-    ///
-    /// ```rust,norun
-    ///
-    /// ```
+    /// Set host log
     pub fn log<L>(mut self, log: L) -> Self
     where
         L: LogConfig + 'static,
@@ -381,23 +255,20 @@ impl HostConfigBuilder {
         self
     }
 
+    /// Set host telemetry
+    pub fn telemetry<T>(mut self, telemetry: T) -> Self
+    where
+        T: TelemetryConfig + 'static,
+    {
+        self.telemetry = Some(Box::new(telemetry));
+        self
+    }
+
     /// Creates the `HostConfig` with the configured settings.
     ///
     /// # Errors
     ///
     /// Returns an error if the hostname is empty.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    ///
-    /// let config = HostConfig::builder()
-    ///     .hostname("example.com")
-    ///     .header("X-Custom", "value")
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn build(self) -> VetisResult<HostConfig> {
         if self
             .hostname
@@ -437,6 +308,7 @@ impl HostConfigBuilder {
                 .into(),
             paths: self.paths.into(),
             log: self.log,
+            telemetry: self.telemetry,
         })
     }
 }
@@ -448,19 +320,6 @@ impl HostConfigBuilder {
 ///
 /// Virtual hosts allow multiple domains to be served by the same
 /// server instance, each with its own configuration and handlers.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use vetis::host::HostConfig;
-///
-/// let config = HostConfig::builder()
-///     .hostname("api.example.com")
-///     .build()
-///     .unwrap();
-///
-/// println!("Host: {}", config.hostname());
-/// ```
 #[derive(Deserialize, Clone)]
 #[serde(default)]
 pub struct HostConfig {
@@ -476,6 +335,7 @@ pub struct HostConfig {
     bind_addresses: Arc<[(IpAddr, u16)]>,
     paths: Arc<[Box<dyn path::PathConfig>]>,
     log: Option<Box<dyn log::LogConfig>>,
+    telemetry: Option<Box<dyn telemetry::TelemetryConfig>>,
 }
 
 impl HostConfig {
@@ -485,17 +345,6 @@ impl HostConfig {
     /// - hostname: empty string (must be set)
     /// - port: 80
     /// - security: None
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use vetis::host::HostConfig;
-    ///
-    /// let config = HostConfig::builder()
-    ///     .hostname("example.com")
-    ///     .build()
-    ///     .unwrap();
-    /// ```
     pub fn builder() -> HostConfigBuilder {
         HostConfigBuilder {
             hostname: "localhost".into(),
@@ -509,6 +358,7 @@ impl HostConfig {
             bind_addresses: [(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 80)].into(),
             paths: [].into(),
             log: None,
+            telemetry: None,
         }
     }
 
@@ -591,7 +441,7 @@ impl HostConfig {
     ///
     /// # Returns
     ///
-    /// * `&Vec<Box<dyn Path>>` - The paths configuration.
+    /// * `&Vec<Box<dyn PathConfig>>` - The paths configuration.
     pub fn paths(&self) -> &Arc<[Box<dyn path::PathConfig>]> {
         &self.paths
     }
@@ -603,6 +453,16 @@ impl HostConfig {
     /// * `&Vec<Box<dyn LogConfig>>` - The log config.
     pub fn log(&self) -> Option<&Box<dyn log::LogConfig>> {
         self.log.as_ref()
+    }
+
+    /// Return telemetry config instance.
+    ///
+    /// # Returns
+    ///
+    /// * `&Vec<Box<dyn TelemetryConfig>>` - The telemetry config.
+    pub fn telemetry(&self) -> Option<&Box<dyn telemetry::TelemetryConfig>> {
+        self.telemetry
+            .as_ref()
     }
 }
 
@@ -620,6 +480,7 @@ impl Default for HostConfig {
             bind_addresses: [(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 80)].into(),
             paths: [].into(),
             log: None,
+            telemetry: None,
         }
     }
 }
@@ -725,8 +586,8 @@ pub trait Host {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box
-    ///    containing the future that will resolve to a `Result<Response, VetisError>`.
+    /// * `VetisFutureResult<'a, Response>` - A pinned box containing the future
+    ///   that will resolve to a `Result<Response, VetisError>`.
     fn serve_status_page<'a>(
         &'a self,
         status: u16,
@@ -741,8 +602,8 @@ pub trait Host {
     ///
     /// # Returns
     ///
-    /// * `Pin<Box<dyn Future<Output = VetisResult<Response>> + Send>>` - A pinned box
-    ///    containing the future that will resolve to a `Result<Response, VetisError>`.
+    /// * `VetisFutureResult<'a, Response>` - A pinned box containing the future
+    ///   that will resolve to a `Result<Response, VetisError>`.
     fn route<'a>(
         &'a self,
         request: Request,

@@ -30,6 +30,10 @@ pub mod response;
 pub mod security;
 /// Server module
 pub mod server;
+/// Telemetry module
+pub mod telemetry;
+/// Worker module
+pub mod worker;
 
 /// Internal tests module
 #[cfg(test)]
