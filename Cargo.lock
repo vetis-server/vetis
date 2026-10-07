@@ -792,9 +792,9 @@ checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
 name = "hyper"
-version = "1.11.1"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27b501faa50e7a26c3d3560ca625132f4078a17771f4810baf70475ae48cbe43"
+checksum = "2c3e324da4c95177d6291d4c8730197c0d1822f8a9766814a4a44fa5ab797c9c"
 dependencies = [
  "atomic-waker",
  "bytes",
@@ -1345,6 +1345,17 @@ name = "patricia_tree"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fd106b8571932f2b8d961a296390c56f05d454ce95e2405f1d8703ca0119e8e"
+
+[[package]]
+name = "peekable"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c757617572d6398e2c967ce1600df280a75ada1ca076b1aeda1d5e43fccc35b"
+dependencies = [
+ "futures-util",
+ "pin-project-lite",
+ "smallvec",
+]
 
 [[package]]
 name = "percent-encoding"
@@ -2485,6 +2496,7 @@ dependencies = [
  "logforth",
  "papaya",
  "patricia_tree",
+ "peekable",
  "quinn",
  "rand",
  "regex",

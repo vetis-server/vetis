@@ -41,7 +41,7 @@ Please check crates section below for more information. Each crate has its own d
 ## Crates
 
 | Crate | Description | Documentation |
-|-------|-------------|---------------|
+| ------- | ------------- | --------------- |
 | [vetis](./vetis) | Core HTTP server library | [![docs.rs](https://img.shields.io/docsrs/vetis/latest)](https://docs.rs/vetis) |
 | [vetis-smol](./vetis-smol) | Smol runtime support | [![docs.rs](https://img.shields.io/docsrs/vetis-smol/latest)](https://docs.rs/vetis-smol) |
 | [vetis-tokio](./vetis-tokio) | Tokio runtime support | [![docs.rs](https://img.shields.io/docsrs/vetis-tokio/latest)](https://docs.rs/vetis-tokio) |

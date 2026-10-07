@@ -14,6 +14,8 @@ So with reusability in mind, I started EasyHttpMock, a project which aims to be 
 
 That's why VeTiS came to reality, by taking advantage of what I started on deboa-tests for testing purposes, it turned into a complete http server project, the goal is make it very flexible, while keeping it small and fast.
 
+Nowadays, this repository only contains vetis and vetis-macros, vetis is the core API for async runtimes implementations like vetis-tokio, vetis-smol, vetis-compio and vetis-glommio.
+
 ## Why VeTiS?
 
 - **Minimalist Design**: Focus on what matters - serving HTTP requests efficiently
@@ -21,27 +23,14 @@ That's why VeTiS came to reality, by taking advantage of what I started on deboa
 - **Protocol Support**: Full HTTP/1, HTTP/2, and HTTP/3 implementation
 - **Secure by Default**: Built-in TLS support with modern cryptography
 - **Zero-Cost Abstractions**: Leverage Rust's performance without overhead
-- **Feature-Gated**: Include only what you need for optimal binary size
 
 ## Quick Start
 
 Add VeTiS to your `Cargo.toml`:
 
 ```toml
-vetis = { version = "0.1.0" }
+vetis-tokio = { version = "0.1.0" }
 ```
-
-## Crate features
-
-- http2
-- http3
-- rust-tls (default)
-
-## External crates
-
-- static-files
-- reverse-proxy
-- auth
 
 ## Usage Example
 
@@ -51,16 +40,14 @@ Here's how simple it is to create a web server with VeTiS:
 use http::Version;
 use hyper::StatusCode;
 use vetis::{
+    security::TlsConfig,
+    server::{ServerConfig},
     host::{handler_fn, HostConfig},
-    listener::ListenerConfig,
-    security::SecurityConfig,
-    VetisServer as _,
 };
 use vetis_macros::status_pages;
 use vetis_tokio::{
     host::{path::HandlerPath, Host},
-    listener::build_listeners,
-    rt::Vetis,
+    Vetis, VetisServer as _
 };
 
 pub(crate) const CA_CERT: &str = "certs/ca.der";
@@ -71,7 +58,7 @@ pub(crate) const SERVER_KEY: &str = "certs/server.key.der";
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(env_logger::Env::default().filter_or("RUST_LOG", "error")).init();
 
-    let security_config = SecurityConfig::builder()
+    let security_config = TlsConfig::builder()
         .ca_file(CA_CERT)
         .cert_file(SERVER_CERT)
         .key_file(SERVER_KEY)
@@ -79,14 +66,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let localhost_config = HostConfig::builder()
         .hostname("localhost")
-        .security(security_config)
+        .tls(security_config)
         .root_directory("/home/rogerio/Downloads")
         .header("alt-svc", "h3=:8443")
         .status_pages(status_pages! {
             404 @ "404.html",
             500 @ "500.html"
         })
-        .bind_addresses(vec![(
+        .bind_addresses(&[(
             "0.0.0.0"
                 .parse()
                 .unwrap(),
@@ -136,38 +123,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Overview
 
-### Core Features
-
-- **Standalone Server** - Run as a standalone HTTP/HTTPS server
-- **Multi-Protocol** - Support for HTTP/1, HTTP/2 and HTTP/3 are disabled by default
-- **Virtual Hosts** - Host multiple domains on a single server
-- **SNI Support** - Server Name Indication for TLS
-- **Reverse Proxy** - Route requests to backend services (feature gated, disabled by default)
-
-### Content & Security
-
-- **Authentication** - Multiple auth methods support
-- **Authorization** - Fine-grained access control
-- **Dynamic Content** - Template rendering and content generation
-- **Logging** - Comprehensive request and error logging
-- **Static File Serving** - Efficient static asset delivery
-
-### Languages
-
-- **Python** - Support for ASGI/WSGI/RSGI applications
-- **PHP** - Support for PHP applications
-- **Ruby** - Support for Ruby applications
+This repository contains the reference API for vetis, providing the basis of async runtimes implementations like vetis-tokio, vetis-smol, vetis-compio and vetis-glommio.
 
 ## Roadmap
 
 VeTiS is continuously evolving! Here's what we're working on:
 
-### Extra Features
-
-- **WebSockets** - Real-time bidirectional communication
-- **Load Balancing** - Distribute traffic across multiple servers
-
-## Subprojects
+## Subcrates
 
 ### [vetis](https://github.com/ararog/vetis/tree/main/vetis)
 

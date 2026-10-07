@@ -1,5 +1,5 @@
 $defs:
-  static:
+  static_path:
     type: "object"
     properties:
       uri:

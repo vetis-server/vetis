@@ -1,8 +1,6 @@
 $defs:
-  proxy:
+  rev-proxy:
     type: "object"
     properties:
       uri:
-        type: "string"
-      target:
         type: "string"

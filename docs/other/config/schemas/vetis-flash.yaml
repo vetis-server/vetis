@@ -1,8 +1,6 @@
 $defs:
-  proxy:
+  flash:
     type: "object"
     properties:
       uri:
-        type: "string"
-      target:
         type: "string"

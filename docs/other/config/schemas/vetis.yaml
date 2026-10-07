@@ -12,25 +12,8 @@ properties:
   server:
     type: "object"
     required:
-      - listeners
       - hosts
     properties:
-      listeners:
-        type: "array"
-        items:
-          type: "object"
-          required:
-            - port
-          properties:
-            interface:
-              type: "string"
-              description: "The network interface to use, if not specified, that will default to 0.0.0.0 on ipv4"
-            port:
-              type: "integer"
-              description: "The port number to bound this listener to, default is 80"
-            protocol:
-              type: "string"
-        uniqueItems: true
       hosts:
         type: "array"
         items:

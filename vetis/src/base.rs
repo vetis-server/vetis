@@ -15,6 +15,4 @@ pub trait VetisServer {
     fn start(&mut self) -> impl Future<Output = VetisResult<()>>;
     /// Stop the server
     fn stop(self) -> impl Future<Output = VetisResult<()>>;
-    /// Reload the server configuration
-    fn reload(&mut self, new_config: ServerConfig) -> impl Future<Output = VetisResult<()>>;
 }
