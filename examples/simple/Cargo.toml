@@ -30,7 +30,7 @@ tokio = { version = "1.53.1", features = [
 ], default-features = false }
 tracing-subscriber = "0.3.23"
 vetis = { workspace = true }
-vetis-tokio = { version = "0.1.2-beta.5", features = [
+vetis-tokio = { version = "0.1.2-beta.6", features = [
   "http2",
   "http3",
   "rust-tls"
