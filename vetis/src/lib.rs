@@ -32,8 +32,6 @@ pub mod security;
 pub mod server;
 /// Telemetry module
 pub mod telemetry;
-/// Worker module
-pub mod worker;
 
 /// Internal tests module
 #[cfg(test)]

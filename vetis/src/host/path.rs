@@ -1,5 +1,5 @@
 //! Path module for virtual host configuration.
-use crate::{Request, Response, VetisFutureResult, host::HostContext};
+use crate::{Request, Response, VetisFutureResult, auth::Auth, host::HostContext};
 
 /// Trait for handling different types of paths in the server
 pub trait Path {
@@ -9,6 +9,15 @@ pub trait Path {
     ///
     /// * `&str` - The URI of path
     fn uri(&self) -> &str;
+
+    /// Returns auth for this path
+    ///
+    /// # Returns
+    ///
+    /// * `Option<&Box<dyn Auth>>` - Defaults to None when no auth is set
+    fn auth(&self) -> Option<&Box<dyn Auth>> {
+        None
+    }
 
     /// Handles the request for path
     ///
