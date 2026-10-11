@@ -1928,7 +1928,7 @@ dependencies = [
  "tracing-subscriber",
  "vetis 0.1.7-beta.4",
  "vetis-macros",
- "vetis-tokio 0.1.2-beta.5 (git+https://github.com/vetis-server/vetis-tokio.git)",
+ "vetis-tokio",
 ]
 
 [[package]]
@@ -2463,9 +2463,9 @@ dependencies = [
 [[package]]
 name = "vetis"
 version = "0.1.7-beta.4"
-source = "git+https://github.com/vetis-server/vetis.git#ffcee6eec191ea1680cd7186a62695b056b9714b"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f8dce2129f8a7a76e5df6ee478a3998136cfd769f788db33bc572fc09b8429f"
 dependencies = [
- "arcstr",
  "bytes",
  "crossfire",
  "futures-util",
@@ -2501,12 +2501,12 @@ dependencies = [
  "tokio",
  "trybuild",
  "vetis 0.1.7-beta.4",
- "vetis-tokio 0.1.2-beta.5",
+ "vetis-tokio",
 ]
 
 [[package]]
 name = "vetis-tokio"
-version = "0.1.2-beta.5"
+version = "0.1.2-beta.6"
 dependencies = [
  "base64",
  "bytes",
@@ -2538,45 +2538,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "typetag",
- "vetis 0.1.7-beta.4 (git+https://github.com/vetis-server/vetis.git)",
-]
-
-[[package]]
-name = "vetis-tokio"
-version = "0.1.2-beta.5"
-source = "git+https://github.com/vetis-server/vetis-tokio.git#0b478dcb711204d34347c3ed466f10f3decab48b"
-dependencies = [
- "base64",
- "bytes",
- "crossfire",
- "futures-lite",
- "futures-rustls",
- "futures-util",
- "h3",
- "h3-quinn",
- "h3-webtransport",
- "http",
- "http-body-util",
- "hyper",
- "hyper-body-utils",
- "hyper-util",
- "log",
- "logforth",
- "papaya",
- "patricia_tree",
- "peekable",
- "quinn",
- "rand",
- "regex",
- "rustls",
- "serde",
- "serde_yaml_ng",
- "thiserror",
- "time",
- "tokio",
- "tokio-rustls",
- "typetag",
- "vetis 0.1.7-beta.4 (git+https://github.com/vetis-server/vetis.git)",
+ "vetis 0.1.7-beta.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

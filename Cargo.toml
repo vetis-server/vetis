@@ -34,7 +34,7 @@ vetis = { path = "vetis" }
 vetis-macros = { path = "vetis-macros" }
 
 [patch.crates-io]
-deboa-tokio = { path = "../deboa-tokio" }
+vetis-tokio = { path = "../vetis-tokio" }
 
 [profile.release]
 strip = true
