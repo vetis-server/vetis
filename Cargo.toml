@@ -33,9 +33,6 @@ url = "2.5.7"
 vetis = { path = "vetis" }
 vetis-macros = { path = "vetis-macros" }
 
-[patch.crates-io]
-deboa-tokio = { path = "../deboa-tokio/deboa-tokio" }
-
 [profile.release]
 strip = true
 opt-level = "z"
