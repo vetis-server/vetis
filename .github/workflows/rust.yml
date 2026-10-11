@@ -22,6 +22,14 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v7
+      with:
+        path: 'vetis'
+
+    - name: Checkout repository
+      uses: actions/checkout@v7
+      with:
+        repository: 'vetis-server/vetis-tokio'
+        path: 'vetis-tokio'
 
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
@@ -31,4 +39,5 @@ jobs:
 
     - name: Run all tests
       run: |
+          cd vetis
           cargo nextest run -j1 --no-fail-fast

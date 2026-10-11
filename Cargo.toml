@@ -1,7 +1,5 @@
 [workspace]
-# Use the latest resolver available
 resolver = "3"
-# Include both parts of the library in the workspace
 members = ["vetis", "vetis-macros", "examples/simple"]
 
 [workspace.package]

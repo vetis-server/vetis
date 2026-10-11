@@ -27,7 +27,4 @@ caramelo.workspace = true
 http = { workspace = true }
 tokio = { version = "1.53.1", features = ["macros"] }
 trybuild = "1.0.121"
-
-#vetis-tokio = "0.1.2-beta.5"
-#vetis-tokio = { path = "../../vetis-tokio" }
-vetis-tokio = { git = "https://github.com/vetis-server/vetis-tokio.git" }
+vetis-tokio = "0.1.2-beta.5"
