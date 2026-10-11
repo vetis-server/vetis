@@ -31,6 +31,12 @@ jobs:
         repository: 'vetis-server/vetis-tokio'
         path: 'vetis-tokio'
 
+    - name: Checkout repository
+      uses: actions/checkout@v7
+      with:
+        repository: 'ararog/hyper-body-utils'
+        path: 'hyper-body-utils'
+
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
 
