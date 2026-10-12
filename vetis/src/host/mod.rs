@@ -87,7 +87,7 @@ impl AltService {
             authority: None,
             protocol: Version::HTTP_2,
             port: 443,
-            ma: Duration::from_hours(24),
+            ma: Duration::from_secs(24 * 60 * 60),
             persist: false,
         }
     }
