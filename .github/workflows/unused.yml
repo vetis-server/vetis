@@ -2,6 +2,10 @@ name: Check unused deps
 on:
     schedule:
         - cron: "10 0 * * *"
+
+permissions:
+    contents: read
+
 jobs:
     audit:
         runs-on: ubuntu-latest
