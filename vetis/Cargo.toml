@@ -20,11 +20,8 @@ default = []
 
 [dependencies]
 arcstr = { workspace = true }
-bytes = { workspace = true }
 crossfire = "3.1.20"
-futures-util = { workspace = true }
 http = { workspace = true }
-http-body-util = { workspace = true }
 http-serde-ext = "1.0.2"
 hyper = { workspace = true, default-features = false, features = ["server"] }
 hyper-body-utils = { workspace = true }
@@ -32,14 +29,10 @@ log.workspace = true
 logforth-core.workspace = true
 papaya = "0.2.5"
 patricia_tree = { workspace = true }
-rand = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"] }
-serde_yaml_ng = { workspace = true }
-socket2 = { workspace = true }
 thiserror = { workspace = true }
 time = { workspace = true, features = ["formatting"] }
 typetag = { workspace = true }
-url = { workspace = true }
 
 [dev-dependencies]
 caramelo.workspace = true

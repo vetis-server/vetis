@@ -48,3 +48,14 @@ repos:
       - id: markdownlint
         # Optional: Add --fix to automatically correct format violations
         args: ["--fix"]
+
+  - repo: https://github.com/EmbarkStudios/cargo-deny
+    rev: 0.19.9 # choose your preferred tag
+    hooks:
+      - id: cargo-deny
+        args: ["--all-features", "check"]
+
+  - repo: https://github.com/bnjbvr/cargo-machete
+    rev: main  # or a specific tag/commit
+    hooks:
+      - id: cargo-machete
