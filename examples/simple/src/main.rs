@@ -1,15 +1,15 @@
 use http::Version;
 use hyper::StatusCode;
 use tracing_subscriber::{filter::LevelFilter, fmt::format};
-use vetis::{host::HostConfig, VetisServer as _};
+use vetis::{VetisServer as _, host::HostConfig};
 use vetis_macros::status_pages;
 use vetis_tokio::{
+    TlsConfig,
     host::{
-        path::{handler_fn, HandlerPath},
         Host,
+        path::{HandlerPath, handler_fn},
     },
     rt::Vetis,
-    TlsConfig,
 };
 
 pub(crate) const CA_CERT: &str = "certs/ca.der";
