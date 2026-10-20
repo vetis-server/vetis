@@ -1,12 +1,11 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 
-use proc_macro::TokenStream;
-use proc_macro2::{Span, TokenStream as TS2};
+use crate::parsers::{HttpArgs, StatusPagesArgs, TlsArgs};
+use proc_macro::TokenStream as OldTokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::parse_macro_input;
-
-use crate::parsers::{HttpArgs, StatusPagesArgs, TlsArgs};
 
 mod parsers;
 
@@ -71,9 +70,12 @@ mod parsers;
 ///
 ///     Ok(())
 /// }
-pub fn http(item: TokenStream) -> TokenStream {
+pub fn http(item: OldTokenStream) -> OldTokenStream {
     let args = parse_macro_input!(item as HttpArgs);
+    expand_http(args).into()
+}
 
+pub(crate) fn expand_http(args: HttpArgs) -> TokenStream {
     let from_crate = match args.from_crate {
         Some(e) => e,
         None => {
@@ -103,27 +105,27 @@ pub fn http(item: TokenStream) -> TokenStream {
 
     let root_directory = match args.root_directory {
         Some(root_directory) => quote! { .root_directory(#root_directory) },
-        None => TS2::new(),
+        None => TokenStream::new(),
     };
 
     let workers = match args.workers {
         Some(workers) => quote! { .tls(#workers) },
-        None => TS2::new(),
+        None => TokenStream::new(),
     };
 
     let logger_queue_size = match args.logger_queue_size {
         Some(logger_queue_size) => quote! { .tls(#logger_queue_size) },
-        None => TS2::new(),
+        None => TokenStream::new(),
     };
 
     let log = match args.log {
         Some(log) => quote! { .log(#log) },
-        None => TS2::new(),
+        None => TokenStream::new(),
     };
 
     let tls = match args.tls {
         Some(tls) => quote! { .tls(#tls) },
-        None => TS2::new(),
+        None => TokenStream::new(),
     };
 
     let hostname = match args.hostname {
@@ -237,9 +239,12 @@ pub fn http(item: TokenStream) -> TokenStream {
 ///     Ok(())
 /// }
 /// ```
-pub fn tls(item: TokenStream) -> TokenStream {
+pub fn tls(item: OldTokenStream) -> OldTokenStream {
     let args = parse_macro_input!(item as TlsArgs);
+    expand_tls(args).into()
+}
 
+pub(crate) fn expand_tls(args: TlsArgs) -> TokenStream {
     let cert = match args.cert {
         Some(e) => e,
         None => {
@@ -302,9 +307,12 @@ pub fn tls(item: TokenStream) -> TokenStream {
 ///     500 @ "500.html"
 /// };
 /// ```
-pub fn status_pages(item: TokenStream) -> TokenStream {
+pub fn status_pages(item: OldTokenStream) -> OldTokenStream {
     let args = parse_macro_input!(item as StatusPagesArgs);
+    expand_status_pages(args).into()
+}
 
+fn expand_status_pages(args: StatusPagesArgs) -> TokenStream {
     let pages = args
         .pages
         .iter()
@@ -323,4 +331,16 @@ pub fn status_pages(item: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{StatusPagesArgs, expand_status_pages};
+    use syn::parse_quote;
+
+    #[test]
+    fn test_expand_status_page() {
+        let args: StatusPagesArgs = parse_quote!( 404 @ "index.html" );
+        expand_status_pages(args);
+    }
 }
