@@ -335,8 +335,33 @@ fn expand_status_pages(args: StatusPagesArgs) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
-    use crate::{StatusPagesArgs, expand_status_pages};
+    use crate::{HttpArgs, StatusPagesArgs, TlsArgs, expand_http, expand_status_pages, expand_tls};
     use syn::parse_quote;
+
+    #[test]
+    fn test_expand_http() {
+        let args: HttpArgs = parse_quote!(
+            from_crate => vetis_tokio,
+            hostname => "localhost",
+            root_directory => "src",
+            protos => &[Version::Http1],
+            port => 8080,
+            interface => "0.0.0.0",
+            handler => handler
+        );
+        expand_http(args);
+    }
+
+    #[test]
+    fn test_expand_tls() {
+        let args: TlsArgs = parse_quote!(
+            cert => "/path/to/server.der",
+            key => "/path/to/server.key.der",
+            ca_cert => "/path/to/ca.der",
+            client_auth => true
+        );
+        expand_tls(args);
+    }
 
     #[test]
     fn test_expand_status_page() {
