@@ -1,4 +1,42 @@
-use crate::security::Tls;
+use crate::security::{Tls, TlsConfig};
+use caramelo::{expect, matchers::eq};
+use std::{path::PathBuf, str::FromStr};
+
+#[test]
+#[should_panic(expected = "Config(Tls(\"Missing certificate file\"))")]
+fn test_tls_config_builder_no_cert() {
+    let config = TlsConfig::builder();
+    config
+        .build()
+        .unwrap();
+}
+
+#[test]
+#[should_panic(expected = "Config(Tls(\"Missing certificate key file\"))")]
+fn test_tls_config_builder_no_key() {
+    let config = TlsConfig::builder().cert_file("certs/server.der");
+    config
+        .build()
+        .unwrap();
+}
+
+#[test]
+fn test_tls_config_from_tuple() {
+    let config: TlsConfig = (
+        PathBuf::from_str("certs/server.der").unwrap(),
+        PathBuf::from_str("certs/server-key.der").unwrap(),
+        PathBuf::from_str("certs/ca.der").unwrap(),
+    )
+        .into();
+
+    expect(
+        config
+            .ca_file()
+            .as_ref()
+            .unwrap(),
+    )
+    .to_be(eq(&PathBuf::from_str("certs/ca.der").unwrap()));
+}
 
 #[test]
 fn test_tls_config_build_success() {
