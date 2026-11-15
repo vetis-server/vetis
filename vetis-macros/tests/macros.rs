@@ -2,7 +2,7 @@ use http::Version;
 use std::collections::HashMap;
 use vetis::{Response, VetisServer, security::TlsConfig};
 use vetis_macros::{http, status_pages, tls};
-use vetis_tokio::host::path::handler_fn;
+use vetis_tokio::hook::handler_fn;
 
 #[test]
 fn status_pages_expands_to_a_map() {
@@ -48,8 +48,7 @@ fn security_expands_with_client_auth_enabled() -> Result<(), vetis::errors::Veti
 
 #[tokio::test]
 async fn http_expands_with_requirements() -> Result<(), vetis::errors::VetisError> {
-    let handler =
-        handler_fn(|_req, _ctx| async move { Ok(Response::builder().text("Hello, World!")) });
+    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
     let mut http = http! {
         from_crate => vetis_tokio,
         handler => handler,

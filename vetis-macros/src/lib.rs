@@ -109,7 +109,7 @@ pub(crate) fn expand_http(args: HttpArgs) -> TokenStream {
     };
 
     let workers = match args.workers {
-        Some(workers) => quote! { .tls(#workers) },
+        Some(workers) => quote! { .workers(#workers) },
         None => TokenStream::new(),
     };
 
@@ -165,7 +165,8 @@ pub(crate) fn expand_http(args: HttpArgs) -> TokenStream {
             };
 
             use #from_crate::{
-                host::{path::HandlerPath, Host},
+                hook::{HandlerHook},
+                host::Host,
                 rt::Vetis,
             };
 
@@ -188,12 +189,11 @@ pub(crate) fn expand_http(args: HttpArgs) -> TokenStream {
 
             let mut host = Host::new(host_config).await?;
 
-            let root_path = HandlerPath::builder()
-                .uri("/")
+            let root_path = HandlerHook::builder()
                 .handler(Box::new(#handler))
                 .build()?;
 
-            host.add_path(root_path);
+            host.add_hook(root_path);
 
             let vetis = Vetis::builder()
                 .config(server_config)
@@ -294,7 +294,7 @@ pub(crate) fn expand_tls(args: TlsArgs) -> TokenStream {
 ///
 /// # Arguments
 ///
-/// * `$($code:literal => $path:expr),*` - A list of status codes and file paths.
+/// * `$($code:literal @ $path:expr),*` - A list of status codes and file paths.
 ///
 /// # Examples
 ///
