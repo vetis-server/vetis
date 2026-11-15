@@ -5,6 +5,9 @@
 //! configuration, runtime, and TLS-related issues.
 //! ```
 
+use crate::Str;
+use http::{HeaderMap, StatusCode};
+use std::fmt::Display;
 use thiserror::Error;
 
 /// Main error type for VeTiS operations.
@@ -19,28 +22,31 @@ pub enum VetisError {
     Config(#[from] ConfigError),
     /// Failed to bind to a network address
     #[error("Failed to bind to address: {0}")]
-    Bind(String),
+    Bind(Str),
     /// Failed to log message
     #[error("Failed to log message: {0}")]
-    Log(String),
+    Log(Str),
     /// IO error
     #[error("IO error: {0}")]
-    Io(String),
+    Io(Str),
     /// Server startup errors
     #[error("Failed to start server: {0}")]
-    Start(#[from] StartError),
+    Startup(#[from] StartupError),
     /// Server shutdown errors
     #[error("Failed to stop server: {0}")]
-    Stop(String),
+    Stop(Str),
     /// Request handler errors
     #[error("Handler error: {0}")]
-    Handler(String),
+    Handler(Str),
+    /// Request handler errors
+    #[error("Hook error: {0}")]
+    Hook(Str),
     /// Request handler errors
     #[error("Worker error: {0}")]
-    Worker(String),
+    Worker(Str),
     /// TLS/SSL related errors
     #[error("Tls error: {0}")]
-    Tls(String),
+    Tls(Str),
     /// No server instances are running
     #[error("No instances")]
     NoInstances,
@@ -50,9 +56,56 @@ pub enum VetisError {
     /// Virtual host related errors
     #[error("Host error: {0}")]
     Host(#[from] HostError),
-    /// WebSocket errors
-    #[error("WebSocket error: {0}")]
-    WebSocket(String),
+    /// Matcher related errors
+    #[error("Matcher error: {0}")]
+    Matcher(Str),
+}
+
+impl VetisError {
+    /// Create a new VetisError::bind variant
+    pub fn bind(field: impl Into<Str>) -> Self {
+        Self::Bind(field.into())
+    }
+
+    /// Create a new ConfigError::Log variant
+    pub fn log(field: impl Into<Str>) -> Self {
+        Self::Log(field.into())
+    }
+
+    /// Create a new ConfigError::Listener variant
+    pub fn io(field: impl Into<Str>) -> Self {
+        Self::Io(field.into())
+    }
+
+    /// Create a new ConfigError::Stop variant
+    pub fn stop(field: impl Into<Str>) -> Self {
+        Self::Stop(field.into())
+    }
+
+    /// Create a new ConfigError::hook variant
+    pub fn hook(field: impl Into<Str>) -> Self {
+        Self::Hook(field.into())
+    }
+
+    /// Create a new ConfigError::Handler variant
+    pub fn handler(field: impl Into<Str>) -> Self {
+        Self::Handler(field.into())
+    }
+
+    /// Create a new ConfigError::Worker variant
+    pub fn worker(field: impl Into<Str>) -> Self {
+        Self::Worker(field.into())
+    }
+
+    /// Create a new ConfigError::tls variant
+    pub fn tls(field: impl Into<Str>) -> Self {
+        Self::Tls(field.into())
+    }
+
+    /// Create a new ConfigError::mather variant
+    pub fn matcher(field: impl Into<Str>) -> Self {
+        Self::Matcher(field.into())
+    }
 }
 
 /// Configuration-related errors.
@@ -63,22 +116,62 @@ pub enum VetisError {
 pub enum ConfigError {
     /// Invalid auth configuration
     #[error("Invalid auth config: {0}")]
-    Auth(String),
+    Auth(Str),
     /// No listeners configured
     #[error("Invalid server config: {0}")]
-    Server(String),
+    Server(Str),
     /// Invalid listener configuration
     #[error("Invalid listener config: {0}")]
-    Listener(String),
+    Listener(Str),
     /// Invalid virtual host configuration
-    #[error("Invalid virtual host config: {0}")]
-    Host(String),
+    #[error("Invalid host config: {0}")]
+    Host(Str),
     /// Invalid path configuration
-    #[error("Invalid path config: {0}")]
-    Path(String),
+    #[error("Invalid hook config: {0}")]
+    Hook(Str),
     /// Invalid security configuration
     #[error("Invalid tls config: {0}")]
-    Tls(String),
+    Tls(Str),
+    /// Invalid security configuration
+    #[error("Invalid matcher config: {0}")]
+    Matcher(Str),
+}
+
+impl ConfigError {
+    /// Create a new ConfigError::auth variant
+    pub fn auth(field: impl Into<Str>) -> Self {
+        Self::Auth(field.into())
+    }
+
+    /// Create a new ConfigError::server variant
+    pub fn server(field: impl Into<Str>) -> Self {
+        Self::Server(field.into())
+    }
+
+    /// Create a new ConfigError::Listener variant
+    pub fn listener(field: impl Into<Str>) -> Self {
+        Self::Listener(field.into())
+    }
+
+    /// Create a new ConfigError::host variant
+    pub fn host(field: impl Into<Str>) -> Self {
+        Self::Host(field.into())
+    }
+
+    /// Create a new ConfigError::hook variant
+    pub fn hook(field: impl Into<Str>) -> Self {
+        Self::Hook(field.into())
+    }
+
+    /// Create a new ConfigError::tls variant
+    pub fn tls(field: impl Into<Str>) -> Self {
+        Self::Tls(field.into())
+    }
+
+    /// Create a new ConfigError::mather variant
+    pub fn matcher(field: impl Into<Str>) -> Self {
+        Self::Matcher(field.into())
+    }
 }
 
 /// Listener-related errors.
@@ -89,10 +182,17 @@ pub enum ConfigError {
 pub enum ListenerError {
     /// Bind
     #[error("Cannot bind listener: {0}")]
-    Bind(String),
+    Bind(Str),
     /// No listeners configured
     #[error("No listeners configured")]
     NoListeners,
+}
+
+impl ListenerError {
+    /// Create a new StartupError::tls variant
+    pub fn bind(field: impl Into<Str>) -> Self {
+        Self::Bind(field.into())
+    }
 }
 
 /// Server startup errors.
@@ -100,13 +200,20 @@ pub enum ListenerError {
 /// These errors occur when the server fails to start properly,
 /// typically due to TLS initialization issues.
 #[derive(Debug, Clone, Error, PartialEq)]
-pub enum StartError {
+pub enum StartupError {
     /// TLS/SSL initialization errors
     #[error("Tls initialization: {0}")]
-    Tls(String),
+    Tls(Str),
     /// Server is already running
     #[error("Server is already running")]
     AlreadyRunning,
+}
+
+impl StartupError {
+    /// Create a new StartupError::tls variant
+    pub fn init(field: impl Into<Str>) -> Self {
+        Self::Tls(field.into())
+    }
 }
 
 /// Host related errors.'
@@ -117,22 +224,20 @@ pub enum StartError {
 pub enum HostError {
     /// Initialization error
     #[error("Initialization error: {0}")]
-    Init(String),
+    Init(Str),
     /// No virtual hosts have been added to the server
     #[error("No hosts")]
     NoHosts,
     /// Handler errors
-    #[error("Handler error: {0}")]
-    Handler(HandlerError),
-    /// File errors
-    #[error("Content error: {0}")]
-    Content(ContentError),
-    /// Proxy errors
-    #[error("Proxy error: {0}")]
-    Proxy(String),
-    /// Authentication errors
-    #[error("Auth error: {0}")]
-    Auth(String),
+    #[error("Runtime error: {0}")]
+    Runtime(RuntimeError),
+}
+
+impl HostError {
+    /// Create a new HostError::init variant
+    pub fn init(field: impl Into<Str>) -> Self {
+        Self::Init(field.into())
+    }
 }
 
 /// Handler related errors.
@@ -140,34 +245,48 @@ pub enum HostError {
 /// These errors occur when working with request handlers,
 /// such as URI parsing or handler execution failures.
 #[derive(Debug, Clone, Error, PartialEq)]
-pub enum HandlerError {
-    /// URI parsing errors
-    #[error("Uri error: {0}")]
-    Uri(String),
-    /// Handler execution errors
-    #[error("Handler error: {0}")]
-    Handler(String),
+pub struct RuntimeError {
+    message: Str,
+    status_code: StatusCode,
+    headers: Option<HeaderMap>,
 }
 
-/// Content related errors.
-///
-/// These errors occur when working with files,
-/// such as missing files or invalid metadata.
-#[derive(Debug, Clone, Error, PartialEq)]
-pub enum ContentError {
-    /// Forbidden
-    #[error("Forbidden")]
-    Forbidden,
-    /// File not found
-    #[error("Not found: {0}")]
-    NotFound(String),
-    /// Invalid file metadata
-    #[error("Invalid metadata: {0}")]
-    InvalidMetadata(String),
-    /// Invalid range
-    #[error("Invalid range: {0}")]
-    InvalidRange(String),
-    /// Invalid range
-    #[error("Server error: {0}")]
-    ServerError(String),
+impl RuntimeError {
+    /// Create a new RuntimeError
+    pub fn new(message: &str) -> Self {
+        Self {
+            message: message.into(),
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            headers: None,
+        }
+    }
+
+    /// Add status code to error
+    pub fn with_status_code(mut self, status_code: StatusCode) -> Self {
+        self.status_code = status_code;
+        self
+    }
+
+    /// Add headers to error
+    pub fn with_headers(mut self, headers: HeaderMap) -> Self {
+        self.headers = Some(headers);
+        self
+    }
+
+    /// Return response status code
+    pub fn status_code(&self) -> &StatusCode {
+        &self.status_code
+    }
+
+    /// Return response headers
+    pub fn headers(&self) -> Option<&HeaderMap> {
+        self.headers
+            .as_ref()
+    }
+}
+
+impl Display for RuntimeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{}", self.message))
+    }
 }

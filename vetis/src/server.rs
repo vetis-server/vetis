@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{errors::ConfigError, host::HostConfig, log::LogConfig};
 use serde::Deserialize;
 
@@ -77,17 +75,17 @@ impl ServerConfigBuilder {
     /// * Return an error if no listeners are configured or if HTTP/2 and HTTP/3 support enabled and no security setting provided for the host.
     pub fn build(self) -> Result<ServerConfig, ConfigError> {
         if self.workers < 1 {
-            return Err(ConfigError::Server(
-                "You must have at least one worker running.".to_string(),
-            ));
+            return Err(ConfigError::server("You must have at least one worker running."));
         }
 
         if self.log.is_some() && self.logger_queue_size < 100 {
-            return Err(ConfigError::Server("Log queue size too small".to_string()));
+            return Err(ConfigError::server("Log queue size too small"));
         }
 
         Ok(ServerConfig {
-            hosts: self.hosts.into(),
+            hosts: self
+                .hosts
+                .into_boxed_slice(),
             logger_queue_size: self.logger_queue_size,
             log: self.log,
             workers: self.workers,
@@ -119,7 +117,7 @@ impl ServerConfigBuilder {
 #[derive(Deserialize, Clone)]
 #[serde(default)]
 pub struct ServerConfig {
-    hosts: Arc<[HostConfig]>,
+    hosts: Box<[HostConfig]>,
     log: Option<Box<dyn LogConfig>>,
     logger_queue_size: usize,
     workers: usize, // Add file rolling support alongside stdout for logging
@@ -146,13 +144,13 @@ impl ServerConfig {
     }
 
     /// Returns a reference to all configured hosts.
-    pub fn hosts(&self) -> &Arc<[HostConfig]> {
+    pub fn hosts(&self) -> &Box<[HostConfig]> {
         &self.hosts
     }
 
     /// Returns log
-    pub fn log(&self) -> &Option<Box<dyn LogConfig>> {
-        &self.log
+    pub fn log(&self) -> Option<&Box<dyn LogConfig>> {
+        self.log.as_ref()
     }
 
     /// Returns size of logger queue

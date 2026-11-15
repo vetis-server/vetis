@@ -3,12 +3,11 @@ use hyper::StatusCode;
 use tracing_subscriber::{filter::LevelFilter, fmt::format};
 use vetis::{VetisServer as _, host::HostConfig};
 use vetis_macros::status_pages;
+use vetis_matchers::request::{PathMatcher, PathMatcherConfig};
 use vetis_tokio::{
     TlsConfig,
-    host::{
-        Host,
-        path::{HandlerPath, handler_fn},
-    },
+    hook::{HandlerHook, handler_fn},
+    host::Host,
     rt::Vetis,
 };
 
@@ -50,9 +49,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut localhost_host = Host::new(localhost_config).await?;
 
-    let root_path = HandlerPath::builder()
-        .uri("/hello")
-        .handler(handler_fn(|_req, _ctx| async move {
+    let root_path = HandlerHook::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/hello*")
+                .build()?,
+        ))
+        .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
                 .text("Hello from localhost");
@@ -60,11 +63,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(root_path);
+    localhost_host.add_hook(root_path);
 
-    let health_path = HandlerPath::builder()
-        .uri("/health")
-        .handler(handler_fn(|_req, _ctx| async move {
+    let health_path = HandlerHook::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/health*")
+                .build()?,
+        ))
+        .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
                 .text("Health check");
@@ -72,7 +79,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(health_path);
+    localhost_host.add_hook(health_path);
 
     let mut server = Vetis::builder()
         .add_host(localhost_host)

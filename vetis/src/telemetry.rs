@@ -6,7 +6,7 @@ pub trait TelemetryConfig {
     ///
     /// # Returns
     ///
-    /// - `Box<dyn PathConfig>` - Clone of boxed log config
+    /// - `Box<dyn HookConfig>` - Clone of boxed log config
     fn boxed_clone(&self) -> Box<dyn TelemetryConfig>;
 }
 
