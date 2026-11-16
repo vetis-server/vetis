@@ -25,7 +25,6 @@ proc-macro = true
 proc-macro2 = "1.0.107"
 quote = "1.0.47"
 syn = { version = "3.0.9" }
-vetis = { workspace = true }
 
 [dev-dependencies]
 caramelo.workspace = true
@@ -33,4 +32,5 @@ compact_str = { workspace = true }
 http = { workspace = true }
 tokio = { version = "1.54.1", features = ["macros"] }
 trybuild = "1.0.121"
+vetis = { workspace = true }
 vetis-tokio.workspace = true

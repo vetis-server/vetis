@@ -20,14 +20,14 @@ fn status_pages_expands_to_a_map() {
 #[test]
 fn security_expands_with_default_client_auth() -> Result<(), vetis::errors::VetisError> {
     let config: TlsConfig = tls! {
-        cert => "../certs/server.der",
-        key => "../certs/server.key.der",
-        ca_cert => "../certs/ca.der",
+        cert => "../files/certs/server.der",
+        key => "../files/certs/server.key.der",
+        ca_cert => "../files/certs/ca.der",
     };
 
     assert!(!config.client_auth());
-    assert_eq!(config.cert_file(), "../certs/server.der");
-    assert_eq!(config.key_file(), "../certs/server.key.der");
+    assert_eq!(config.cert_file(), "../files/certs/server.der");
+    assert_eq!(config.key_file(), "../files/certs/server.key.der");
 
     Ok(())
 }
@@ -35,9 +35,9 @@ fn security_expands_with_default_client_auth() -> Result<(), vetis::errors::Veti
 #[test]
 fn security_expands_with_client_auth_enabled() -> Result<(), vetis::errors::VetisError> {
     let config: TlsConfig = tls! {
-        cert => "../certs/server.der",
-        key => "../certs/server.key.der",
-        ca_cert => "../certs/ca.der",
+        cert => "../files/certs/server.der",
+        key => "../files/certs/server.key.der",
+        ca_cert => "../files/certs/ca.der",
         client_auth => true,
     };
 
