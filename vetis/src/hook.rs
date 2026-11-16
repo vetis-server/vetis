@@ -17,13 +17,13 @@ pub enum HookPhase {
     /// Translate phase happens before any routing, where you can change
     /// request contents to forward it to another location, for example.
     Rewrite,
+    /// Access phase allows you do any authentication and authorization,
+    /// Hooks for basic_auth and others will act here.
+    Access,
     /// Content phase happens eventually after routing, at this phase
     /// you can redirect, proxy, serve static content or forward to a
     /// CGI server.
     Content,
-    /// Access phase allows you do any authentication and authorization,
-    /// Hooks for basic_auth and others will act here.
-    Access,
     /// PostContent phase makes possible manage responses output,
     /// Hooks for content compression goes here.
     PostContent,
