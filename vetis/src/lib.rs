@@ -1,10 +1,11 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
-use crate::hook::Hook;
+use crate::hook::{Hook, HookPhase};
 use crate::log::LogMessage;
 pub use base::VetisServer;
 use compact_str::CompactString;
 use crossfire::{MAsyncTx, Rx, mpsc};
+use enumflags2::BitFlags;
 use papaya::HashMap;
 pub use request::Request;
 pub use response::Response;
@@ -123,3 +124,8 @@ pub type LogSender = MAsyncTx<mpsc::Array<LogMessage>>;
 
 /// Type of LogMessage receiver halve of channel
 pub type LogReceiver = Rx<mpsc::Array<LogMessage>>;
+
+/// Type for HookPhases bitflags
+pub type HookPhases = BitFlags<HookPhase>;
+
+pub use enumflags2::make_bitflags;

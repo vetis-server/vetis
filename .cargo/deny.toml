@@ -1,2 +1,8 @@
 [licenses]
 allow = ["Apache-2.0", "MIT", "Unicode-3.0", "Zlib", "ISC", "BSD-3-Clause"]
+
+[advisories]
+ignore = [
+    "RUSTSEC-2026-0543",
+    "RUSTSEC-2026-0555",
+]

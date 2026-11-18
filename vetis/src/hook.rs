@@ -3,8 +3,11 @@ use crate::{
     matcher::{Matcher, MatcherConfig},
 };
 use cel::Context;
+use enumflags2::{BitFlags, bitflags};
 use serde::{Deserialize, Serialize};
 
+#[bitflags]
+#[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 /// HookPhase is used to tell on which request phase this code
 /// will run.
@@ -13,20 +16,20 @@ use serde::{Deserialize, Serialize};
 pub enum HookPhase {
     /// PreProcess phase happens at very beggining of request lifecycle
     /// here you can do caching
-    PreProcess,
+    PreProcess = 1 << 0,
     /// Translate phase happens before any routing, where you can change
     /// request contents to forward it to another location, for example.
-    Rewrite,
+    Rewrite = 1 << 1,
     /// Access phase allows you do any authentication and authorization,
     /// Hooks for basic_auth and others will act here.
-    Access,
+    Access = 1 << 2,
     /// Content phase happens eventually after routing, at this phase
     /// you can redirect, proxy, serve static content or forward to a
     /// CGI server.
-    Content,
+    Content = 1 << 3,
     /// PostContent phase makes possible manage responses output,
     /// Hooks for content compression goes here.
-    PostContent,
+    PostContent = 1 << 4,
 }
 
 /// Trait for handling different types of paths in the server
@@ -37,12 +40,12 @@ pub trait Hook {
     ///
     /// * `bool` - True if there's a match
     fn has_matches(&self, context: &Context) -> bool;
-    /// Returns the URI of path
+    /// Returns phases on which hook will run
     ///
     /// # Returns
     ///
-    /// * `&str` - The URI of path
-    fn phase(&self) -> &HookPhase;
+    /// * `&[HookPhase]` - Hook phases
+    fn phases(&self) -> BitFlags<HookPhase>;
     /// Returns a mutable hook
     ///
     /// # Returns
@@ -59,29 +62,6 @@ pub trait Hook {
         request: Request,
         response: Option<Response>,
     ) -> VetisFutureResult<'a, (Request, Option<Response>)>;
-}
-
-impl Ord for Box<dyn VetisHook> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.phase()
-            .cmp(other.phase())
-    }
-}
-
-impl PartialOrd for Box<dyn VetisHook> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.phase()
-            .partial_cmp(other.phase())
-    }
-}
-
-impl Eq for Box<dyn VetisHook> {}
-
-impl PartialEq for Box<dyn VetisHook> {
-    fn eq(&self, other: &Self) -> bool {
-        self.phase()
-            .eq(other.phase())
-    }
 }
 
 #[typetag::serde(tag = "name")]
