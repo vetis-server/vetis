@@ -6,7 +6,7 @@ members = ["vetis", "vetis-macros", "examples/simple"]
 authors = ["Rogerio Araújo <rogerio.araujo@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/vetis-server/vetis"
-homepage = "https://github.com/vetis-server/vetis"
+homepage = "https://vetis-server.github.io/vetis"
 license = "MIT OR Apache-2.0"
 rust-version = "1.86.0"
 
