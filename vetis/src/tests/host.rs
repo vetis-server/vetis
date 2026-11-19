@@ -25,7 +25,7 @@ fn test_host_config_build_success() {
         .unwrap();
 
     assert_eq!(config.hostname(), "example.com");
-    assert_eq!(config.root_directory(), &Some(root_dir.clone()));
+    assert_eq!(config.root_directory(), Some(&root_dir.clone()));
     assert!(
         config
             .default_headers()
@@ -111,10 +111,7 @@ fn test_host_config_build_with_security() -> VetisTestResult<()> {
         .build()
         .unwrap();
 
-    let host_security = host
-        .tls()
-        .as_ref()
-        .unwrap();
+    let host_security = host.tls().unwrap();
 
     assert_eq!(host_security.cert_file(), security.cert_file());
     assert_eq!(host_security.key_file(), security.key_file());
@@ -179,7 +176,7 @@ fn test_host_config_build_full() {
         .unwrap();
 
     assert_eq!(config.hostname(), "example.com");
-    assert_eq!(config.root_directory(), &Some(root_dir.clone()));
+    assert_eq!(config.root_directory(), Some(&root_dir.clone()));
     assert!(
         config
             .default_headers()
@@ -205,7 +202,7 @@ fn test_host_config_build_missing_hostname() {
         Err(VetisError::Config(ConfigError::Host(msg))) => {
             assert_eq!(msg, "Missing hostname");
         }
-        _ => panic!("Expected ConfigError::Host"),
+        _ => panic!("Expected ConfigError::host"),
     }
 }
 
@@ -230,7 +227,7 @@ fn test_host_config_build_nonexistent_root_directory() {
         Err(VetisError::Config(ConfigError::Host(msg))) => {
             assert!(msg.contains("root_directory does not exist"));
         }
-        _ => panic!("Expected ConfigError::Host"),
+        _ => panic!("Expected ConfigError::host"),
     }
 }
 
@@ -256,7 +253,7 @@ fn test_host_config_root_directory_getter() {
         .build()
         .unwrap();
 
-    assert_eq!(config.root_directory(), &Some(root_dir));
+    assert_eq!(config.root_directory(), Some(&root_dir));
 }
 
 #[test]
@@ -336,8 +333,8 @@ fn test_host_config_paths_getter_none() {
 
     assert!(
         config
-            .paths()
-            .is_empty()
+            .hooks()
+            .is_none()
     );
 }
 
@@ -382,7 +379,7 @@ fn test_host_config_builder_chain() {
         .unwrap();
 
     expect(config.hostname()).to_be(eq("example.com"));
-    assert_eq!(config.root_directory(), &Some(root_dir));
+    assert_eq!(config.root_directory(), Some(&root_dir));
     assert!(
         config
             .default_headers()
@@ -405,10 +402,13 @@ fn test_hostname_into_hostconfig() {
 fn test_hostname_rootdir_into_hostconfig() {
     let config: HostConfig = ("example.com", "/var/vetis").into();
     assert_eq!(config.hostname(), "example.com");
-    assert_eq!(config.root_directory(), &Some("/var/vetis".into()))
+    assert_eq!(config.root_directory(), Some(&"/var/vetis".into()))
 }
 
 #[test]
+#[should_panic(
+    expected = "Config(Host(\"HSTS is enabled, but there's no TLS configuration set, please configure TLS.\"))"
+)]
 fn test_host_config_enable_flags() {
     let config = HostConfig::builder()
         .enable_hsts(true)

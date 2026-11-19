@@ -1,4 +1,5 @@
 use crate::{Str, VetisResult, errors::VetisError};
+use compact_str::ToCompactString;
 use crossfire::AsyncTxTrait;
 use log::Level;
 use logforth_core::DispatchBuilder;
@@ -17,7 +18,7 @@ pub trait LogConfig {
     ///
     /// # Returns
     ///
-    /// - `Box<dyn PathConfig>` - Clone of boxed log config
+    /// - `Box<dyn HookConfig>` - Clone of boxed log config
     fn boxed_clone(&self) -> Box<dyn LogConfig>;
     /// Allow clone any type which implements
     /// LogConfig
@@ -92,7 +93,7 @@ where
         self.sender
             .send(LogMessage::info(target, message))
             .await
-            .map_err(|e| VetisError::Log(e.to_string()))
+            .map_err(|e| VetisError::log(e.to_compact_string()))
     }
 
     /// Error log message
@@ -100,7 +101,7 @@ where
         self.sender
             .send(LogMessage::error(target, message))
             .await
-            .map_err(|e| VetisError::Log(e.to_string()))
+            .map_err(|e| VetisError::Log(e.to_compact_string()))
     }
 
     /// Debug log message
@@ -108,7 +109,7 @@ where
         self.sender
             .send(LogMessage::debug(target, message))
             .await
-            .map_err(|e| VetisError::Log(e.to_string()))
+            .map_err(|e| VetisError::Log(e.to_compact_string()))
     }
 }
 

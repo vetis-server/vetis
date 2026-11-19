@@ -2,7 +2,7 @@ use http::Version;
 use std::collections::HashMap;
 use vetis::{Response, VetisServer, security::TlsConfig};
 use vetis_macros::{http, status_pages, tls};
-use vetis_tokio::host::path::handler_fn;
+use vetis_tokio::hook::handler_fn;
 
 #[test]
 fn status_pages_expands_to_a_map() {
@@ -20,14 +20,14 @@ fn status_pages_expands_to_a_map() {
 #[test]
 fn security_expands_with_default_client_auth() -> Result<(), vetis::errors::VetisError> {
     let config: TlsConfig = tls! {
-        cert => "../certs/server.der",
-        key => "../certs/server.key.der",
-        ca_cert => "../certs/ca.der",
+        cert => "../files/certs/server.der",
+        key => "../files/certs/server.key.der",
+        ca_cert => "../files/certs/ca.der",
     };
 
     assert!(!config.client_auth());
-    assert_eq!(config.cert_file(), "../certs/server.der");
-    assert_eq!(config.key_file(), "../certs/server.key.der");
+    assert_eq!(config.cert_file(), "../files/certs/server.der");
+    assert_eq!(config.key_file(), "../files/certs/server.key.der");
 
     Ok(())
 }
@@ -35,9 +35,9 @@ fn security_expands_with_default_client_auth() -> Result<(), vetis::errors::Veti
 #[test]
 fn security_expands_with_client_auth_enabled() -> Result<(), vetis::errors::VetisError> {
     let config: TlsConfig = tls! {
-        cert => "../certs/server.der",
-        key => "../certs/server.key.der",
-        ca_cert => "../certs/ca.der",
+        cert => "../files/certs/server.der",
+        key => "../files/certs/server.key.der",
+        ca_cert => "../files/certs/ca.der",
         client_auth => true,
     };
 
@@ -48,8 +48,7 @@ fn security_expands_with_client_auth_enabled() -> Result<(), vetis::errors::Veti
 
 #[tokio::test]
 async fn http_expands_with_requirements() -> Result<(), vetis::errors::VetisError> {
-    let handler =
-        handler_fn(|_req, _ctx| async move { Ok(Response::builder().text("Hello, World!")) });
+    let handler = handler_fn(|_req| async move { Ok(Response::builder().text("Hello, World!")) });
     let mut http = http! {
         from_crate => vetis_tokio,
         handler => handler,

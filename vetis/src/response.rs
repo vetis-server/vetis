@@ -1,5 +1,19 @@
 use http::{HeaderMap, StatusCode};
 use hyper_body_utils::HttpBody;
+use serde::Serialize;
+
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+/// Serializable version of Request
+pub struct ResponseRef<'a> {
+    /// The request's version
+    #[serde(with = "http_serde_ext::status_code")]
+    pub status: http::StatusCode,
+
+    /// The request's headers
+    #[serde(with = "http_serde_ext::header_map")]
+    pub headers: &'a http::HeaderMap,
+}
 
 /// Builder for creating HTTP responses.
 ///
@@ -9,7 +23,6 @@ use hyper_body_utils::HttpBody;
 /// # Examples
 ///
 /// ```rust,no_run
-/// use bytes::Bytes;
 /// use http::StatusCode;
 /// use vetis::Response;
 ///
@@ -127,8 +140,6 @@ impl ResponseBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use bytes::Bytes;
-/// use http_body_util::Full;
 /// use http::StatusCode;
 /// use vetis::Response;
 ///
@@ -161,6 +172,11 @@ impl Response {
     /// or pass the response to other libraries that expect `http::Response`.
     pub fn into_inner(self) -> http::Response<HttpBody> {
         self.inner
+    }
+
+    /// Returns a serializable version of inner request
+    pub fn as_ref<'a>(&'a self) -> ResponseRef<'a> {
+        ResponseRef { status: self.inner.status(), headers: self.inner.headers() }
     }
 }
 

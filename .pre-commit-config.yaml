@@ -13,7 +13,7 @@ repos:
       - id: gitleaks
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.26.0
+    rev: v9.27.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
@@ -43,19 +43,19 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.41.0
+    rev: v0.50.0
     hooks:
       - id: markdownlint
         # Optional: Add --fix to automatically correct format violations
         args: ["--fix"]
 
   - repo: https://github.com/EmbarkStudios/cargo-deny
-    rev: 0.19.9 # choose your preferred tag
+    rev: 0.21.0 # choose your preferred tag
     hooks:
       - id: cargo-deny
         args: ["--all-features", "check"]
 
   - repo: https://github.com/bnjbvr/cargo-machete
-    rev: main  # or a specific tag/commit
+    rev: v0.10.1  # or a specific tag/commit
     hooks:
       - id: cargo-machete

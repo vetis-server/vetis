@@ -1,6 +1,6 @@
 [package]
 name = "vetis"
-version = "0.1.7-beta.6"
+version = "0.1.7"
 edition.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -12,15 +12,25 @@ keywords = ["http", "networking", "server", "rest-server"]
 publish = true
 rust-version.workspace = true
 
+[lints.cargo]
+unused_dependencies = "deny"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin)']}
+
 [package.metadata.docs.rs]
 all-features = true
 
 [features]
-default = []
+default = ["multi-threaded"]
+
+single-threaded = []
+multi-threaded = []
 
 [dependencies]
-arcstr = { workspace = true }
-crossfire = "3.1.20"
+cel = "0.16.0"
+compact_str = { workspace = true }
+crossfire = "3.1.22"
 http = { workspace = true }
 http-serde-ext = "1.0.2"
 hyper = { workspace = true, default-features = false, features = ["server"] }
@@ -28,7 +38,6 @@ hyper-body-utils = { workspace = true }
 log.workspace = true
 logforth-core.workspace = true
 papaya = "0.2.5"
-patricia_tree = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 thiserror = { workspace = true }
 time = { workspace = true, features = ["formatting"] }
@@ -36,4 +45,5 @@ typetag = { workspace = true }
 
 [dev-dependencies]
 caramelo.workspace = true
+regex = "1.13.1"
 tempfile = "3.27.0"

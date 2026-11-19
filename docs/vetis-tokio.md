@@ -23,15 +23,14 @@ use http::Version;
 use hyper::StatusCode;
 use vetis::{
     listener::ListenerConfig,
-    security::SecurityConfig,
+    tls::TlsConfig,
     server::{ServerConfig},
-    host::{handler_fn, HostConfig},
-    VetisServer as _
+    host::HostConfig,
 };
 use vetis_tokio::{
-    host::{path::HandlerPath, Host},
-    listener::build_listeners,
-    rt::Vetis,
+    host::Host,
+    hook::{handler_fn, HandlerHook}
+    Vetis, VetisServer as _
 };
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../../certs/ca.der");
@@ -48,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .interface("0.0.0.0".parse().unwrap())
         .build()?;
 
-    let security_config = SecurityConfig::builder()
+    let tls_config = TlsConfig::builder()
         .ca_cert_from_bytes(CA_CERT.to_vec())
         .cert_from_bytes(SERVER_CERT.to_vec())
         .key_from_bytes(SERVER_KEY.to_vec())
@@ -56,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let localhost_config = HostConfig::builder()
         .hostname("localhost")
-        .security(security_config)
+        .tls(tls_config)
         .root_directory("/home/rogerio/Downloads".into())
         .bind_addresses(vec![(
             "0.0.0.0"
@@ -68,8 +67,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut localhost_host = Host::new(localhost_config);
 
-    let root_path = HandlerPath::builder()
-        .uri("/hello")
+    let root_path = HandlerHook::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/hello*")
+                .build()?,
+        ))
         .handler(handler_fn(|request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
@@ -78,10 +81,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(root_path);
+    localhost_host.add_hook(root_path);
 
-    let health_path = HandlerPath::builder()
-        .uri("/health")
+    let health_path = HandlerHook::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/health*")
+                .build()?,
+        ))
         .handler(handler_fn(|request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
@@ -90,7 +97,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(health_path);
+    localhost_host.add_hook(health_path);
 
     let mut server = Vetis::builder()
         .add_listeners(build_listeners(https))?

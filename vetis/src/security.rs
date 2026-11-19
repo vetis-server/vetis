@@ -3,7 +3,7 @@ use crate::{
     errors::{ConfigError, VetisError},
 };
 use serde::Deserialize;
-use std::{error::Error, fmt::Display, path::PathBuf, str::FromStr, sync::Arc};
+use std::{error::Error, fmt::Display, path::PathBuf, str::FromStr};
 
 /// Builder for creating `SecurityConfig` instances.
 ///
@@ -28,7 +28,7 @@ pub struct TlsConfigBuilder {
     key_file: Option<PathBuf>,
     ca_file: Option<PathBuf>,
     client_auth: bool,
-    supported_alpns: Arc<[Alpn]>,
+    supported_alpns: Box<[Alpn]>,
 }
 
 impl TlsConfigBuilder {
@@ -128,15 +128,11 @@ impl TlsConfigBuilder {
     /// * `Result<TlsConfig, VetisError>` - The `TlsConfig` with the configured settings.
     pub fn build(self) -> VetisResult<TlsConfig> {
         let Some(cert_file) = self.cert_file else {
-            return Err(VetisError::Config(ConfigError::Tls(
-                "Missing certificate file".to_string(),
-            )));
+            return Err(VetisError::Config(ConfigError::tls("Missing certificate file")));
         };
 
         let Some(key_file) = self.key_file else {
-            return Err(VetisError::Config(ConfigError::Tls(
-                "Missing certificate key file".to_string(),
-            )));
+            return Err(VetisError::Config(ConfigError::tls("Missing certificate key file")));
         };
 
         Ok(TlsConfig {
@@ -176,7 +172,7 @@ pub struct TlsConfig {
     #[serde(default)]
     client_auth: bool,
     #[serde(default)]
-    supported_alpns: Arc<[Alpn]>,
+    supported_alpns: Box<[Alpn]>,
 }
 
 impl From<(PathBuf, PathBuf, PathBuf)> for TlsConfig {
@@ -257,7 +253,7 @@ impl TlsConfig {
     }
 
     /// Returns supported alpn extensions.
-    pub fn supported_alpns(&self) -> &Arc<[Alpn]> {
+    pub fn supported_alpns(&self) -> &Box<[Alpn]> {
         &self.supported_alpns
     }
 }
@@ -322,6 +318,7 @@ impl Tls {
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
+#[serde(rename_all = "lowercase")]
 /// Enum for ALPN
 pub enum Alpn {
     /// HTTP/1.1
