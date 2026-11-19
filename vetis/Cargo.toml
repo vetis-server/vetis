@@ -31,7 +31,6 @@ multi-threaded = []
 cel = "0.16.0"
 compact_str = { workspace = true }
 crossfire = "3.1.22"
-enumflags2 = "0.7.12"
 http = { workspace = true }
 http-serde-ext = "1.0.2"
 hyper = { workspace = true, default-features = false, features = ["server"] }
