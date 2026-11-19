@@ -62,7 +62,27 @@ pub enum VetisError {
 }
 
 impl VetisError {
-    /// Create a new VetisError::bind variant
+    /// Create a new VetisError::Config variant
+    pub fn config(inner: ConfigError) -> Self {
+        Self::Config(inner)
+    }
+
+    /// Create a new VetisError::Host variant
+    pub fn host(inner: HostError) -> Self {
+        Self::Host(inner)
+    }
+
+    /// Create a new VetisError::Listener variant
+    pub fn listener(inner: ListenerError) -> Self {
+        Self::Listener(inner)
+    }
+
+    /// Create a new VetisError::Startup variant
+    pub fn startup(inner: StartupError) -> Self {
+        Self::Startup(inner)
+    }
+
+    /// Create a new VetisError::Bind variant
     pub fn bind(field: impl Into<Str>) -> Self {
         Self::Bind(field.into())
     }
@@ -240,10 +260,9 @@ impl HostError {
     }
 }
 
-/// Handler related errors.
+/// Runtime related errors.
 ///
-/// These errors occur when working with request handlers,
-/// such as URI parsing or handler execution failures.
+/// These errors occur when working with hooks.
 #[derive(Debug, Clone, Error, PartialEq)]
 pub struct RuntimeError {
     message: Str,
@@ -288,5 +307,11 @@ impl RuntimeError {
 impl Display for RuntimeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("{}", self.message))
+    }
+}
+
+impl Into<VetisError> for RuntimeError {
+    fn into(self) -> VetisError {
+        VetisError::Host(HostError::Runtime(self))
     }
 }
