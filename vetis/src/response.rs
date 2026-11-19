@@ -23,7 +23,6 @@ pub struct ResponseRef<'a> {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use bytes::Bytes;
 /// use http::StatusCode;
 /// use vetis::Response;
 ///
@@ -141,8 +140,6 @@ impl ResponseBuilder {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use bytes::Bytes;
-/// use http_body_util::Full;
 /// use http::StatusCode;
 /// use vetis::Response;
 ///

@@ -1,8 +1,7 @@
-use std::{net::IpAddr, path::PathBuf};
-
 use http::request::Parts;
 use hyper_body_utils::HttpBody;
 use serde::Serialize;
+use std::{net::IpAddr, path::PathBuf};
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]

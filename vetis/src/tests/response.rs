@@ -1,6 +1,6 @@
 use crate::Response;
 use caramelo::{expect, matchers::eq, pat};
-use http::StatusCode;
+use http::{HeaderValue, StatusCode};
 use hyper::body::Body;
 use hyper_body_utils::HttpBody;
 
@@ -281,4 +281,25 @@ fn test_status_into_response() {
             .into_body(),
     )
     .to_have(pat!(HttpBody::Standard(value) if value.is_end_stream()));
+}
+
+#[test]
+fn test_response_as_ref() {
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header("Accept", HeaderValue::from_str("text/html").unwrap())
+        .body(HttpBody::empty());
+
+    let res_ref = response.as_ref();
+    let header = http::header::ACCEPT;
+    expect(res_ref.status).to_be(eq(StatusCode::OK));
+    expect(
+        res_ref
+            .headers
+            .get(header)
+            .unwrap()
+            .to_str()
+            .unwrap(),
+    )
+    .to_be(eq("text/html"));
 }

@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
-use cel::{Context, Env};
-
 use crate::VetisResult;
+use cel::{Context, Env};
+use std::sync::Arc;
 
 /// Trait for handling different types of matchers in the server.
 /// Matcher is entirely based on CEL for its evaluation, let's take
