@@ -9,8 +9,6 @@ pub trait VetisServer {
     type RuntimeHost;
     /// Get server configuration
     fn config(&self) -> &ServerConfig;
-    /// Run the server
-    fn run(&mut self) -> impl Future<Output = VetisResult<()>>;
     /// Start the server
     fn start(&mut self) -> impl Future<Output = VetisResult<()>>;
     /// Stop the server
