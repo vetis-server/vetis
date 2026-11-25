@@ -153,32 +153,6 @@ fn test_request_version() {
 }
 
 #[test]
-fn test_request_client_ip() {
-    let http_request = http::Request::builder()
-        .method(Method::GET)
-        .version(Version::HTTP_11)
-        .body(HttpBody::empty())
-        .unwrap();
-
-    let http_request =
-        Request::new(http_request).with_client_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 0, 1)));
-    expect(http_request.client_ip()).to_be(eq(Some(&IpAddr::V4(Ipv4Addr::new(192, 168, 0, 1)))));
-}
-
-#[test]
-fn test_request_root_directory() {
-    let http_request = http::Request::builder()
-        .method(Method::GET)
-        .version(Version::HTTP_11)
-        .body(HttpBody::empty())
-        .unwrap();
-
-    let path: PathBuf = "/tmp".into();
-    let http_request = Request::new(http_request).with_root_directory(Some(path.clone()));
-    expect(http_request.root_directory()).to_be(eq(Some(&path)));
-}
-
-#[test]
 fn test_mutate_uri() {
     let mut request = create_test_request(Method::POST, "/api/users");
     *request.uri_mut() = "/other/api"
@@ -189,7 +163,7 @@ fn test_mutate_uri() {
 
 #[test]
 fn test_request_as_ref() {
-    let http_request = http::Request::builder()
+    let mut http_request = http::Request::builder()
         .uri("https://localhost:8080/api/users")
         .method(Method::GET)
         .version(Version::HTTP_11)
@@ -197,10 +171,14 @@ fn test_request_as_ref() {
         .body(HttpBody::empty())
         .unwrap();
 
-    let http_request = Request::new(http_request)
-        .with_client_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 0, 1)))
-        .with_root_directory(Some("/tmp".into()));
+    http_request
+        .extensions_mut()
+        .insert(IpAddr::V4(Ipv4Addr::new(192, 168, 0, 1)));
+    http_request
+        .extensions_mut()
+        .insert(PathBuf::from("/tmp"));
 
+    let http_request = Request::new(http_request);
     let req_ref = http_request.as_ref();
     let req_path = "https://localhost:8080/api/users"
         .parse::<Uri>()
