@@ -126,17 +126,17 @@ impl From<AltService> for String {
 /// Builder for creating `HostConfig` instances.
 ///
 /// Provides a fluent API for configuring virtual hosts,
-/// including hostname, port, and security settings.
+/// including hostname, port, and tls settings.
 ///
 /// # Examples
 ///
 /// ```rust,no_run
 /// use vetis::{
-///     security::SecurityConfig,
+///     tls::TlsConfig,
 ///     host::HostConfig
 /// };
 ///
-/// let security = SecurityConfig::builder()
+/// let tls = TlsConfig::builder()
 ///     .cert_from_bytes(vec![])
 ///     .key_from_bytes(vec![])
 ///     .build()
@@ -144,7 +144,7 @@ impl From<AltService> for String {
 ///
 /// let config = HostConfig::builder()
 ///     .hostname("example.com")
-///     .security(security)
+///     .tls(tls)
 ///     .build()
 ///     .unwrap();
 /// ```
@@ -173,12 +173,6 @@ impl HostConfigBuilder {
         self
     }
 
-    /// Sets the HTTP protocol for this listener.
-    pub fn protos(mut self, protos: &[Version]) -> Self {
-        self.protos = protos.to_vec();
-        self
-    }
-
     /// Sets the HTTP to allow unsafe connections for this listener.
     ///
     /// # Notes
@@ -198,22 +192,6 @@ impl HostConfigBuilder {
         self
     }
 
-    /// Adds a default header to the virtual host.
-    ///
-    /// These headers will be added to all responses from this virtual host.
-    pub fn header(mut self, key: &str, value: &str) -> Self {
-        match self.default_headers {
-            None => {
-                let vec = vec![(key.into(), value.into())];
-                self.default_headers = Some(vec);
-            }
-            Some(ref mut headers) => {
-                headers.push((key.into(), value.into()));
-            }
-        }
-        self
-    }
-
     /// Sets the security configuration for HTTPS.
     ///
     /// When provided, the virtual host will use TLS for secure connections.
@@ -227,14 +205,6 @@ impl HostConfigBuilder {
         self
     }
 
-    /// Sets the status pages for this host.
-    ///
-    /// These status pages will be used to serve custom error pages.
-    pub fn status_pages(mut self, status_pages: HashMap<u16, Str>) -> Self {
-        self.status_pages = Some(status_pages);
-        self
-    }
-
     /// Enables or disables HSTS for this host.
     ///
     /// # Notes
@@ -244,22 +214,6 @@ impl HostConfigBuilder {
     /// will automatically enable HSTS.
     pub fn enable_hsts(mut self, enable_hsts: bool) -> Self {
         self.enable_hsts = enable_hsts;
-        self
-    }
-
-    /// Set addresses to which bind this host to
-    ///
-    /// # Arguments
-    ///
-    /// * `&[(IpAddr, u16)]` - A slice of tuple containing ip address and port
-    ///
-    /// # Notes
-    ///
-    /// Add all addresses to bind this host to one or more listeners
-    /// For production deployments, do not leave default pair, please
-    /// bind to a private interface and port 443 preferebly.
-    pub fn bind_addresses(mut self, addresses: &[(IpAddr, u16)]) -> Self {
-        self.bind_addresses = addresses.into();
         self
     }
 
@@ -286,6 +240,88 @@ impl HostConfigBuilder {
         T: TelemetryConfig + 'static,
     {
         self.telemetry = Some(Box::new(telemetry));
+        self
+    }
+
+    /// Add a status page mapping to this host.
+    ///
+    /// # Notes
+    ///
+    /// These status pages will be used to serve custom error pages.
+    pub fn add_status_page(mut self, code: u16, path: Str) -> Self {
+        match self.status_pages {
+            None => {
+                let mut status_pages_map = HashMap::new();
+                status_pages_map.insert(code, path);
+                self.status_pages = Some(status_pages_map);
+            }
+            Some(ref mut status_pages_map) => {
+                status_pages_map.insert(code, path);
+            }
+        }
+        self
+    }
+
+    /// Adds a default header to the virtual host.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - Header field name
+    /// * `value` - Header field value
+    ///
+    /// # Notes
+    ///
+    /// These headers will be added to all responses from this virtual host.
+    pub fn add_default_header(mut self, name: &str, value: &str) -> Self {
+        match self.default_headers {
+            None => {
+                let vec = vec![(name.into(), value.into())];
+                self.default_headers = Some(vec);
+            }
+            Some(ref mut headers) => {
+                headers.push((name.into(), value.into()));
+            }
+        }
+        self
+    }
+
+    /// Add address to which bind this host to
+    ///
+    /// # Arguments
+    ///
+    /// * `ip` - Ip address
+    /// * `port` - Port number
+    ///
+    /// # Notes
+    ///
+    /// Add all addresses to bind this host to one or more listeners
+    /// For production deployments, do not leave default pair, please
+    /// bind to a private interface and port 443 preferebly.
+    pub fn add_bind_address(mut self, ip: impl Into<IpAddr>, port: u16) -> Self {
+        let address = (ip.into(), port);
+        if !self
+            .bind_addresses
+            .contains(&address)
+        {
+            self.bind_addresses
+                .push(address);
+        }
+        self
+    }
+
+    /// Add a supported proto to host.
+    ///
+    /// # Arguments
+    ///
+    /// * `proto` - Protocol version
+    pub fn add_proto(mut self, proto: Version) -> Self {
+        if !self
+            .protos
+            .contains(&proto)
+        {
+            self.protos
+                .push(proto);
+        }
         self
     }
 
@@ -340,6 +376,15 @@ impl HostConfigBuilder {
 
         if self
             .bind_addresses
+            .is_empty()
+        {
+            return Err(VetisError::Config(ConfigError::host(
+                "You must bind this host to an ip and port.",
+            )));
+        }
+
+        if self
+            .bind_addresses
             .iter()
             .find(|p| p.0.is_unspecified())
             .is_none()
@@ -348,10 +393,67 @@ impl HostConfigBuilder {
         }
 
         if self.enable_hsts && self.tls.is_none() {
-            return Err(VetisError::Config(ConfigError::Host(
-                "HSTS is enabled, but there's no TLS configuration set, please configure TLS."
-                    .into(),
+            return Err(VetisError::Config(ConfigError::host(
+                "HSTS is enabled, but there's no TLS configuration set, please configure TLS.",
             )));
+        }
+
+        if let Some(root_dir) = &self.root_directory
+            && let Some(tls_config) = &self.tls
+        {
+            let cert_path = if tls_config
+                .cert_file()
+                .is_relative()
+            {
+                PathBuf::from_iter([
+                    root_dir.to_path_buf(),
+                    tls_config
+                        .cert_file()
+                        .to_path_buf(),
+                ])
+            } else {
+                tls_config
+                    .cert_file()
+                    .to_path_buf()
+            };
+
+            if !cert_path.exists() {
+                return Err(VetisError::Config(ConfigError::tls("Certificate not found!")));
+            }
+
+            let key_path = if tls_config
+                .key_file()
+                .is_relative()
+            {
+                PathBuf::from_iter([
+                    root_dir.to_path_buf(),
+                    tls_config
+                        .key_file()
+                        .to_path_buf(),
+                ])
+            } else {
+                tls_config
+                    .key_file()
+                    .to_path_buf()
+            };
+
+            if !key_path.exists() {
+                return Err(VetisError::Config(ConfigError::tls("Key not found!")));
+            }
+        } else if let Some(tls_config) = &self.tls {
+            if !tls_config
+                .cert_file()
+                .exists()
+            {
+                return Err(VetisError::Config(ConfigError::tls("Certificate not found!")));
+            }
+
+            if !tls_config
+                .key_file()
+                .exists()
+            {
+                return Err(VetisError::Config(ConfigError::tls("Key not found!")));
+            }
         }
 
         Ok(HostConfig {
@@ -409,17 +511,16 @@ impl HostConfig {
     /// Creates a new `HostConfigBuilder` with default settings.
     ///
     /// Default values:
-    /// - hostname: empty string (must be set)
-    /// - port: 80
-    /// - bind_addresses: [("0.0.0.0", 80)] (for production deployments, do not use this setting)
-    /// - tls: None
+    /// - hostname: "localhost"
     /// - root_directory: None
     /// - protos: [Version::HTTP_1]
     /// - allow_unsafe_conn: false
     /// - max_request_size: 10mb (expressed in bytes)
-    /// - paths: []
     /// - default_headers: None
+    /// - tls: None
     /// - status_pages: None
+    /// - enable_hsts: false
+    /// - bind_addresses: [] (for production deployments, do not use this setting)
     /// - log: None
     /// - telemtry: None
     /// - hooks: None
@@ -434,7 +535,7 @@ impl HostConfig {
             tls: None,
             status_pages: None,
             enable_hsts: false,
-            bind_addresses: [(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 80)].into(),
+            bind_addresses: [].into(),
             log: None,
             telemetry: None,
             hooks: None,
@@ -461,16 +562,28 @@ impl HostConfig {
     }
 
     /// Returns HTTP protocol.
+    ///
+    /// # Returns
+    ///
+    /// * `&Vec<Version>` - List of protocol versions
     pub fn protos(&self) -> &Vec<Version> {
         &self.protos
     }
 
     /// Returns HTTP protocol.
+    ///
+    /// # Returns
+    ///
+    /// * `bool` - True if unsafe connections are allowed
     pub fn allow_unsafe_connections(&self) -> bool {
         self.allow_unsafe_conn
     }
 
     /// Return max request size
+    ///
+    /// # Returns
+    ///
+    /// * `i32` - Size of request body
     pub fn max_request_size(&self) -> i32 {
         self.max_request_size
     }
@@ -633,14 +746,14 @@ pub trait Host {
     ///
     /// # Returns
     ///
-    /// * `&HostHook` - A reference to the host hooks.
+    /// * `&VetisHooks` - A reference to the host hooks.
     fn hooks(&self) -> &VetisHooks;
 
     /// Returns host hooks
     ///
     /// # Returns
     ///
-    /// * `&mut HostHook` - A reference to the host hooks.
+    /// * `&mut VetisHooks` - A mutable reference to the host hooks.
     fn hooks_mut(&mut self) -> &mut VetisHooks;
 
     /// Serve a status page
