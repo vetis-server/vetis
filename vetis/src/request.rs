@@ -69,37 +69,19 @@ pub struct RequestRef<'a> {
 /// ```
 pub struct Request {
     pub(crate) inner: http::Request<HttpBody>,
-    pub(crate) root_directory: Option<PathBuf>,
-    pub(crate) client_ip: Option<IpAddr>,
 }
 
 impl Request {
     /// Create a `Request` out of http::Request
     pub fn new(inner: http::Request<HttpBody>) -> Self {
-        Self { inner, root_directory: None, client_ip: None }
+        Self { inner }
     }
 
     /// Creates a `Request` from an HTTP/1 or HTTP/2 request.
     ///
     /// This is used internally by the server to wrap incoming HTTP requests.
     pub fn from_parts(parts: Parts, body: HttpBody) -> Self {
-        Self {
-            inner: http::Request::from_parts(parts, body),
-            root_directory: None,
-            client_ip: None,
-        }
-    }
-
-    /// Allow set root directory
-    pub fn with_root_directory(mut self, path: Option<PathBuf>) -> Self {
-        self.root_directory = path;
-        self
-    }
-
-    /// Allow set client ip
-    pub fn with_client_ip(mut self, client_ip: impl Into<IpAddr>) -> Self {
-        self.client_ip = Some(client_ip.into());
-        self
+        Self { inner: http::Request::from_parts(parts, body) }
     }
 
     /// Returns inner request
@@ -114,14 +96,16 @@ impl Request {
 
     /// Returns root directory.
     pub fn root_directory(&self) -> Option<&PathBuf> {
-        self.root_directory
-            .as_ref()
+        self.inner
+            .extensions()
+            .get::<PathBuf>()
     }
 
     /// Returns client ip.
     pub fn client_ip(&self) -> Option<&IpAddr> {
-        self.client_ip
-            .as_ref()
+        self.inner
+            .extensions()
+            .get::<IpAddr>()
     }
 
     /// Returns request URI.
@@ -171,12 +155,8 @@ impl Request {
     /// Returns a serializable version of inner request
     pub fn as_ref<'a>(&'a self) -> RequestRef<'a> {
         RequestRef {
-            root_directory: self
-                .root_directory
-                .as_ref(),
-            client_ip: self
-                .client_ip
-                .as_ref(),
+            root_directory: self.root_directory(),
+            client_ip: self.client_ip(),
             method: self.method(),
             uri: self.uri(),
             scheme: self
