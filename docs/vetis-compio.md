@@ -29,7 +29,7 @@ use vetis::{
     VetisServer as _
 };
 use vetis_compio::{
-    host::{path::HandlerPath, Host},
+    host::{path::HandlerHook, Host},
     listener::build_listeners,
     rt::Vetis,
 };
@@ -69,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut localhost_host = Host::new(localhost_config);
 
-    let root_path = HandlerPath::builder()
+    let root_path = HandlerHook::builder()
         .uri("/hello")
         .handler(handler_fn(|request| async move {
             let response = vetis::Response::builder()
@@ -79,9 +79,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(root_path);
+    localhost_host.add_hook(root_path);
 
-    let health_path = HandlerPath::builder()
+    let health_path = HandlerHook::builder()
         .uri("/health")
         .handler(handler_fn(|request| async move {
             let response = vetis::Response::builder()
@@ -91,7 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(health_path);
+    localhost_host.add_hook(health_path);
 
     let mut server = Vetis::builder()
         .add_listeners(build_listeners(https))?

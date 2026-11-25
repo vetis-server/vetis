@@ -1,14 +1,13 @@
+use std::net::IpAddr;
+
 use http::Version;
 use hyper::StatusCode;
 use tracing_subscriber::{filter::LevelFilter, fmt::format};
 use vetis::{VetisServer as _, host::HostConfig};
-use vetis_macros::status_pages;
+use vetis_matchers::request::PathMatcherConfig;
 use vetis_tokio::{
     TlsConfig,
-    host::{
-        Host,
-        path::{HandlerPath, handler_fn},
-    },
+    hook::{HandlerHookConfig, handler_fn},
     rt::Vetis,
 };
 
@@ -24,35 +23,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_target(false)
         .init();
 
-    let security_config = TlsConfig::builder()
+    let tls_config = TlsConfig::builder()
         .ca_file(CA_CERT)
         .cert_file(SERVER_CERT)
         .key_file(SERVER_KEY)
         .build()?;
 
-    let localhost_config = HostConfig::builder()
-        .hostname("localhost")
-        .protos(&[Version::HTTP_11, Version::HTTP_2, Version::HTTP_3])
-        .tls(security_config)
-        .root_directory(".")
-        .header("alt-svc", "h3=:8443")
-        .status_pages(status_pages! {
-            404 @ "404.html",
-            500 @ "500.html"
-        })
-        .bind_addresses(&[(
-            "0.0.0.0"
-                .parse()
-                .unwrap(),
-            8443,
-        )])
-        .build()?;
-
-    let mut localhost_host = Host::new(localhost_config).await?;
-
-    let root_path = HandlerPath::builder()
-        .uri("/hello")
-        .handler(handler_fn(|_req, _ctx| async move {
+    let root_hook = HandlerHookConfig::builder()
+        .matcher(
+            PathMatcherConfig::builder()
+                .add_path("/hello*")
+                .build()?,
+        )
+        .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
                 .text("Hello from localhost");
@@ -60,11 +43,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(root_path);
-
-    let health_path = HandlerPath::builder()
-        .uri("/health")
-        .handler(handler_fn(|_req, _ctx| async move {
+    let health_path = HandlerHookConfig::builder()
+        .matcher(
+            PathMatcherConfig::builder()
+                .add_path("/health*")
+                .build()?,
+        )
+        .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
                 .text("Health check");
@@ -72,14 +57,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(health_path);
+    let localhost_config = HostConfig::builder()
+        .hostname("localhost")
+        .tls(tls_config)
+        .root_directory(".")
+        .add_proto(Version::HTTP_11)
+        .add_proto(Version::HTTP_2)
+        .add_proto(Version::HTTP_3)
+        .add_default_header("alt-svc", "h3=:8443")
+        .add_status_page(404, "404.html".into())
+        .add_status_page(500, "500.html".into())
+        .add_bind_address(
+            "0.0.0.0"
+                .parse::<IpAddr>()
+                .unwrap(),
+            8443,
+        )
+        .add_hook(root_hook)
+        .add_hook(health_path)
+        .build()?;
 
     let mut server = Vetis::builder()
-        .add_host(localhost_host)
-        .await?
+        .add_host(localhost_config)
         .build();
 
-    server.run().await?;
+    server
+        .start()
+        .await?;
 
     server
         .stop()

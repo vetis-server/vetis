@@ -29,15 +29,15 @@ use macro_rules_attribute::apply;
 use smol_macros::main;
 use vetis::{
     listener::ListenerConfig,
-    security::SecurityConfig,
+    tls::TlsConfig,
     server::{ServerConfig},
-    host::{handler_fn, HostConfig},
-    VetisServer as _
+    host::HostConfig,
 };
 use vetis_macros::status_pages;
 use vetis_tokio::{
-    host::{path::HandlerPath, Host},
-    Vetis,
+    host::Host,
+    hook::{handler_fn, HandlerHook}
+    Vetis, VetisServer as _
 };
 
 pub(crate) const CA_CERT: &[u8] = include_bytes!("../certs/ca.der");
@@ -58,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_listener(https)
         .build()?;
 
-    let security_config = SecurityConfig::builder()
+    let tls_config = TlsConfig::builder()
         .ca_cert_from_bytes(CA_CERT.to_vec())
         .cert_from_bytes(SERVER_CERT.to_vec())
         .key_from_bytes(SERVER_KEY.to_vec())
@@ -67,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let localhost_config = HostConfig::builder()
         .hostname("localhost")
         .port(8443)
-        .security(security_config)
+        .security(tls_config)
         .root_directory("/home/rogerio/Downloads")
         .status_pages(status_pages! {
             404 => "404.html".to_string(),
@@ -77,8 +77,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut localhost_host = Host::new(localhost_config);
 
-    let root_path = HandlerPath::builder()
-        .uri("/hello")
+    let root_path = HandlerHook::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/hello*")
+                .build()?,
+        ))
         .handler(handler_fn(|request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
@@ -87,10 +91,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(root_path);
+    localhost_host.add_hook(root_path);
 
-    let health_path = HandlerPath::builder()
-        .uri("/health")
+    let health_path = HandlerHook::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/health*")
+                .build()?,
+        ))
         .handler(handler_fn(|request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
@@ -99,23 +107,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(health_path);
+    localhost_host.add_hook(health_path);
 
-    let proxy_path = ProxyPathConfig::builder()
-        .uri("/proxy")
+    let proxy_path = ProxyHookConfig::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/proxy*")
+                .build()?,
+        ))
         .target("http://localhost:5230")
         .build()?;
 
-    localhost_host.add_path(ProxyPath::new(proxy_path));
+    localhost_host.add_hook(ProxyHook::new(proxy_path));
 
-    let images_path = StaticPathConfig::builder()
-        .uri("/images")
+    let images_path = StaticHookConfig::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/images*")
+                .build()?,
+        ))
         .directory("/home/rogerio/Downloads")
         .extensions("\\.(jpg|png|gif|html)$")
         .index_files(vec!["index.html".to_string()])
         .build()?;
 
-    localhost_host.add_path(StaticPath::new(images_path));
+    localhost_host.add_hook(StaticHook::new(images_path));
 
     let mut server = Vetis::new(config);
     server

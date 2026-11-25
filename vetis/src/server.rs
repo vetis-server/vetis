@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use crate::{errors::ConfigError, host::HostConfig, log::LogConfig};
+use crate::{cache::CacheConfig, errors::ConfigError, host::HostConfig, log::LogConfig};
 use serde::Deserialize;
 
 /// Builder for creating `ServerConfig` instances.
@@ -22,6 +20,7 @@ pub struct ServerConfigBuilder {
     hosts: Vec<HostConfig>,
     logger_queue_size: usize,
     log: Option<Box<dyn LogConfig>>,
+    cache: Option<CacheConfig>,
     workers: usize,
 }
 
@@ -46,6 +45,16 @@ impl ServerConfigBuilder {
         L: LogConfig + 'static,
     {
         self.log = Some(Box::new(log));
+        self
+    }
+
+    /// Cache instance
+    ///
+    /// # Arguments
+    ///
+    /// - `cache` - Cache configuration
+    pub fn cache(mut self, cache_config: CacheConfig) -> Self {
+        self.cache = Some(cache_config);
         self
     }
 
@@ -74,22 +83,21 @@ impl ServerConfigBuilder {
     ///
     /// # Errors
     ///
-    /// * Return an error if no listeners are configured or if HTTP/2 and HTTP/3 support enabled and no security setting provided for the host.
+    /// * Return an error if worker count is below 1 or logger queue size is too small.
     pub fn build(self) -> Result<ServerConfig, ConfigError> {
         if self.workers < 1 {
-            return Err(ConfigError::Server(
-                "You must have at least one worker running.".to_string(),
-            ));
+            return Err(ConfigError::server("You must have at least one worker running."));
         }
 
         if self.log.is_some() && self.logger_queue_size < 100 {
-            return Err(ConfigError::Server("Log queue size too small".to_string()));
+            return Err(ConfigError::server("Log queue size too small"));
         }
 
         Ok(ServerConfig {
-            hosts: self.hosts.into(),
+            hosts: self.hosts,
             logger_queue_size: self.logger_queue_size,
             log: self.log,
+            cache: self.cache,
             workers: self.workers,
         })
     }
@@ -119,9 +127,10 @@ impl ServerConfigBuilder {
 #[derive(Deserialize, Clone)]
 #[serde(default)]
 pub struct ServerConfig {
-    hosts: Arc<[HostConfig]>,
-    log: Option<Box<dyn LogConfig>>,
+    hosts: Vec<HostConfig>,
     logger_queue_size: usize,
+    log: Option<Box<dyn LogConfig>>,
+    cache: Option<CacheConfig>,
     workers: usize, // Add file rolling support alongside stdout for logging
 }
 
@@ -142,17 +151,33 @@ impl ServerConfig {
     /// }
     /// ```
     pub fn builder() -> ServerConfigBuilder {
-        ServerConfigBuilder { hosts: vec![], logger_queue_size: 2000, log: None, workers: 1 }
+        ServerConfigBuilder {
+            hosts: vec![],
+            logger_queue_size: 2000,
+            log: None,
+            cache: None,
+            workers: 1,
+        }
     }
 
     /// Returns a reference to all configured hosts.
-    pub fn hosts(&self) -> &Arc<[HostConfig]> {
+    pub fn hosts(&self) -> &Vec<HostConfig> {
         &self.hosts
     }
 
+    /// Returns a mutable reference to all configured hosts.
+    pub fn hosts_mut(&mut self) -> &mut Vec<HostConfig> {
+        &mut self.hosts
+    }
+
     /// Returns log
-    pub fn log(&self) -> &Option<Box<dyn LogConfig>> {
-        &self.log
+    pub fn log(&self) -> Option<&Box<dyn LogConfig>> {
+        self.log.as_ref()
+    }
+
+    /// Returns cache
+    pub fn cache(&self) -> Option<&CacheConfig> {
+        self.cache.as_ref()
     }
 
     /// Returns size of logger queue
@@ -168,6 +193,6 @@ impl ServerConfig {
 
 impl Default for ServerConfig {
     fn default() -> Self {
-        Self { hosts: [].into(), logger_queue_size: 20000, log: None, workers: 1 }
+        Self { hosts: Vec::new(), logger_queue_size: 20000, log: None, cache: None, workers: 1 }
     }
 }

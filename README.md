@@ -42,11 +42,13 @@ use hyper::StatusCode;
 use vetis::{
     security::TlsConfig,
     server::{ServerConfig},
-    host::{handler_fn, HostConfig},
+    host::HostConfig,
 };
 use vetis_macros::status_pages;
+use vetis_matchers::request::{PathMatcher, PathMatcherConfig};
 use vetis_tokio::{
-    host::{path::HandlerPath, Host},
+    host::Host,
+    hook::{handler_fn, HandlerHook}
     Vetis, VetisServer as _
 };
 
@@ -83,8 +85,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut localhost_host = Host::new(localhost_config).await?;
 
-    let root_path = HandlerPath::builder()
-        .uri("/hello")
+    let root_path = HandlerHook::builder()
+        .matcher(PathMatcher::new(
+            PathMatcherConfig::builder()
+                .add_path("/hello*")
+                .build()?,
+        ))
         .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
                 .status(StatusCode::OK)
@@ -93,9 +99,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(root_path);
+    localhost_host.add_hook(root_path);
 
-    let health_path = HandlerPath::builder()
+    let health_path = HandlerHook::builder()
         .uri("/health")
         .handler(handler_fn(|_request| async move {
             let response = vetis::Response::builder()
@@ -105,7 +111,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .build()?;
 
-    localhost_host.add_path(health_path);
+    localhost_host.add_hook(health_path);
 
     let mut server = Vetis::builder()
         .add_host(localhost_host).await?

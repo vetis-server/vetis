@@ -6,33 +6,26 @@ members = ["vetis", "vetis-macros", "examples/simple"]
 authors = ["Rogerio Araújo <rogerio.araujo@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/vetis-server/vetis"
-homepage = "https://github.com/vetis-server/vetis"
+homepage = "https://vetis-server.github.io/vetis"
 license = "MIT OR Apache-2.0"
-rust-version = "1.85.0"
+rust-version = "1.86.0"
 
 [workspace.dependencies]
-arcstr = { version = "1.2.0", features = ["serde"] }
-bytes = "1.12.1"
 caramelo = "0.1.5"
-futures-util = { version = "0.3.32" }
+compact_str = { version = "0.10.0", features = ["serde", "smallvec"] }
 http = "1.5.0"
-http-body-util = { version = "0.1.5" }
-hyper = { version = "1.11.1", default-features = false }
+hyper = { version = "1.12.0", default-features = false }
 hyper-body-utils = { version = "0.1.18", default-features = false }
 log = "0.4.34"
 logforth-core = "0.4.0"
-patricia_tree = { version = "0.10.1", default-features = false }
-rand = { version = "0.10.2", default-features = false }
 serde = "1.0.228"
-serde_yaml_ng = "0.10.0"
-socket2 = "0.6.4"
 thiserror = "2.0.21"
 time = { version = "0.3.55", features = ["formatting"] }
 typetag = "0.2.22"
-url = "2.5.7"
-vetis = { version = "0.1.7-beta.6" }
+vetis = { path = "vetis" }
 vetis-macros = { path = "vetis-macros" }
-vetis-tokio = { version = "0.1.2-beta.7" }
+vetis-matchers = { path = "../vetis-matchers" }
+vetis-tokio = { path = "../vetis-tokio" }
 
 [profile.release]
 strip = true
@@ -45,3 +38,8 @@ panic = "abort"
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+#[patch.crates-io]
+#vetis = { path = "vetis" }
+#vetis-matchers = { path = "../vetis-matchers" }
+#vetis-tokio = { path = "../vetis-tokio" }
