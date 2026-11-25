@@ -1,9 +1,8 @@
-use crate::VetisResult;
+use crate::{VetisHosts, VetisResult};
 use serde::Deserialize;
 use std::{
     future::Future,
     net::{IpAddr, Ipv4Addr},
-    sync::Arc,
 };
 
 /// A trait for defining server listeners that can handle HTTP requests
@@ -14,17 +13,8 @@ pub trait Listener {
     /// The type of logger and its inner sender
     type Logger;
 
-    /// Add a host to this listener
-    fn add_host(&mut self, host: Arc<Self::RuntimeHost>) -> VetisResult<()>;
-
-    /// Remove a host from this listener
-    fn remove_host(&mut self, hostname: &str) -> VetisResult<()>;
-
     /// Allow set logger
     fn logger(&mut self, logger: Self::Logger);
-
-    /// Returns the number of hosts
-    fn total_hosts(&self) -> usize;
 
     /// Ask OS to reserve a free port
     fn reserve_port(&mut self) -> impl Future<Output = VetisResult<()>>;
@@ -36,7 +26,10 @@ pub trait Listener {
     fn config(&self) -> &ListenerConfig;
 
     /// Starts the listener and begins accepting connections
-    fn listen(&mut self) -> impl Future<Output = VetisResult<()>>;
+    fn listen(
+        &mut self,
+        hosts: VetisHosts<Self::RuntimeHost>,
+    ) -> impl Future<Output = VetisResult<()>>;
 
     /// Stops the listener and closes all connections
     fn stop(self) -> impl Future<Output = VetisResult<()>>;
@@ -60,19 +53,11 @@ pub trait Listener {
 ///     .build();
 /// ```
 pub struct ListenerConfigBuilder {
-    workers: usize,
     port: u16,
     interface: IpAddr,
 }
 
 impl ListenerConfigBuilder {
-    /// Sets the number of workers for this listener.
-    /// Default value is 1.
-    pub fn workers(mut self, workers: usize) -> Self {
-        self.workers = workers;
-        self
-    }
-
     /// Sets the port number for the listener.
     pub fn port(mut self, port: u16) -> Self {
         self.port = port;
@@ -92,7 +77,7 @@ impl ListenerConfigBuilder {
 
     /// Creates the `ListenerConfig` with the configured settings.
     pub fn build(self) -> VetisResult<ListenerConfig> {
-        Ok(ListenerConfig { workers: self.workers, port: self.port, interface: self.interface })
+        Ok(ListenerConfig { port: self.port, interface: self.interface })
     }
 }
 
@@ -120,14 +105,13 @@ impl ListenerConfigBuilder {
 #[derive(Deserialize, Clone)]
 #[serde(default)]
 pub struct ListenerConfig {
-    workers: usize,
     port: u16,
     interface: IpAddr,
 }
 
 impl Default for ListenerConfig {
     fn default() -> Self {
-        ListenerConfig { workers: 1, port: 80, interface: Ipv4Addr::UNSPECIFIED.into() }
+        ListenerConfig { port: 80, interface: Ipv4Addr::UNSPECIFIED.into() }
     }
 }
 
@@ -142,21 +126,15 @@ impl ListenerConfig {
     ///
     /// Default values:
     /// - port: 80
-    /// - ssl: false
-    /// - protocol: HTTP1 (if available)
+    /// - protocol: HTTP/1.1 (if available)
     /// - interface: "0.0.0.0"
     pub fn builder() -> ListenerConfigBuilder {
-        ListenerConfigBuilder { workers: 1, port: 80, interface: Ipv4Addr::UNSPECIFIED.into() }
+        ListenerConfigBuilder { port: 80, interface: Ipv4Addr::UNSPECIFIED.into() }
     }
 
     /// Returns mutable port number.
     pub fn reassign_port(&mut self, port: u16) {
         self.port = port;
-    }
-
-    /// Returns number of workers.
-    pub fn workers(&self) -> usize {
-        self.workers
     }
 
     /// Returns port number.

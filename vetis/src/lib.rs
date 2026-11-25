@@ -2,6 +2,7 @@
 #![deny(missing_docs)]
 use crate::hook::Hook;
 use crate::log::LogMessage;
+use crate::matcher::Matcher;
 pub use base::VetisServer;
 use compact_str::CompactString;
 use crossfire::{MAsyncTx, Rx, mpsc};
@@ -16,6 +17,8 @@ use std::{future::Future, pin::Pin};
 
 /// Base module
 pub mod base;
+/// Cache module
+pub mod cache;
 /// Error handling module
 pub mod errors;
 /// Hook module
@@ -81,7 +84,6 @@ impl<T> VetisHook for T where T: Hook + Send {}
 ///
 /// This is used to store virtual hosts in a map with hostname and port as the key.
 pub type VetisHooks = Vec<Box<dyn Hook>>;
-
 #[cfg(feature = "single-threaded")]
 /// Trait bounds alias for async typed matchers
 pub trait VetisMatcher: Hook + Send {}
@@ -109,9 +111,9 @@ pub type VetisHooks = Vec<Box<dyn VetisHook>>;
 
 #[cfg(feature = "multi-threaded")]
 /// Trait bounds alias for async typed matchers
-pub trait VetisMatcher: Hook + Send + Sync {}
+pub trait VetisMatcher: Matcher + Send + Sync {}
 #[cfg(feature = "multi-threaded")]
-impl<T> VetisMatcher for T where T: Hook + Send + Sync {}
+impl<T> VetisMatcher for T where T: Matcher + Send + Sync {}
 #[cfg(feature = "multi-threaded")]
 /// A type alias for a hashmap of Hooks
 ///
