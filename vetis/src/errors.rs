@@ -41,9 +41,12 @@ pub enum VetisError {
     /// Request handler errors
     #[error("Hook error: {0}")]
     Hook(Str),
-    /// Request handler errors
-    #[error("Worker error: {0}")]
-    Worker(Str),
+    /// UDP related errors
+    #[error("Udp error: {0}")]
+    Udp(Str),
+    /// TCP related errors
+    #[error("Tcp error: {0}")]
+    Tcp(Str),
     /// TLS/SSL related errors
     #[error("Tls error: {0}")]
     Tls(Str),
@@ -112,17 +115,22 @@ impl VetisError {
         Self::Handler(field.into())
     }
 
-    /// Create a new ConfigError::Worker variant
-    pub fn worker(field: impl Into<Str>) -> Self {
-        Self::Worker(field.into())
+    /// Create a new ConfigError::Udp variant
+    pub fn udp(field: impl Into<Str>) -> Self {
+        Self::Udp(field.into())
     }
 
-    /// Create a new ConfigError::tls variant
+    /// Create a new ConfigError::Tcp variant
+    pub fn tcp(field: impl Into<Str>) -> Self {
+        Self::Tcp(field.into())
+    }
+
+    /// Create a new ConfigError::Tls variant
     pub fn tls(field: impl Into<Str>) -> Self {
         Self::Tls(field.into())
     }
 
-    /// Create a new ConfigError::mather variant
+    /// Create a new ConfigError::Matcher variant
     pub fn matcher(field: impl Into<Str>) -> Self {
         Self::Matcher(field.into())
     }
@@ -137,33 +145,33 @@ pub enum ConfigError {
     /// Invalid auth configuration
     #[error("Invalid auth config: {0}")]
     Auth(Str),
-    /// No listeners configured
+    /// Invalid server configuration
     #[error("Invalid server config: {0}")]
     Server(Str),
     /// Invalid listener configuration
     #[error("Invalid listener config: {0}")]
     Listener(Str),
-    /// Invalid virtual host configuration
+    /// Invalid host configuration
     #[error("Invalid host config: {0}")]
     Host(Str),
-    /// Invalid path configuration
+    /// Invalid hook configuration
     #[error("Invalid hook config: {0}")]
     Hook(Str),
-    /// Invalid security configuration
+    /// Invalid tls configuration
     #[error("Invalid tls config: {0}")]
     Tls(Str),
-    /// Invalid security configuration
+    /// Invalid matcher configuration
     #[error("Invalid matcher config: {0}")]
     Matcher(Str),
 }
 
 impl ConfigError {
-    /// Create a new ConfigError::auth variant
+    /// Create a new ConfigError::Auth variant
     pub fn auth(field: impl Into<Str>) -> Self {
         Self::Auth(field.into())
     }
 
-    /// Create a new ConfigError::server variant
+    /// Create a new ConfigError::Server variant
     pub fn server(field: impl Into<Str>) -> Self {
         Self::Server(field.into())
     }
@@ -173,22 +181,22 @@ impl ConfigError {
         Self::Listener(field.into())
     }
 
-    /// Create a new ConfigError::host variant
+    /// Create a new ConfigError::Host variant
     pub fn host(field: impl Into<Str>) -> Self {
         Self::Host(field.into())
     }
 
-    /// Create a new ConfigError::hook variant
+    /// Create a new ConfigError::Hook variant
     pub fn hook(field: impl Into<Str>) -> Self {
         Self::Hook(field.into())
     }
 
-    /// Create a new ConfigError::tls variant
+    /// Create a new ConfigError::Tls variant
     pub fn tls(field: impl Into<Str>) -> Self {
         Self::Tls(field.into())
     }
 
-    /// Create a new ConfigError::mather variant
+    /// Create a new ConfigError::Matcher variant
     pub fn matcher(field: impl Into<Str>) -> Self {
         Self::Matcher(field.into())
     }
