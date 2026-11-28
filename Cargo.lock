@@ -602,9 +602,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-body-utils"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc562691bacb4a4dbb2255b7321d7b69a635e21403a0e8d6351ddca0790b6926"
+checksum = "f086b46e8273621aca6c3d5f82dba0c3c90b7a60884364670b03ddfa703cd032"
 dependencies = [
  "async-fn-stream",
  "bytes",
